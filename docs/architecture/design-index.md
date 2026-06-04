@@ -6,6 +6,7 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 
 ## Product Decision Source
 
+- `docs/gaemiguard-all-docs.html`: single-file readable bundle of project documents and raw appendices.
 - `gaemiguard-design-spec.md`: locked 65/65 design survey result. This is the highest-level product and architecture source.
 - `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
 - `docs/agent-example-reverse-engineering.md`: extracted agent-runtime lessons from the local `agent-example` inspection.
