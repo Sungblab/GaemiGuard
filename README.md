@@ -99,6 +99,7 @@ prototypes/      초기 UI 프로토타입
 | `docs/architecture/agent-runtime.md` | Commander/specialist 에이전트 런타임과 권한 모델 |
 | `docs/roadmap.md` | 단계별 개발 로드맵 |
 | `docs/waterfall/00-master-plan.md` | 회사식 Gate-Based Waterfall 마스터 플랜 |
+| `docs/gaemiguard-all-docs.html` | 주요 문서를 한 번에 읽는 단일 HTML 문서 |
 | `docs/reviews/2026-06-04-ten-loop-planning-review.md` | 10회 기획/리뷰/리서치 루프 결과 |
 | `docs/research/2026-06-04-planning-research.md` | Toss/API/에이전트/금융 AI 리서치 근거 |
 | `docs/toss-invest-openapi.md` | Toss Invest Open API 요약 |

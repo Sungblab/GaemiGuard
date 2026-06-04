@@ -17,6 +17,7 @@
     "dev": "concurrently -k -n api,desktop \"pnpm --filter @gaemiguard/api dev\" \"pnpm --filter @gaemiguard/desktop dev\"",
     "dev:api": "pnpm --filter @gaemiguard/api dev",
     "dev:desktop": "pnpm --filter @gaemiguard/desktop dev",
+    "docs:html": "node scripts/build-docs-html.mjs",
     "verify": "pnpm test && pnpm typecheck && pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
