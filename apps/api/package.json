@@ -1,0 +1,23 @@
+{
+  "name": "@gaemiguard/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@gaemiguard/core": "workspace:*",
+    "@gaemiguard/db": "workspace:*",
+    "@gaemiguard/shared": "workspace:*",
+    "fastify": "^5.8.5",
+    "zod": "^4.4.3"
+  }
+}

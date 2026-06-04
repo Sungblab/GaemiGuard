@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GaemiGuard Prototype</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f9fafb;
+      --surface-strong: #f2f4f6;
+      --line: #e5e8eb;
+      --line-soft: #eef1f4;
+      --text: #191f28;
+      --muted: #4e5968;
+      --weak: #8b95a1;
+      --blue: #3182f6;
+      --blue-weak: #e8f3ff;
+      --blue-text: #1b64da;
+      --red: #f04452;
+      --red-weak: #fff0f1;
+      --green: #00a86b;
+      --green-weak: #eafaf3;
+      --yellow: #ff8a00;
+      --yellow-weak: #fff6e5;
+      --shadow: 0 8px 24px rgba(25, 31, 40, 0.06);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1180px;
+      background: var(--bg);
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .topbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #191f28;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 100%;
+    }
+
+    .nav button {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: var(--surface-strong);
+      color: var(--text);
+    }
+
+    .top-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search {
+      width: 270px;
+      height: 34px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      padding: 0 12px;
+      color: var(--muted);
+      outline: none;
+    }
+
+    .status-pill {
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--green);
+      flex: 0 0 auto;
+    }
+
+    .login {
+      height: 34px;
+      padding: 0 13px;
+      border-radius: 7px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(760px, 1fr) 430px;
+      min-height: calc(100vh - 54px);
+    }
+
+    .workspace {
+      padding: 28px 28px 36px 34px;
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .market-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 0.95fr;
+      gap: 18px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .market-card {
+      min-height: 132px;
+      border-right: 1px solid var(--line-soft);
+      padding-right: 18px;
+    }
+
+    .market-card:last-child {
+      border-right: 0;
+      padding-right: 0;
+    }
+
+    .market-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .market-title {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+
+    .market-title strong {
+      font-size: 19px;
+      font-weight: 780;
+    }
+
+    .change {
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .up {
+      color: var(--red);
+    }
+
+    .down {
+      color: var(--blue);
+    }
+
+    .neutral {
+      color: var(--weak);
+    }
+
+    .spark {
+      width: 100%;
+      height: 54px;
+      margin: 6px 0 10px;
+    }
+
+    .mini-meta {
+      display: flex;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .mini-meta span {
+      display: block;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .section-sub {
+      margin: 4px 0 0;
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .text-link {
+      color: var(--blue-text);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .guard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .guard-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px 15px;
+      min-height: 118px;
+    }
+
+    .guard-card.warning {
+      background: linear-gradient(180deg, #fff, #fffaf3);
+      border-color: #ffe0ad;
+    }
+
+    .guard-label {
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 750;
+      margin-bottom: 7px;
+    }
+
+    .guard-card strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+
+    .guard-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin: 18px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      height: 32px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .tab.active,
+    .tab:hover {
+      background: var(--blue-weak);
+      color: var(--blue-text);
+      border-color: #d6e8ff;
+    }
+
+    .table-wrap {
+      border-top: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th {
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 750;
+      text-align: right;
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line-soft);
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    td {
+      height: 54px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: right;
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+
+    tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover,
+    tbody tr.selected {
+      background: #f7fbff;
+    }
+
+    .asset {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .asset-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 850;
+      flex: 0 0 auto;
+    }
+
+    .asset-name {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 760;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .asset-symbol {
+      display: block;
+      color: var(--weak);
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .badge-soft {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 25px;
+      min-width: 58px;
+      border-radius: 6px;
+      padding: 0 8px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-soft.ok {
+      background: var(--green-weak);
+      color: #008a5a;
+    }
+
+    .badge-soft.warn {
+      background: var(--yellow-weak);
+      color: #b85f00;
+    }
+
+    .badge-soft.danger {
+      background: var(--red-weak);
+      color: var(--red);
+    }
+
+    .small-action {
+      height: 28px;
+      border-radius: 7px;
+      background: var(--surface-strong);
+      color: var(--muted);
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .small-action:hover {
+      background: var(--blue-weak);
+      color: var(--blue-text);
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .feed-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      min-height: 112px;
+    }
+
+    .feed-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 820;
+    }
+
+    .feed-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .agent {
+      height: calc(100vh - 54px);
+      position: sticky;
+      top: 54px;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      background: #fff;
+    }
+
+    .agent-head {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .agent-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .agent-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .agent-mode {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: var(--surface-strong);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .agent-sub {
+      margin: 7px 0 0;
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .context-card {
+      margin: 14px 18px 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 14px;
+    }
+
+    .context-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .context-name {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .context-name strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 830;
+    }
+
+    .context-name span {
+      color: var(--weak);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .context-price {
+      text-align: right;
+      font-size: 13px;
+      font-weight: 820;
+      color: var(--text);
+    }
+
+    .context-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      border-radius: 7px;
+      background: #fff;
+      padding: 9px 8px;
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--weak);
+      font-size: 11px;
+      font-weight: 750;
+      margin-bottom: 4px;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 840;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .quick-actions {
+      padding: 14px 18px 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .quick-actions button {
+      height: 36px;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .quick-actions button:hover {
+      background: var(--blue-weak);
+      border-color: #cfe5ff;
+      color: var(--blue-text);
+    }
+
+    .chat {
+      overflow: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      border-radius: var(--radius);
+      padding: 12px 13px;
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 92%;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 650;
+    }
+
+    .message.agent-msg {
+      align-self: flex-start;
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--line-soft);
+    }
+
+    .card-message {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 13px;
+    }
+
+    .card-message h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .card-message p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .rule-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 14px 18px 18px;
+      background: #fff;
+    }
+
+    .suggestions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .suggestions button {
+      height: 27px;
+      border-radius: 999px;
+      background: var(--surface-strong);
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .chat-input {
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 12px;
+      outline: none;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .send {
+      height: 42px;
+      border-radius: 7px;
+      background: var(--text);
+      color: #fff;
+      padding: 0 15px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1260px) {
+      body {
+        min-width: 980px;
+      }
+
+      .layout {
+        grid-template-columns: minmax(620px, 1fr) 390px;
+      }
+
+      .market-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .market-card:nth-child(2) {
+        border-right: 0;
+      }
+
+      .guard-grid,
+      .feed-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">GG</div>
+      <span>GaemiGuard</span>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="active">홈</button>
+      <button>포트폴리오</button>
+      <button>논리장부</button>
+      <button>리서치</button>
+      <button>원칙/자동화</button>
+      <button>시나리오</button>
+    </nav>
+    <div class="top-actions">
+      <input class="search" value="AMD, 삼성전자, 내 규칙 검색" aria-label="Search" />
+      <span class="status-pill"><span class="dot"></span>Toss read-only</span>
+      <button class="login">설정</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="workspace">
+      <div class="market-row">
+        <article class="market-card">
+          <div class="market-eyebrow"><span class="dot"></span>국내 정규장 09:00 - 15:30</div>
+          <div class="market-title">
+            <strong>8,696,800원</strong>
+            <span class="change down">-104,690 (-1.18%)</span>
+          </div>
+          <canvas class="spark" data-color="#3182f6" data-values="22,28,41,35,33,29,37,45,44,43,46"></canvas>
+          <div class="mini-meta">
+            <span>현금<br><strong>1,420,000원</strong></span>
+            <span>USD 노출<br><strong>42.8%</strong></span>
+            <span>경고<br><strong class="up">3개</strong></span>
+          </div>
+        </article>
+        <article class="market-card">
+          <div class="market-eyebrow"><span class="dot"></span>해외 데이마켓 09:00 - 17:00</div>
+          <div class="market-title">
+            <strong>1,529.10</strong>
+            <span class="change up">+13.5 (+0.89%)</span>
+          </div>
+          <canvas class="spark" data-color="#f04452" data-values="21,28,25,36,30,34,45,39,48,44,51"></canvas>
+          <div class="mini-meta">
+            <span>환율<br><strong>주의</strong></span>
+            <span>VIX<br><strong>16.06</strong></span>
+            <span>QQQ 규칙<br><strong>대기</strong></span>
+          </div>
+        </article>
+        <article class="market-card">
+          <div class="market-eyebrow"><span class="dot"></span>Today Guard</div>
+          <div class="market-title">
+            <strong>원칙 위반 1</strong>
+            <span class="change up">주의 3</span>
+          </div>
+          <canvas class="spark" data-color="#ff8a00" data-values="12,18,15,23,21,26,20,28,34,31,36"></canvas>
+          <div class="mini-meta">
+            <span>Thesis drift<br><strong>AMD</strong></span>
+            <span>리서치 필요<br><strong>4개</strong></span>
+          </div>
+        </article>
+        <article class="market-card">
+          <div class="market-eyebrow"><span class="dot"></span>주요 일정</div>
+          <div class="market-title">
+            <strong>FOMC 의사록</strong>
+            <span class="change neutral">D-1</span>
+          </div>
+          <p style="margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55;">
+            미국 고용지표와 브로드컴 실적 발표가 QQQ 추가매수 규칙에 영향을 줄 수 있습니다.
+          </p>
+        </article>
+      </div>
+
+      <div class="section-head">
+        <div>
+          <h1 class="section-title">Today Guard</h1>
+          <p class="section-sub">오늘의 계좌, 원칙, 논리 변화만 먼저 봅니다.</p>
+        </div>
+        <button class="text-link">전체 브리핑 보기</button>
+      </div>
+
+      <div class="guard-grid">
+        <article class="guard-card warning">
+          <div class="guard-label">원칙 경고</div>
+          <strong>AMD 추가매수는 환율 규칙 확인 전 보류</strong>
+          <p>USD/KRW가 사용자가 정한 보류 기준에 가까워졌습니다. 매수 전 환율 조건을 먼저 확인해야 합니다.</p>
+        </article>
+        <article class="guard-card">
+          <div class="guard-label">논리 변화</div>
+          <strong>삼성전자 논리는 유지, 수급 리스크 상승</strong>
+          <p>최근 외국인 순매도와 반도체 업종 변동성이 기존 thesis에 약한 부정 신호를 줍니다.</p>
+        </article>
+        <article class="guard-card">
+          <div class="guard-label">리서치 작업</div>
+          <strong>Hermes 브리핑 2건 대기</strong>
+          <p>AMD AI 서버 수요와 QQQ 금리 민감도 리포트를 실행하면 오늘 질문에 더 정확히 답할 수 있습니다.</p>
+        </article>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-filter="all">전체</button>
+        <button class="tab" data-filter="holding">보유</button>
+        <button class="tab" data-filter="watch">관심</button>
+        <button class="tab" data-filter="warn">오늘 주의</button>
+        <button class="tab" data-filter="research">리서치 필요</button>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Holdings and watchlist">
+          <thead>
+            <tr>
+              <th style="width: 28%;">종목</th>
+              <th>현재가</th>
+              <th>등락</th>
+              <th>비중</th>
+              <th>논리</th>
+              <th>원칙</th>
+              <th>AI 요약</th>
+              <th style="width: 86px;">액션</th>
+            </tr>
+          </thead>
+          <tbody id="assetRows"></tbody>
+        </table>
+      </div>
+
+      <div class="feed-grid">
+        <article class="feed-card">
+          <h3>커뮤니티 온도</h3>
+          <p>미국주식 갤러리는 공포 72, 조롱 63, 광기 81로 분류됐습니다. Meme/Noise는 거래 판단에서 제외됩니다.</p>
+        </article>
+        <article class="feed-card">
+          <h3>시나리오 Lab</h3>
+          <p>AMD 추가매수 시나리오는 bull/base/bear 케이스를 분리해 저장합니다. 결과는 hypothetical로만 취급됩니다.</p>
+        </article>
+      </div>
+    </section>
+
+    <aside class="agent" aria-label="GaemiGuard Agent">
+      <div class="agent-head">
+        <div class="agent-title-row">
+          <h2 class="agent-title">Agent Panel</h2>
+          <span class="agent-mode">계좌 전체</span>
+        </div>
+        <p class="agent-sub">중앙 화면에서 종목을 선택하면 이 패널이 해당 종목의 논리, 원칙, 리서치 컨텍스트로 바뀝니다.</p>
+      </div>
+
+      <section class="context-card">
+        <div class="context-top">
+          <div class="asset-badge" id="contextBadge" style="background:#1d4ed8;">AMD</div>
+          <div class="context-name">
+            <strong id="contextName">AMD</strong>
+            <span id="contextSymbol">NASDAQ · 보유</span>
+          </div>
+          <div class="context-price" id="contextPrice">$164.20<br><span class="down">-1.86%</span></div>
+        </div>
+        <div class="context-grid">
+          <div class="metric"><span>비중</span><strong id="contextWeight">18.2%</strong></div>
+          <div class="metric"><span>논리</span><strong id="contextThesis">변화 감지</strong></div>
+          <div class="metric"><span>원칙</span><strong id="contextRule">경고</strong></div>
+        </div>
+      </section>
+
+      <div class="quick-actions">
+        <button data-prompt="원칙 체크해줘">원칙 체크</button>
+        <button data-prompt="논리 변화 확인해줘">논리 변화</button>
+        <button data-prompt="Hermes 리서치 돌려줘">리서치</button>
+        <button data-prompt="MiroFish 시나리오 보여줘">시나리오</button>
+      </div>
+
+      <div class="chat" id="chat">
+        <div class="message user">AMD 2주 더 사도 됨?</div>
+        <div class="message agent-msg">지금은 바로 매수보다 Order Guard 검토가 먼저입니다. 환율 조건과 단일 종목 비중 규칙이 동시에 걸려 있습니다.</div>
+        <div class="card-message">
+          <h4>Guard Review</h4>
+          <p id="guardSummary">AMD는 AI 서버 수요 thesis가 유지되지만, 현재 비중 18.2%와 환율 조건 때문에 추가매수는 경고 상태입니다.</p>
+          <div class="rule-list">
+            <div class="rule-item"><span>단일 종목 최대 비중</span><span class="badge-soft warn">주의</span></div>
+            <div class="rule-item"><span>환율 1450원 이상 보류</span><span class="badge-soft warn">근접</span></div>
+            <div class="rule-item"><span>논리 메모 존재</span><span class="badge-soft ok">통과</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="suggestions">
+          <button data-prompt="이거 더 사도 됨?">더 사도 됨?</button>
+          <button data-prompt="이번 주 매매 복기해줘">매매 복기</button>
+          <button data-prompt="커뮤니티 분위기 요약해줘">커뮤니티</button>
+        </div>
+        <div class="input-row">
+          <input class="chat-input" id="chatInput" value="선택 종목 기준으로 물어보기" />
+          <button class="send" id="sendBtn">전송</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const assets = [
+      {
+        name: "AMD",
+        symbol: "NASDAQ",
+        price: "$164.20",
+        change: "-1.86%",
+        direction: "down",
+        weight: "18.2%",
+        thesis: "변화 감지",
+        rule: "경고",
+        ai: "환율 확인",
+        type: "holding warn research",
+        badge: "AMD",
+        color: "#1d4ed8",
+        guard: "AI 서버 수요 thesis는 유지되지만, 비중과 환율 조건 때문에 추가매수 전 검토가 필요합니다."
+      },
+      {
+        name: "삼성전자",
+        symbol: "KRX 005930",
+        price: "356,500원",
+        change: "-1.10%",
+        direction: "down",
+        weight: "12.4%",
+        thesis: "유지",
+        rule: "통과",
+        ai: "수급 약화",
+        type: "holding warn",
+        badge: "SAM",
+        color: "#1726a6",
+        guard: "장기 반도체 thesis는 유지됩니다. 다만 외국인 순매도와 변동성 때문에 오늘은 추격매수보다 관찰이 적합합니다."
+      },
+      {
+        name: "QQQ",
+        symbol: "NASDAQ ETF",
+        price: "$548.12",
+        change: "+0.42%",
+        direction: "up",
+        weight: "24.8%",
+        thesis: "유지",
+        rule: "주의",
+        ai: "환율 근접",
+        type: "holding warn research",
+        badge: "QQQ",
+        color: "#111827",
+        guard: "핵심 ETF thesis는 유지되지만, 환율 보류 규칙에 근접했습니다. 장기 DCA라면 금액 축소 옵션을 검토하세요."
+      },
+      {
+        name: "NAVER",
+        symbol: "KRX 035420",
+        price: "274,000원",
+        change: "-2.31%",
+        direction: "down",
+        weight: "관심",
+        thesis: "없음",
+        rule: "대기",
+        ai: "논리 필요",
+        type: "watch research",
+        badge: "N",
+        color: "#03c75a",
+        guard: "관심종목이지만 매수 thesis가 없습니다. 첫 매수 전 논리 메모와 리스크 조건을 작성해야 합니다."
+      },
+      {
+        name: "한화비전",
+        symbol: "KRX 489790",
+        price: "79,700원",
+        change: "+17.72%",
+        direction: "up",
+        weight: "관심",
+        thesis: "미작성",
+        rule: "차단",
+        ai: "FOMO 위험",
+        type: "watch warn",
+        badge: "HV",
+        color: "#f97316",
+        guard: "급등 이후 FOMO 위험이 높습니다. thesis가 없는 상태라 매수 검토는 차단되어야 합니다."
+      },
+      {
+        name: "현대모비스",
+        symbol: "KRX 012330",
+        price: "759,000원",
+        change: "0.00%",
+        direction: "neutral",
+        weight: "4.6%",
+        thesis: "유지",
+        rule: "통과",
+        ai: "중립",
+        type: "holding",
+        badge: "HM",
+        color: "#334155",
+        guard: "현재 원칙 위반이 없습니다. 신규 리서치 없이 추가 행동은 필요하지 않습니다."
+      }
+    ];
+
+    const tbody = document.getElementById("assetRows");
+    const chat = document.getElementById("chat");
+    const chatInput = document.getElementById("chatInput");
+    let selected = assets[0];
+
+    function renderRows(filter = "all") {
+      tbody.innerHTML = "";
+      assets
+        .filter(asset => filter === "all" || asset.type.includes(filter))
+        .forEach(asset => {
+          const tr = document.createElement("tr");
+          tr.className = asset.name === selected.name ? "selected" : "";
+          tr.innerHTML = `
+            <td>
+              <div class="asset">
+                <div class="asset-badge" style="background:${asset.color}">${asset.badge}</div>
+                <div>
+                  <span class="asset-name">${asset.name}</span>
+                  <span class="asset-symbol">${asset.symbol}</span>
+                </div>
+              </div>
+            </td>
+            <td>${asset.price}</td>
+            <td class="${asset.direction}">${asset.change}</td>
+            <td>${asset.weight}</td>
+            <td><span class="badge-soft ${asset.thesis === "변화 감지" ? "warn" : asset.thesis === "없음" || asset.thesis === "미작성" ? "danger" : "ok"}">${asset.thesis}</span></td>
+            <td><span class="badge-soft ${asset.rule === "통과" ? "ok" : asset.rule === "차단" ? "danger" : "warn"}">${asset.rule}</span></td>
+            <td>${asset.ai}</td>
+            <td><button class="small-action">검토</button></td>
+          `;
+          tr.addEventListener("click", () => selectAsset(asset));
+          tbody.appendChild(tr);
+        });
+    }
+
+    function selectAsset(asset) {
+      selected = asset;
+      document.getElementById("contextBadge").textContent = asset.badge;
+      document.getElementById("contextBadge").style.background = asset.color;
+      document.getElementById("contextName").textContent = asset.name;
+      document.getElementById("contextSymbol").textContent = `${asset.symbol} · ${asset.type.includes("holding") ? "보유" : "관심"}`;
+      document.getElementById("contextPrice").innerHTML = `${asset.price}<br><span class="${asset.direction}">${asset.change}</span>`;
+      document.getElementById("contextWeight").textContent = asset.weight;
+      document.getElementById("contextThesis").textContent = asset.thesis;
+      document.getElementById("contextRule").textContent = asset.rule;
+      document.getElementById("guardSummary").textContent = asset.guard;
+      renderRows(document.querySelector(".tab.active").dataset.filter);
+    }
+
+    function addMessage(text, from = "user") {
+      const node = document.createElement("div");
+      node.className = `message ${from === "user" ? "user" : "agent-msg"}`;
+      node.textContent = text;
+      chat.appendChild(node);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function askAgent(prompt) {
+      addMessage(prompt, "user");
+      const answer = `${selected.name} 기준으로 보겠습니다. 현재 논리 상태는 '${selected.thesis}', 원칙 상태는 '${selected.rule}'입니다. ${selected.guard}`;
+      window.setTimeout(() => addMessage(answer, "agent"), 180);
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(item => item.classList.remove("active"));
+        tab.classList.add("active");
+        renderRows(tab.dataset.filter);
+      });
+    });
+
+    document.querySelectorAll("[data-prompt]").forEach(button => {
+      button.addEventListener("click", () => askAgent(button.dataset.prompt));
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const prompt = chatInput.value.trim();
+      if (prompt) askAgent(prompt);
+    });
+
+    chatInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        const prompt = chatInput.value.trim();
+        if (prompt) askAgent(prompt);
+      }
+    });
+
+    function drawSparkline(canvas) {
+      const ctx = canvas.getContext("2d");
+      const values = canvas.dataset.values.split(",").map(Number);
+      const color = canvas.dataset.color;
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const pad = 5;
+      const xStep = (rect.width - pad * 2) / (values.length - 1);
+      const y = value => rect.height - pad - ((value - min) / Math.max(1, max - min)) * (rect.height - pad * 2);
+      ctx.beginPath();
+      values.forEach((value, index) => {
+        const x = pad + index * xStep;
+        const yy = y(value);
+        if (index === 0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+      ctx.lineTo(rect.width - pad, rect.height - pad);
+      ctx.lineTo(pad, rect.height - pad);
+      ctx.closePath();
+      ctx.fillStyle = color + "12";
+      ctx.fill();
+    }
+
+    function drawAllSparks() {
+      document.querySelectorAll(".spark").forEach(drawSparkline);
+    }
+
+    window.addEventListener("resize", drawAllSparks);
+    renderRows();
+    selectAsset(assets[0]);
+    drawAllSparks();
+  </script>
+</body>
+</html>

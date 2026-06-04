@@ -1,0 +1,561 @@
+:root {
+  color: #1f2937;
+  background: #f6f8fb;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 1120px;
+  min-height: 720px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: #f6f8fb;
+}
+
+.topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 22px;
+  border-bottom: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.brand {
+  width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark,
+.agent-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.brand strong,
+.brand span {
+  display: block;
+}
+
+.brand strong {
+  font-size: 15px;
+}
+
+.brand span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.main-nav {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.main-nav a {
+  cursor: default;
+}
+
+.main-nav .active {
+  color: #111827;
+  font-weight: 700;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.health-pill,
+.compact-button,
+.icon-button {
+  height: 34px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+}
+
+.health-pill {
+  min-width: 70px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.icon-button {
+  width: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(800px, 1fr) 390px;
+  min-height: calc(100vh - 58px);
+}
+
+.dashboard {
+  padding: 24px;
+  overflow: auto;
+}
+
+.market-strip {
+  display: grid;
+  grid-template-columns: minmax(330px, 1.5fr) repeat(3, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.market-card,
+.panel,
+.run-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.market-card {
+  min-height: 138px;
+  padding: 18px;
+}
+
+.market-card.primary {
+  background: #ffffff;
+}
+
+.market-card h1,
+.panel h2,
+.commander-head h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.market-card h1 {
+  margin-top: 5px;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.market-card p {
+  max-width: 560px;
+  margin: 8px 0 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.guard-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.guard-chip {
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guard-chip.safe {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.metric-head,
+.panel-head,
+.run-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.metric-head {
+  justify-content: flex-start;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.market-card strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 23px;
+}
+
+.market-card small {
+  display: block;
+  margin-top: 7px;
+  color: #6b7280;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(480px, 1.4fr) minmax(260px, 0.8fr);
+  gap: 14px;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.panel.wide {
+  grid-column: span 1;
+}
+
+.panel-head {
+  margin-bottom: 14px;
+}
+
+.panel h2 {
+  margin-top: 3px;
+  font-size: 17px;
+}
+
+.compact-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-weight: 700;
+}
+
+.holdings-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.holdings-table th,
+.holdings-table td {
+  border-top: 1px solid #eef0f3;
+  padding: 12px 8px;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.holdings-table th {
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.stock-cell strong,
+.stock-cell span {
+  display: block;
+}
+
+.stock-cell span,
+.timeline-message,
+.artifact-kind {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.down {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.rule-list,
+.health-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rule-row,
+.health-row,
+.artifact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  border-radius: 8px;
+  background: #f9fafb;
+  padding: 10px 12px;
+}
+
+.rule-row strong {
+  color: #047857;
+}
+
+.rule-row.blocked strong {
+  color: #dc2626;
+}
+
+.status {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.status-ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-not_configured,
+.status-disabled {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.status-warning {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.status-error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.empty-state,
+.api-error {
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.scenario-band {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.scenario-band div {
+  min-height: 78px;
+  border-radius: 8px;
+  padding: 13px;
+  background: #f8fafc;
+}
+
+.scenario-band strong,
+.scenario-band span {
+  display: block;
+}
+
+.scenario-band span {
+  margin-top: 8px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.commander-panel {
+  display: grid;
+  grid-template-rows: auto minmax(190px, 1fr) auto auto;
+  gap: 14px;
+  border-left: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 18px;
+  min-height: calc(100vh - 58px);
+}
+
+.commander-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.commander-head h2 {
+  margin-top: 3px;
+  font-size: 18px;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.chat-bubble {
+  max-width: 92%;
+  border-radius: 8px;
+  padding: 11px 12px;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.chat-bubble.assistant {
+  align-self: flex-start;
+  background: #f3f4f6;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.run-card {
+  max-height: 360px;
+  overflow: auto;
+  padding: 13px;
+}
+
+.run-title {
+  justify-content: flex-start;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.timeline {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 8px;
+}
+
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #14b8a6;
+}
+
+.timeline-agent {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.artifact-list {
+  display: grid;
+  gap: 8px;
+}
+
+.artifact-row {
+  justify-content: flex-start;
+}
+
+.artifact-title {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr 42px;
+  gap: 8px;
+}
+
+.composer input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.composer input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.composer button {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.composer button:disabled {
+  background: #cbd5e1;
+}
+
+@media (max-width: 1180px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .commander-panel {
+    border-left: 0;
+    border-top: 1px solid #e5e7eb;
+    min-height: 520px;
+  }
+
+  body {
+    min-width: 760px;
+  }
+}
+
