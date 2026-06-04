@@ -114,6 +114,7 @@ prototypes/      초기 UI 프로토타입
 | `docs/waterfall/00-master-plan.md` | 회사식 Gate-Based Waterfall 마스터 플랜 |
 | `docs/gaemiguard-all-docs.html` | 주요 문서를 한 번에 읽는 단일 HTML 문서 |
 | `docs/setup/agent-assisted-setup.md` | 에이전트 기반 자동 설치/셋업 지침 |
+| `docs/setup/playwright-smoke.md` | Windows-safe Playwright UI smoke 지침 |
 | `AGENTS.md` | 코딩 에이전트가 따라야 할 설치/검증/안전 지침 |
 | `NOTICE`, `THIRD_PARTY_NOTICES.md` | AGPL 및 외부 도구 라이선스 경계 |
 | `docs/reviews/2026-06-04-ten-loop-planning-review.md` | 10회 기획/리뷰/리서치 루프 결과 |

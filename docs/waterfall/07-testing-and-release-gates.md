@@ -13,7 +13,7 @@ GaemiGuard uses contract-first testing for external and sensitive behavior.
 | DB | migration tests, repository tests |
 | Artifacts | schema tests, redaction snapshots |
 | Agents | golden trace tests and tool-call timelines |
-| UI | Playwright core workflow smoke tests |
+| UI | Playwright core workflow smoke tests through `pnpm smoke:desktop` |
 | Sidecars | per-run contract and health tests |
 | Order path | dry-run and paper-trade tests before live |
 | Security | secret masking, injection, sandbox/allowlist tests |
@@ -26,6 +26,7 @@ Every stage exit requires:
 - `pnpm typecheck`
 - `pnpm build`
 - UI smoke where user-visible workflow changed
+- For desktop UI work, use `pnpm smoke:desktop`; do not hand-roll a Vite preview background server on Windows.
 - Stage-specific contract tests
 - Updated docs
 - Gate Review Record
