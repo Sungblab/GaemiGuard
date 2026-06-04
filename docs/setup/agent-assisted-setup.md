@@ -42,6 +42,7 @@ The agent should:
 - Run `pnpm install`.
 - Run `pnpm docs:html`.
 - Run `pnpm verify`.
+- Run `pnpm smoke:desktop` when a user-visible desktop UI workflow changed.
 - Keep `apps/desktop/dist` and other generated build output out of commits.
 - Explain any missing runtime or failed command with exact evidence.
 
@@ -61,6 +62,7 @@ If you are not using an agent:
 pnpm install
 pnpm docs:html
 pnpm verify
+pnpm smoke:desktop
 pnpm dev
 ```
 

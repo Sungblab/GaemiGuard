@@ -38,6 +38,16 @@ For documentation bundle updates, also run:
 pnpm docs:html
 ```
 
+When a user-visible desktop UI workflow changes, run the Windows-safe Playwright smoke instead of hand-rolling a Vite preview session:
+
+```powershell
+pnpm smoke:desktop
+```
+
+This command builds the desktop bundle, starts the local API, serves `apps/desktop/dist` with Python, verifies `/favicon.svg`, drives the Commander chat flow through Playwright CLI, checks that the composer input is re-enabled, and writes artifacts under `output/playwright/`.
+
+Do not use `pnpm --dir apps/desktop exec vite preview` as a background smoke server on Windows. It is prone to `Command "vite" not found` and silent process shutdowns when launched through `Start-Process`. Use `pnpm smoke:desktop` or serve the built `dist` folder directly.
+
 ## Product Boundary
 
 GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, generic brokerage clone, or unofficial broker API wrapper.

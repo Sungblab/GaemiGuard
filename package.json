@@ -18,6 +18,7 @@
     "dev:api": "pnpm --filter @gaemiguard/api dev",
     "dev:desktop": "pnpm --filter @gaemiguard/desktop dev",
     "docs:html": "node scripts/build-docs-html.mjs",
+    "smoke:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-desktop-ui.ps1",
     "verify": "pnpm test && pnpm typecheck && pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
