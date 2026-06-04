@@ -13,6 +13,7 @@ const categoryOrder = [
   "Research And Reviews",
   "Architecture",
   "Product Context",
+  "Open Source And Setup",
   "External API And Sidecars",
   "Design",
   "Implementation Plans",
@@ -22,10 +23,18 @@ const categoryOrder = [
 
 const explicitMarkdownDocs = [
   "README.md",
+  "AGENTS.md",
+  "CHANGELOG.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
   "gaemiguard-design-spec.md",
+  "SECURITY.md",
+  "THIRD_PARTY_NOTICES.md",
 ];
 
 const rawAppendices = [
+  "LICENSE",
+  "NOTICE",
   "vendor/tossinvest/openapi-1.0.3.json",
   "docs/design/design-survey.html",
   "prototypes/index.html",
@@ -64,6 +73,17 @@ function categoryFor(docPath) {
   if (docPath.startsWith("docs/research/") || docPath.startsWith("docs/reviews/")) return "Research And Reviews";
   if (docPath.startsWith("docs/architecture/")) return "Architecture";
   if (docPath === "docs/gaemiguard-product-context.md") return "Product Context";
+  if (
+    docPath === "AGENTS.md" ||
+    docPath === "CHANGELOG.md" ||
+    docPath === "CODE_OF_CONDUCT.md" ||
+    docPath === "CONTRIBUTING.md" ||
+    docPath === "SECURITY.md" ||
+    docPath === "THIRD_PARTY_NOTICES.md" ||
+    docPath.startsWith("docs/setup/")
+  ) {
+    return "Open Source And Setup";
+  }
   if (docPath === "docs/toss-invest-openapi.md" || docPath === "docs/mirofish-sidecar-porting.md") {
     return "External API And Sidecars";
   }

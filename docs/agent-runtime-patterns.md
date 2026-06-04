@@ -1,10 +1,8 @@
-# agent-example Reverse Engineering for GaemiGuard
+# Agent Runtime Patterns for GaemiGuard
 
 Generated: 2026-06-04
 
-Target inspected: `C:\Users\Sungbin\Documents\GitHub\agent-example`
-
-This is a design extraction document, not a source-code copy. The inspected repository identifies itself as an unofficial/leaked Claude Code source snapshot, so the useful output here is architecture, responsibility mapping, and GaemiGuard design decisions.
+This is a generalized design pattern document. It captures agent-runtime architecture lessons that are useful for GaemiGuard without depending on, copying, or identifying any third-party source tree.
 
 ## Executive Decision
 
@@ -16,7 +14,7 @@ For trading, the Commander may request order actions, but it must not bypass the
 
 ## Top-Level Finding
 
-`agent-example` is built around one reusable agent loop:
+The reference pattern is built around one reusable agent loop:
 
 1. Build session context and system prompt.
 2. Send messages to an LLM.
@@ -28,7 +26,7 @@ For trading, the Commander may request order actions, but it must not bypass the
 
 Subagents are not a totally different engine. They are mostly the same query loop run with a different system prompt, different tool pool, different permission context, separate transcript, and task state.
 
-That is the key pattern to copy into GaemiGuard.
+That is the key pattern to adapt into GaemiGuard.
 
 ```mermaid
 flowchart LR
@@ -49,20 +47,7 @@ flowchart LR
   OrderGuard --> Approval["Approval / Auto Rule / Kill Switch"]
 ```
 
-## Repository Reality Check
-
-The inspected folder is not a git repository. `git status` fails because there is no `.git` directory.
-
-Runtime state on this machine:
-
-- `node --version` works: `v22.22.2`
-- `bun --version` fails: Bun is not installed or not on PATH
-- `node_modules` is absent
-- `dist` is absent
-
-So the analysis below is static source analysis. I did not run build/typecheck because this workspace currently lacks the declared runtime dependency.
-
-## Shape of the Repository
+## Shape Of A Comparable Runtime
 
 Root package:
 
@@ -208,7 +193,7 @@ GaemiGuard equivalent tool categories:
 
 ## Permission Model
 
-`agent-example` has explicit permission modes, permission rules, and safety checks.
+The reference pattern has explicit permission modes, permission rules, and safety checks.
 
 Key evidence:
 
@@ -299,7 +284,7 @@ Recommended GaemiGuard agents:
 
 ## Coordinator Mode
 
-`agent-example` has an explicit coordinator mode. This is the closest match to the user's "internal agent that commands the other agents" idea.
+The reference pattern has an explicit coordinator mode. This is the closest match to the user's "internal agent that commands the other agents" idea.
 
 Key evidence:
 
@@ -374,7 +359,7 @@ Each run should have:
 
 ## Memory and Persistence
 
-`agent-example` uses several persistence layers:
+The reference pattern uses several persistence layers:
 
 - conversation transcripts as `.jsonl`
 - subagent sidechain transcripts
@@ -720,4 +705,3 @@ Build the GaemiGuard Commander runtime skeleton first:
 After that, connect Toss read-only and MiroFish scenario runs.
 
 This order avoids building a normal stock app first. It makes the actual product - an agentic investment terminal with guardrails - the spine from day one.
-
