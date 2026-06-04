@@ -1,0 +1,31 @@
+name: 설계 논의
+description: 제품/아키텍처 설계 결정을 논의합니다.
+title: "[Design]: "
+labels: ["design"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: 배경
+      description: 어떤 설계 결정을 내려야 하나요?
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: 선택지
+      description: 고려 중인 대안을 적어 주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: 추천안
+      description: 현재 가장 좋아 보이는 방향과 이유를 적어 주세요.
+  - type: textarea
+    id: risks
+    attributes:
+      label: 리스크
+      description: 투자 안전, 보안, UX, 유지보수 측면의 리스크를 적어 주세요.
+    validations:
+      required: true

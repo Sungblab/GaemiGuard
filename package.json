@@ -1,13 +1,23 @@
 {
   "name": "gaemiguard",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sungblab/GaemiGuard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sungblab/GaemiGuard/issues"
+  },
+  "homepage": "https://github.com/Sungblab/GaemiGuard#readme",
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "dev": "concurrently -k -n api,desktop \"pnpm --filter @gaemiguard/api dev\" \"pnpm --filter @gaemiguard/desktop dev\"",
     "dev:api": "pnpm --filter @gaemiguard/api dev",
     "dev:desktop": "pnpm --filter @gaemiguard/desktop dev",
+    "verify": "pnpm test && pnpm typecheck && pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r typecheck",

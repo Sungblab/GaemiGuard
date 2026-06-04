@@ -1,0 +1,45 @@
+name: 기능 제안
+description: 새 기능이나 개선 방향을 제안합니다.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 해결하려는 문제
+      description: 사용자가 어떤 상황에서 이 기능이 필요한가요?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 제안
+      description: 어떤 동작을 원하나요?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 관련 영역
+      options:
+        - Desktop UI
+        - API
+        - Agent runtime
+        - Permission / Order Guard
+        - Toss connector
+        - Research / Memory
+        - Scenario / MiroFish
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: 투자/보안 영향
+      description: 실주문, 자동매매, 계좌, 토큰, 민감 정보와 관련이 있나요?
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 추가 메모

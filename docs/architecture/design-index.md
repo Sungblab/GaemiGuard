@@ -9,6 +9,7 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 - `gaemiguard-design-spec.md`: locked 65/65 design survey result. This is the highest-level product and architecture source.
 - `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
 - `docs/agent-example-reverse-engineering.md`: extracted agent-runtime lessons from the local `agent-example` inspection.
+- `docs/roadmap.md`: staged development roadmap from foundation runtime to guarded automation.
 
 ## External API and Sidecar Source
 
@@ -52,3 +53,11 @@ Stage 1 is the foundation runtime:
 - No live order submit.
 
 The Stage 1 implementation plan lives at `docs/superpowers/plans/2026-06-04-stage-1-foundation.md`.
+
+## Open Source Operations
+
+- `README.md`: Korean public entry point.
+- `CONTRIBUTING.md`: contribution workflow and safety expectations.
+- `SECURITY.md`: private vulnerability reporting policy.
+- `CODE_OF_CONDUCT.md`: community conduct policy.
+- `.github/workflows/ci.yml`: pull request and branch verification.
