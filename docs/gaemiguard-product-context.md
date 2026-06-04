@@ -1209,7 +1209,7 @@ External tools should be used through:
 * WebSocket
 * File-based input/output
 
-Avoid GUI automation and reverse engineering of closed services.
+Avoid closed-service scraping, GUI automation, and web-internal APIs.
 
 ---
 

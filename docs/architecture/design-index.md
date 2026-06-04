@@ -9,11 +9,12 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 - `docs/gaemiguard-all-docs.html`: single-file readable bundle of project documents and raw appendices.
 - `gaemiguard-design-spec.md`: locked 65/65 design survey result. This is the highest-level product and architecture source.
 - `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
-- `docs/agent-example-reverse-engineering.md`: extracted agent-runtime lessons from the local `agent-example` inspection.
+- `docs/agent-runtime-patterns.md`: generalized agent runtime patterns for Commander/specialist orchestration.
 - `docs/roadmap.md`: staged development roadmap from foundation runtime to guarded automation.
 - `docs/waterfall/00-master-plan.md`: gate-based waterfall operating plan.
 - `docs/reviews/2026-06-04-ten-loop-planning-review.md`: ten-cycle plan/review/research planning log.
 - `docs/research/2026-06-04-planning-research.md`: external research basis for the waterfall plan.
+- `docs/setup/agent-assisted-setup.md`: agent-assisted one-click style setup contract.
 
 ## External API and Sidecar Source
 
@@ -86,7 +87,10 @@ The Stage 1 implementation plan lives at `docs/superpowers/plans/2026-06-04-stag
 ## Open Source Operations
 
 - `README.md`: Korean public entry point.
+- `AGENTS.md`: coding-agent setup, verification, and safety instructions.
 - `CONTRIBUTING.md`: contribution workflow and safety expectations.
 - `SECURITY.md`: private vulnerability reporting policy.
 - `CODE_OF_CONDUCT.md`: community conduct policy.
+- `NOTICE`: project and license boundary notice.
+- `THIRD_PARTY_NOTICES.md`: external component license boundary notes.
 - `.github/workflows/ci.yml`: pull request and branch verification.

@@ -1,0 +1,10 @@
+GaemiGuard
+Copyright (c) 2026 Sungblab
+
+GaemiGuard is licensed under AGPL-3.0-only. See LICENSE.
+
+This repository also contains documentation, API snapshots, and integration notes for external systems. Those external systems and vendored reference documents retain their own licenses, terms, trademarks, and usage restrictions.
+
+GaemiGuard's default architecture keeps external engines and copyleft or uncertain-license tools behind process or adapter boundaries unless a future stage explicitly changes that boundary through documented review.
+
+Toss, Toss Securities, OpenAI, Codex, Hermes, MiroFish, OpenBB, Graphiti, and other referenced names belong to their respective owners. References in this repository are for interoperability and planning.

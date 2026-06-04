@@ -1,7 +1,7 @@
 {
   "name": "gaemiguard",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "private": true,
   "type": "module",
   "repository": {

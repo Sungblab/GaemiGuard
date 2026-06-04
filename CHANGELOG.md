@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+- 라이선스를 AGPL-3.0-only로 전환
+- 에이전트 기반 설치 지침 추가
+- third-party/license boundary 문서 추가
+- agent runtime pattern 문서를 공개 레포에 안전한 표현으로 정리
 - Stage 1 기반 구조 추가
 - Electron + React 데스크톱 셸 추가
 - Fastify 로컬 API 추가
