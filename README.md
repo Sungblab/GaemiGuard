@@ -98,6 +98,9 @@ prototypes/      초기 UI 프로토타입
 | `docs/architecture/stage-1-foundation.md` | Stage 1 범위와 수용 기준 |
 | `docs/architecture/agent-runtime.md` | Commander/specialist 에이전트 런타임과 권한 모델 |
 | `docs/roadmap.md` | 단계별 개발 로드맵 |
+| `docs/waterfall/00-master-plan.md` | 회사식 Gate-Based Waterfall 마스터 플랜 |
+| `docs/reviews/2026-06-04-ten-loop-planning-review.md` | 10회 기획/리뷰/리서치 루프 결과 |
+| `docs/research/2026-06-04-planning-research.md` | Toss/API/에이전트/금융 AI 리서치 근거 |
 | `docs/toss-invest-openapi.md` | Toss Invest Open API 요약 |
 | `vendor/tossinvest/openapi-1.0.3.json` | Toss Invest Open API 원본 사본 |
 
@@ -114,6 +117,8 @@ GaemiGuard는 다음 순서로 넓힙니다.
 7. Stage 7: 사용자 원칙 기반 자동매매 오케스트레이션
 
 각 단계는 이전 단계의 감사 로그, 권한 모델, 실패 모드가 검증된 뒤에만 열립니다.
+
+개발 방식은 Gate-Based Waterfall입니다. 각 Stage는 `docs/stages/`의 게이트 계약을 통과해야 다음 단계로 넘어갑니다.
 
 ## 보안과 투자 고지
 

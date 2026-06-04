@@ -10,6 +10,9 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 - `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
 - `docs/agent-example-reverse-engineering.md`: extracted agent-runtime lessons from the local `agent-example` inspection.
 - `docs/roadmap.md`: staged development roadmap from foundation runtime to guarded automation.
+- `docs/waterfall/00-master-plan.md`: gate-based waterfall operating plan.
+- `docs/reviews/2026-06-04-ten-loop-planning-review.md`: ten-cycle plan/review/research planning log.
+- `docs/research/2026-06-04-planning-research.md`: external research basis for the waterfall plan.
 
 ## External API and Sidecar Source
 
@@ -53,6 +56,31 @@ Stage 1 is the foundation runtime:
 - No live order submit.
 
 The Stage 1 implementation plan lives at `docs/superpowers/plans/2026-06-04-stage-1-foundation.md`.
+
+## Stage Gate Contracts
+
+- `docs/stages/stage-1-foundation-gate.md`
+- `docs/stages/stage-2-toss-readonly-connector.md`
+- `docs/stages/stage-3-research-memory.md`
+- `docs/stages/stage-4-mirofish-scenario.md`
+- `docs/stages/stage-5-paper-trading-order-draft.md`
+- `docs/stages/stage-6-guarded-live-orders.md`
+- `docs/stages/stage-7-rule-based-automation.md`
+
+## Waterfall Operating Documents
+
+- `docs/waterfall/00-master-plan.md`
+- `docs/waterfall/01-product-requirements.md`
+- `docs/waterfall/02-system-architecture.md`
+- `docs/waterfall/03-agent-orchestration.md`
+- `docs/waterfall/04-permission-and-safety.md`
+- `docs/waterfall/05-data-and-artifacts.md`
+- `docs/waterfall/06-ui-and-workflows.md`
+- `docs/waterfall/07-testing-and-release-gates.md`
+- `docs/waterfall/08-change-control.md`
+- `docs/waterfall/09-operating-model.md`
+- `docs/waterfall/10-risk-register.md`
+- `docs/waterfall/11-requirements-traceability-matrix.md`
 
 ## Open Source Operations
 
