@@ -10,9 +10,9 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | Order | Document | Why |
 | --- | --- | --- |
 | 1 | `AGENTS.md` | Short operational rules for agents. |
-| 2 | `docs/development-status.md` | Current implementation state, active stage, latest verification, and next slice. |
-| 3 | `docs/README.md` | Documentation hub and routing map. |
-| 4 | `docs/waterfall/00-master-plan.md` | Gate-Based Waterfall governance and stage sequence. |
+| 2 | `docs/agent-index.md` | Short agent route, handoff policy, and harness commands. |
+| 3 | `docs/development-status.md` | Current implementation state, active stage, latest verification, and next slice. |
+| 4 | `docs/README.md` | Documentation hub and routing map. |
 | 5 | Active `docs/stages/` gate | The contract for the current implementation work. |
 | 6 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
 
@@ -21,6 +21,8 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | Question | Source of truth | Supporting docs |
 | --- | --- | --- |
 | What is implemented now? | `docs/development-status.md` | `CHANGELOG.md`, latest Git history |
+| How did the repo get here? | `docs/development-history.md` | PR list, latest Git history |
+| What should an agent read first? | `docs/agent-index.md` | `AGENTS.md`, `docs/development-status.md` |
 | What is the product promise? | `gaemiguard-design-spec.md` | `docs/gaemiguard-product-context.md`, `README.md` |
 | What is the build model? | `docs/waterfall/00-master-plan.md` | `docs/waterfall/07-testing-and-release-gates.md` |
 | What stage is active? | `docs/development-status.md` | `docs/roadmap.md`, active stage gate |
@@ -84,11 +86,14 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | `docs/setup/playwright-smoke.md` | Windows-safe UI smoke workflow. |
 | `.devflow/config.json` | Devflow gates and required review evidence. |
 | `plugins/devflow/` | Repo-local Codex/Claude Devflow harness. |
+| `scripts/check-agent-docs.mjs` | Agent-facing document integrity check used by `pnpm docs:agent-check`. |
 
 ## Maintenance Rules
 
 - Do not add a new top-level planning document unless `docs/README.md` and this index are updated.
+- Do not add a new agent-facing document unless `docs/agent-index.md`, `docs/README.md`, and this index are updated.
 - Do not move a stage boundary without updating the active stage gate and `docs/development-status.md`.
 - Do not claim a stage is exited unless the stage gate evidence exists.
+- Do not change agent read order or harness gates without running `pnpm docs:agent-check`.
 - Do not update docs without regenerating `docs/gaemiguard-all-docs.html`.
 - Keep agent-facing rules short in `AGENTS.md`; put detailed continuity and status in `docs/development-status.md`.

@@ -4,6 +4,7 @@ Record every verification gate that proves a work item is ready.
 
 ## Initial Gate
 
+- `pnpm docs:agent-check`
 - `pnpm docs:html`
 - `pnpm verify`
 
