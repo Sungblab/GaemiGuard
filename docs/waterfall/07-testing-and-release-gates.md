@@ -9,7 +9,7 @@ GaemiGuard uses contract-first testing for external and sensitive behavior.
 | Area | Required tests |
 | --- | --- |
 | Core policies | unit tests, table tests, property-style boundary tests |
-| Toss connector | OpenAPI contract tests, mock replay, rate-limit behavior |
+| Broker adapters | adapter capability contract tests, OpenAPI contract tests for official API adapters, mock replay, rate-limit behavior |
 | DB | migration tests, repository tests |
 | Artifacts | schema tests, redaction snapshots |
 | Agents | golden trace tests and tool-call timelines |

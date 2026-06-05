@@ -4,6 +4,8 @@ Generated: 2026-06-04
 
 This research note supports the waterfall planning package. It is not legal, tax, or investment advice. It records product-planning evidence and constraints that should be revisited before Stage 5, Stage 6, and Stage 7.
 
+Current note: later product decisions treat Toss as the first broker adapter slice, not as the product center or permanent default. See `docs/product/broker-connection-and-trading.md`.
+
 ## Source Summary
 
 | Source | Date checked | Product implication |
@@ -32,7 +34,7 @@ The local OpenAPI snapshot says:
 
 Planning consequences:
 
-- Stage 2 must be official-readonly first.
+- Stage 2 must be official broker read-only first; the current implemented slice is Toss.
 - Account-scoped calls must preserve account headers and never leak account identifiers to external LLMs or sidecars.
 - Money, share quantity, and FX values must stay decimal strings through core accounting paths.
 - Rate-limit headers and retry guidance must be first-class in the connector contract.
@@ -51,7 +53,7 @@ The `tossinvest-cli` repo is useful as a safety-pattern reference because it:
 Planning consequences:
 
 - GaemiGuard may reuse the safety ideas, not the unofficial API dependency.
-- The official Toss connector is the default connector.
+- Official broker APIs are the default integration policy. Toss is the first adapter slice, not the whole broker strategy.
 - Unofficial CLI integration remains research-only unless the user explicitly enables a local experimental adapter.
 
 ## Agent And Permission Findings
@@ -91,8 +93,8 @@ Planning consequences:
 
 ## Research Risks To Revisit
 
-- Toss API terms and production approval process may change.
-- OpenAPI 1.0.3 may be superseded; every Toss connector stage needs version check.
+- Broker API terms and production approval processes may change.
+- OpenAPI 1.0.3 may be superseded; every Toss adapter stage needs version check, and every new broker adapter needs its own source note and capability map.
 - Korean AI/financial guidance is evolving; Stage 5+ must refresh legal/compliance research before implementation.
 - MiroFish license and sidecar boundary must be checked before distribution.
 - OpenAI Codex CLI behavior and approval modes change frequently; provider adapter must detect version and expose capability health.

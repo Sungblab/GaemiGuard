@@ -35,10 +35,10 @@ When asked to set up or verify the repo:
 
 ## Safety
 
-- Do not create, request, print, store, or commit Toss secrets, OAuth tokens, account numbers, order IDs, or personal identifiers.
+- Do not create, request, print, store, or commit broker secrets, OAuth tokens, account numbers, order IDs, or personal identifiers.
 - Do not create `.env` files with real credentials.
-- Do not enable live trading, automatic trading, or Toss order mutation endpoints unless a later approved stage explicitly allows it.
-- Do not call unofficial Toss web/internal APIs.
+- Do not enable live trading, automatic trading, or broker order mutation endpoints unless a later approved stage explicitly allows it.
+- Do not call unofficial broker web/internal APIs.
 - Do not install optional sidecars such as Hermes, MiroFish, OpenBB, or Graphiti unless explicitly asked.
 - Keep generated app build output such as `apps/desktop/dist` out of commits.
 
@@ -67,3 +67,5 @@ GaemiGuard is an agent-first local personal investment workspace for Korean reta
 The primary product is the personal investment agent. The investment guard and the small local investment terminal are supporting parts of that agent experience.
 
 GaemiGuard is not a profit bot, brokerage clone, unofficial broker wrapper, Bloomberg/OpenBB clone, news-feed product, or automation-first live trading bot.
+
+GaemiGuard is broker-independent at the product level. Toss, KIS, Kiwoom, LS, CSV import, and manual portfolio entry are adapters or data inputs under the broker contract. Read-only is the current Stage 2 implementation boundary, not the final product boundary.

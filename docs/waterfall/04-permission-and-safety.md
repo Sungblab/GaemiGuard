@@ -8,6 +8,8 @@ General agent permissions and trading authority are separate.
 
 Developer-style `full_access` for local files, shell, or providers never grants permission to submit, modify, cancel, or automate live orders.
 
+Read-only is only the current broker-connection implementation boundary. The long-term product includes manual trading and rule-based automation, but only through separate trading authority levels.
+
 ## General Permission Modes
 
 | Mode | User-facing label | Allowed by default | Requires approval |
@@ -20,18 +22,19 @@ Developer-style `full_access` for local files, shell, or providers never grants 
 
 | Level | Name | Allowed |
 | --- | --- | --- |
-| 0 | No trading | Read-only account/market data |
-| 1 | Order analysis | Buying-power, sellable quantity, commission checks |
-| 2 | Dry-run | Order draft and deterministic review |
-| 3 | Paper trade | Simulated execution only |
-| 4 | User-approved live | Submit/modify/cancel only after explicit approval |
-| 5 | Rule-limited automation | Bounded automation under active rule, kill switch, and audit |
+| 0 | No trading | No broker connection, sample data, manual portfolio, watchlist, thesis/rule work |
+| 1 | Broker read | Read-only account/market data |
+| 2 | Order analysis | Buying-power, sellable quantity, commission checks |
+| 3 | Dry-run | Order draft and deterministic review |
+| 4 | Paper trade | Simulated execution only |
+| 5 | User-approved manual live | Submit/modify/cancel only after explicit approval |
+| 6 | Rule-limited automation | Bounded automation under active rule, kill switch, and audit |
 
 ## Hard Blocks
 
 Always block:
 
-- Live orders before Stage 6.
+- Manual live orders before Stage 6.
 - Automation before Stage 7.
 - Any order while global kill switch is active.
 - Any order without fresh account snapshot.
@@ -40,6 +43,7 @@ Always block:
 - Any order with expired approval.
 - Any order if instrument identity cannot be verified.
 - Any order if account header/account mapping is ambiguous.
+- Any broker adapter mutation that does not declare and pass the required capability flag.
 - Any external LLM/tool call containing raw secrets.
 
 ## Sensitive Action Approval

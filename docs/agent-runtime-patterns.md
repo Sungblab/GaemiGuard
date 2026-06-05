@@ -37,7 +37,9 @@ flowchart LR
   Commander --> Tasks["Task / Subagent Manager"]
   Commander --> Policy["Permission And Risk Policy"]
   Tasks --> Portfolio["PortfolioAgent"]
-  Tasks --> Broker["BrokerTossAgent"]
+  Tasks --> Broker["BrokerAgent"]
+  Broker --> Toss["BrokerTossAgent"]
+  Broker --> KIS["BrokerKisAgent Future"]
   Tasks --> Research["ResearchAgent"]
   Tasks --> Scenario["ScenarioAgent"]
   Tasks --> Memory["MemoryAgent"]
@@ -115,7 +117,7 @@ Tool definitions should include:
 
 Important tool groups for GaemiGuard:
 
-- Broker read tools: accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings.
+- Broker read tools: accounts, holdings, cash, quotes, orderbook summaries, FX, calendars, warnings.
 - Market tools: instrument lookup, price history, market hours, corporate events.
 - Research tools: source fetch, news lookup, filings, local documents, Hermes/OpenBB outputs.
 - Scenario tools: MiroFish run, assumption comparison, scenario artifact creation.
@@ -124,6 +126,8 @@ Important tool groups for GaemiGuard:
 - UI tools: focus chart, open artifact, request approval, show freshness.
 
 Broker order mutation tools must remain absent or hard-blocked until their approved stages.
+
+The broker runtime must be adapter-based. Toss is the first implemented adapter slice; KIS and other brokers require source notes, capability mapping, fixtures, and explicit goals before implementation.
 
 ## Permission Model
 
@@ -138,7 +142,7 @@ General permission levels:
 
 Trading authority:
 
-- Read-only broker data requires the Stage 2 credential and sync boundary.
+- Broker read data requires the Stage 2 credential and sync boundary, or a no-broker/manual portfolio mode that clearly states its limits.
 - Order drafts and paper trading require later stage gates.
 - Live order submit, modify, and cancel require Order Guard, audit log, kill switch, idempotency, user approval, stage evidence, and official API scope.
 - Rule-based automation is a final-stage feature.
@@ -265,13 +269,14 @@ The terminal-like panels are evidence surfaces. They should help the user inspec
 
 Recommended order:
 
-1. Keep Stage 2 focused on Toss read-only credential setup, real sync, freshness, and redaction.
-2. Add source-grounded Commander answers only after snapshots have source/freshness links.
-3. Add thesis, rules, journals, and research memory in Stage 3.
-4. Add MiroFish scenario tasks in Stage 4.
-5. Add order drafts and paper trading in Stage 5.
-6. Add live orders only in Stage 6.
-7. Add rule automation only in Stage 7.
+1. Keep Stage 2 focused on the broker adapter contract, current Toss read-only adapter, credential setup, real sync, freshness, and redaction.
+2. Add no-broker/manual portfolio mode so first-run use does not require broker login.
+3. Add source-grounded Commander answers only after snapshots have source/freshness links.
+4. Add thesis, rules, journals, and research memory in Stage 3.
+5. Add MiroFish scenario tasks in Stage 4.
+6. Add order drafts and paper trading in Stage 5.
+7. Add user-approved manual live orders only in Stage 6.
+8. Add rule automation only in Stage 7.
 
 Do not turn news, terminal panels, or automation into the product center before the personal investment agent is useful.
 

@@ -773,7 +773,7 @@
       {
         id: "positioning",
         title: "제품 정체성",
-        desc: "GaemiGuard가 무엇이고 무엇이 아닌지 먼저 잠급니다. 이 섹션이 흔들리면 뒤의 자동매매, 에이전트, UI가 전부 흔들립니다.",
+        desc: "GaemiGuard가 무엇이고 무엇이 아닌지 먼저 잠급니다. 이 섹션이 흔들리면 뒤의 브로커 연결, 매매 권한, 에이전트, UI가 전부 흔들립니다.",
         questions: [
           {
             id: "product_promise",
@@ -782,12 +782,12 @@
             label: "한 문장 제품 약속은 무엇인가?",
             help: "사용자가 이 앱을 왜 켜는지 정하는 최상위 문장입니다.",
             options: [
-              ["think_before_trade", "거래 전 한 번 더 생각하게 하는 투자 가드", "Toss는 거래를 쉽게, GaemiGuard는 판단을 안전하게"],
-              ["agent_terminal", "내 계좌와 리서치를 연결한 투자 에이전트 터미널", "대화형 분석과 도구 실행을 전면에 둠"],
-              ["auto_strategy", "개인 투자 원칙 기반 자동매매 오케스트레이터", "자동화 중심, 규제/안전 설계 부담이 큼"],
+              ["think_before_trade", "거래 전 한 번 더 생각하게 하는 투자 가드", "거래는 증권사에서, 판단 정리는 GaemiGuard에서"],
+              ["agent_terminal", "내 계좌, 수동 포트폴리오, 리서치를 연결한 투자 에이전트", "대화형 분석, 근거 정리, 도구 실행을 전면에 둠"],
+              ["auto_strategy", "개인 투자 원칙 기반 자동매매 오케스트레이터", "장기 방향에는 가능하지만 초기에는 안전 설계 부담이 큼"],
               ["journal_memory", "투자 논리와 매매 복기를 자동으로 남기는 메모리 앱", "기록/복기 중심으로 1단계가 작아짐"]
             ],
-            recommended: "think_before_trade"
+            recommended: "agent_terminal"
           },
           {
             id: "not_product",
@@ -797,10 +797,10 @@
             help: "제품 범위가 커지는 것을 막기 위한 배제 항목입니다.",
             options: [
               ["profit_bot", "수익 보장 AI 자동매매봇"],
-              ["toss_clone", "토스증권 대체 앱"],
+              ["toss_clone", "토스증권/증권사 화면 대체 앱"],
               ["bloomberg_clone", "블룸버그/OpenBB 클론"],
               ["community_crawler", "커뮤니티 크롤러가 본체인 앱"],
-              ["mobile_brokerage", "모바일 증권사 앱"],
+              ["mobile_brokerage", "증권사 앱"],
               ["hf_quant", "초단타/전문 퀀트 터미널"]
             ],
             recommended: ["profit_bot", "toss_clone", "bloomberg_clone", "hf_quant"]
@@ -813,13 +813,13 @@
             help: "기능 밀도, 문구, 권한 모델, 배포 방식이 이 답에 따라 달라집니다.",
             options: [
               ["korean_retail", "한국 개인 투자자"],
-              ["toss_users", "토스증권 사용자"],
+              ["brokerage_users", "토스/한국투자/키움 같은 증권사 앱 사용자"],
               ["ai_power_user", "ChatGPT/Codex/Cursor를 이미 쓰는 AI 파워 유저"],
               ["developer_investor", "개발자/학생/인디 해커 투자자"],
               ["journal_failer", "노션/엑셀 투자일지를 꾸준히 못 쓰는 사람"],
               ["beginner", "투자 초보자"]
             ],
-            recommended: ["korean_retail", "toss_users", "ai_power_user", "developer_investor"]
+            recommended: ["korean_retail", "brokerage_users", "ai_power_user", "developer_investor"]
           },
           {
             id: "1단계_value",
@@ -830,7 +830,7 @@
             options: [
               ["order_guard", "내 원칙을 어기는 주문을 잡아낸다", "계좌/룰/주문 검토 중심"],
               ["research_to_thesis", "리서치 결과가 내 투자 논리로 정리된다", "Hermes/MiroFish/메모리 중심"],
-              ["portfolio_chat", "내 계좌 상황을 에이전트에게 바로 물어본다", "Toss read-only + 채팅 중심"],
+              ["portfolio_chat", "내 계좌나 수동 포트폴리오 상황을 에이전트에게 바로 물어본다", "브로커 읽기/수동 입력 + 채팅 중심"],
               ["weekly_review", "이번 주 매매를 자동으로 복기한다", "로그/리포트 중심"]
             ],
             recommended: "order_guard"
@@ -940,16 +940,16 @@
         desc: "어떤 데이터가 제품의 근거가 되는지, 무엇을 공식 API로만 처리할지 정합니다.",
         questions: [
           {
-            id: "toss_api_scope",
+            id: "broker_api_scope",
             type: "choice",
             required: true,
-            label: "Toss Invest Open API의 초기 사용 범위는?",
-            help: "공식 API 기반으로 시작하는 원칙입니다.",
+            label: "브로커 API의 초기 사용 범위는?",
+            help: "증권사 연결은 어댑터입니다. 공식 API와 수동 입력을 같은 제품 흐름 안에서 다룹니다.",
             options: [
-              ["readonly_first", "읽기 전용부터", "계좌/보유/가격/경고/캘린더 중심"],
+              ["readonly_first", "공식 API 읽기 전용부터", "계좌/보유/가격/경고/캘린더 중심"],
+              ["manual_no_broker", "증권 연결 없이 수동 입력도 지원", "설치 직후 첫 사용과 개인정보 부담을 낮춤"],
               ["paper_order", "모의 주문까지", "주문 의사결정 UX를 먼저 검증"],
-              ["real_order_guarded", "실주문까지 제한적으로", "승인/감사/킬스위치 필요"],
-              ["no_toss_initial", "초기에는 Toss 없이 수동 입력", "개발 속도는 빠르지만 핵심 검증 약함"]
+              ["real_order_guarded", "실주문까지 제한적으로", "승인/감사/킬스위치 필요"]
             ],
             recommended: "readonly_first"
           },
@@ -977,9 +977,12 @@
             help: "에이전트 오케스트레이션의 실제 도구 목록입니다.",
             options: [
               ["toss", "Toss Invest Open API"],
+              ["kis", "KIS Open API"],
               ["hermes", "Hermes Agent"],
               ["mirofish", "MiroFish sidecar"],
               ["openbb", "OpenBB"],
+              ["opendart", "OpenDART"],
+              ["krx", "KRX official data"],
               ["graphiti", "Graphiti/temporal memory"],
               ["openclaw", "OpenClaw remote chat"],
               ["local_files", "로컬 PDF/Markdown/CSV"],
@@ -1505,7 +1508,7 @@
       {
         id: "security",
         title: "보안과 시크릿",
-        desc: "Toss API, LLM provider, 로컬 파일, 원격 동기화의 보안 경계를 정합니다.",
+        desc: "브로커 API, LLM provider, 로컬 파일, 원격 동기화의 보안 경계를 정합니다.",
         questions: [
           {
             id: "secret_storage",
@@ -1571,7 +1574,7 @@
             required: false,
             label: "절대 유출되면 안 되는 데이터나 제약은?",
             help: "나중에 보안 요구사항으로 들어갑니다.",
-            placeholder: "예: Toss API secret은 절대 로그/LLM prompt/artifact에 기록하지 않기..."
+            placeholder: "예: 브로커 API secret과 계좌 식별자는 절대 로그/LLM prompt/artifact에 기록하지 않기..."
           }
         ]
       },
@@ -1660,7 +1663,7 @@
             label: "1단계에 반드시 들어갈 모듈은?",
             help: "너무 많이 넣으면 시작이 늦어집니다. 그래도 설계상 빠지면 안 되는 것을 고릅니다.",
             options: [
-              ["toss_readonly", "Toss read-only connector"],
+              ["broker_readonly", "Broker read-only adapter"],
               ["portfolio_view", "Portfolio view"],
               ["thesis_rules", "Thesis/Rules"],
               ["agent_chat", "Context agent chat"],
@@ -1670,7 +1673,7 @@
               ["audit_log", "Audit log"],
               ["settings", "Settings/secrets"]
             ],
-            recommended: ["toss_readonly", "portfolio_view", "thesis_rules", "agent_chat", "order_guard_dryrun", "audit_log", "settings"]
+            recommended: ["broker_readonly", "portfolio_view", "thesis_rules", "agent_chat", "order_guard_dryrun", "audit_log", "settings"]
           },
           {
             id: "phase2_modules",
@@ -1758,7 +1761,7 @@
             label: "헬스체크에 포함할 항목은?",
             help: "앱 시작 시 무엇이 준비됐는지 바로 보여줍니다.",
             options: [
-              ["toss_auth", "Toss auth"],
+              ["broker_auth", "Broker auth"],
               ["codex_cli", "Codex CLI"],
               ["mirofish_doctor", "MiroFish doctor"],
               ["python_uv", "Python/uv"],
@@ -1766,7 +1769,7 @@
               ["secrets", "Secrets store"],
               ["network", "Network/API reachability"]
             ],
-            recommended: ["toss_auth", "codex_cli", "mirofish_doctor", "python_uv", "db", "secrets"]
+            recommended: ["broker_auth", "codex_cli", "mirofish_doctor", "python_uv", "db", "secrets"]
           },
           {
             id: "testing_strategy",
@@ -1777,13 +1780,13 @@
             options: [
               ["unit_rules", "룰 엔진 unit test"],
               ["contract_sidecars", "sidecar contract test"],
-              ["mock_toss", "Toss API mock test"],
+              ["broker_fixture", "Broker adapter fixture test"],
               ["e2e_order_guard", "Order Guard E2E"],
               ["security_redaction", "redaction/security test"],
               ["ui_smoke", "UI smoke"],
               ["fixture_scenarios", "시나리오 fixture"]
             ],
-            recommended: ["unit_rules", "contract_sidecars", "mock_toss", "e2e_order_guard", "security_redaction", "ui_smoke", "fixture_scenarios"]
+            recommended: ["unit_rules", "contract_sidecars", "broker_fixture", "e2e_order_guard", "security_redaction", "ui_smoke", "fixture_scenarios"]
           },
           {
             id: "backup_export",
@@ -1805,7 +1808,7 @@
             required: false,
             label: "아직 확정 못 한 것, 불안한 것, 내가 더 물어봐야 할 것",
             help: "설계 리뷰 때 이 항목을 먼저 봅니다.",
-            placeholder: "예: 자동매매를 어디까지 허용할지, Toss API 실제 주문 권한, MiroFish AGPL 배포 방식..."
+            placeholder: "예: 자동매매를 어디까지 허용할지, 브로커별 실제 주문 권한, MiroFish AGPL 배포 방식..."
           }
         ]
       }
@@ -2132,7 +2135,7 @@
         ["1단계 가치", "1단계_value"],
         ["첫 화면", "first_screen"],
         ["오른쪽 패널", "right_panel"],
-        ["Toss API", "toss_api_scope"],
+        ["브로커 API", "broker_api_scope"],
         ["Codex 사용", "codex_usage"],
         ["MiroFish 역할", "mirofish_role"],
         ["자동화 수준", "automation_level"],
@@ -2167,11 +2170,14 @@
         missing,
         "",
         "중요한 설계 원칙:",
-        "- Toss Invest Open API는 공식 API 우선.",
+        "- GaemiGuard의 본체는 개인 투자 에이전트이고, 증권사 연결은 브로커 어댑터다.",
+        "- Toss는 첫 구현 어댑터이고, KIS/키움/LS/수동 입력/CSV는 같은 브로커 계약 아래에서 나중에 붙인다.",
+        "- 브로커 연동은 공식 API만 사용하고 비공식 웹/내부 API는 쓰지 않는다.",
+        "- 증권 연결이 없어도 watchlist, 수동 포트폴리오, thesis/rules, research/scenario artifact로 쓸 수 있어야 한다.",
         "- MiroFish는 Docker 필수가 아니라 Windows-native CLI sidecar로 사용.",
         "- MiroFish 결과는 직접 주문 트리거가 아니라 scenario/advisory signal로 취급.",
-        "- 자동매매는 Order Guard, audit log, kill switch, explicit approval 전에는 실주문 금지.",
-        "- 제품은 local-first desktop investment guard/orchestrator이지 수익 보장 봇이 아님."
+        "- 수동 실주문과 룰 기반 자동매매는 장기 방향에 포함되지만 Order Guard, audit log, kill switch, idempotency, explicit approval 전에는 금지.",
+        "- 제품은 local-first personal investment agent이지 수익 보장 봇, 증권사 화면 클론, 뉴스 터미널 클론이 아님."
       ].join("\n");
     }
 

@@ -1,6 +1,6 @@
 # GaemiGuard Project Context
 
-This is a long-running context document. The current product decision source is `docs/product/agent-first-direction.md`.
+This is a long-running context document. The current product decision sources are `docs/product/agent-first-direction.md`, `docs/product/broker-connection-and-trading.md`, and `docs/product/external-tools-and-data.md`.
 
 Read this document as background and future option context, not as permission to implement every listed external tool or automation feature in the current stage.
 
@@ -8,11 +8,11 @@ Read this document as background and future option context, not as permission to
 
 **GaemiGuard** is an agent-first local personal investment workspace for Korean retail investors.
 
-It is not a normal stock trading app, not a simple news summarizer, and not a generic AI auto-trading bot.
+It is not a normal stock trading app, not a simple news summarizer, and not a guaranteed-profit or automation-first trading bot.
 
 GaemiGuard connects:
 
-* Toss Invest Open API
+* Broker adapters such as Toss Invest Open API, KIS, future brokers, manual portfolio entry, and CSV import
 * Hermes Agent
 * MiroFish / GaemiGuard MiroFish fork
 * OpenClaw
@@ -24,8 +24,8 @@ The goal is to help users manage their investment thesis, rules, research, scena
 
 Core positioning:
 
-> Toss makes trading easy.
-> GaemiGuard helps the user organize judgment before trading.
+> Brokerage apps execute trades.
+> GaemiGuard helps the user organize judgment, evidence, and trading authority before action.
 
 ---
 
@@ -41,14 +41,14 @@ GaemiGuard is:
 * A thesis and rule management tool
 * A trade review and guardrail system
 * A decision-relevant external signal viewer when sources and privacy boundaries are clear
-* A later-stage rule-based automation layer on top of Toss Invest API
+* A later-stage rule-based automation layer on top of official broker APIs
 * A knowledge/memory system for investment research
 
 ### 1.2 What GaemiGuard is not
 
 GaemiGuard is not:
 
-* A Toss replacement
+* A brokerage screen replacement
 * A stock recommendation app
 * A guaranteed-profit AI trading bot
 * A Bloomberg/OpenBB clone
@@ -60,7 +60,7 @@ GaemiGuard is not:
 
 ### 1.3 Main differentiation
 
-GaemiGuard should focus on things Toss does not deeply solve:
+GaemiGuard should focus on things brokerage apps do not deeply solve:
 
 * Why did I buy this stock?
 * Does this new trade violate my own rules?
@@ -112,7 +112,7 @@ GaemiGuard is a desktop app where the user can ask questions like:
 GaemiGuard then:
 
 1. Reads local investment context
-2. Reads Toss account/portfolio data if connected
+2. Reads broker account/portfolio data if connected, or manual portfolio/watchlist data if not connected
 3. Looks up thesis, rules, audit logs, and previous reports
 4. Delegates deep research to Hermes Agent
 5. Delegates scenario simulation to MiroFish
@@ -151,7 +151,7 @@ Use:
 * Python sidecar
 * Graphiti
 * Hermes Agent
-* Toss Invest Open API
+* broker adapters such as Toss and KIS
 * OpenRouter / Codex login / Ollama providers
 
 Do not start with Tauri unless there is a strong reason. Electron is acceptable because this project depends heavily on process orchestration, CLI calls, MCP, local servers, logs, and Python sidecars.
@@ -167,7 +167,10 @@ GaemiGuard Desktop
 │
 ├─ TypeScript Core
 │  ├─ Orchestrator
-│  ├─ Toss Connector
+│  ├─ Broker Adapter Contract
+│  ├─ Toss Adapter
+│  ├─ KIS Adapter Candidate
+│  ├─ Manual Portfolio Adapter
 │  ├─ Thesis Ledger
 │  ├─ Rule Engine
 │  ├─ Order Guard
@@ -190,6 +193,7 @@ GaemiGuard Desktop
 │  └─ MiroFish Runner optional
 │
 └─ External Tools
+   ├─ Broker official APIs
    ├─ Hermes Agent
    ├─ gaemiguard-mirofish
    ├─ OpenClaw
@@ -271,7 +275,7 @@ Do not allow OpenClaw to:
 
 * Execute orders
 * Enable automation
-* Access Toss tokens
+* Access broker tokens
 * Export sensitive data
 * Modify critical settings
 
@@ -369,9 +373,11 @@ LLM planner: 30%
 
 Do not build an uncontrolled autonomous agent.
 
-### 6.2 Toss Connector
+### 6.2 Broker Connector
 
-Use Toss Invest Open API.
+Use official broker APIs through a shared broker adapter contract.
+
+Toss is the current implemented read-only adapter slice. KIS is a future adapter candidate after a source note, capability map, and fixtures exist.
 
 Responsibilities:
 
@@ -390,10 +396,10 @@ Responsibilities:
 
 Policy:
 
-* Default mode: read-only
-* Order permission: separate opt-in
-* Automation: separate opt-in
-* External agents must never receive Toss tokens
+* Current Stage 2 implementation mode: read-only
+* Manual live order permission: separate Stage 6 opt-in
+* Automation: separate Stage 7 opt-in
+* External agents must never receive broker tokens
 
 ### 6.3 Thesis Ledger
 
@@ -941,7 +947,7 @@ The orchestrator handles:
 
 ### 10.3 Portfolio
 
-Toss-powered portfolio view.
+Broker-connected or manual portfolio view.
 
 Show:
 
@@ -1044,10 +1050,12 @@ Steps:
    * Ollama
    * API keys
 
-2. Connect Toss Invest
+2. Connect broker or skip
 
-   * OAuth 2.0
-   * read-only by default
+   * Toss adapter when available
+   * KIS adapter when implemented
+   * no-broker/manual portfolio mode
+   * current Stage 2 implementation is broker read-only
 
 3. Connect Hermes
 
@@ -1088,7 +1096,7 @@ Codex: logged in / not logged in
 
 Critical:
 
-* Never pass Toss tokens to Hermes, MiroFish, OpenClaw, or OpenBB.
+* Never pass broker tokens to Hermes, MiroFish, OpenClaw, or OpenBB.
 * External agents only receive sanitized context.
 * Order execution only happens inside GaemiGuard policy layer.
 * Remote chat must be read-only by default.
@@ -1128,23 +1136,31 @@ Do not build:
 * Full ontology UI
 * Cloud service
 
-### Stage 2 Connectors and Memory
+### Stage 2 Broker Connection Foundation
 
 Build:
 
-* Toss read-only connection
-* Hermes adapter
+* Broker adapter contract
+* Current Toss read-only adapter
+* No-broker/manual portfolio mode
+* Credential setup and disconnect flow
+* Safe broker snapshot freshness
+
+### Stage 3 Research Memory
+
+Build:
+
 * Research report storage
 * Thesis ledger
 * Rule engine
 * Watchlist
 * Markdown/JSON report generation
-* Graphiti memory ingestion
+* Optional Graphiti memory ingestion
 * Research ontology extraction
 * Daily brief with Hermes
 * Basic price alert
 
-### Stage 3 Scenario Lab
+### Stage 4 Scenario Lab
 
 Build:
 
@@ -1153,24 +1169,34 @@ Build:
 * Scenario result storage
 * Thesis stress testing
 
-### Stage 4 Order Guard and Approval
+### Stage 5 Order Guard and Paper Trading
 
 Build:
 
 * Order Guard
 * Order preview
-* Manual approval-based order execution
+* Order draft
+* Paper trading
 * Audit log
 
-### Stage 5 Guarded Automation
+### Stage 6 Guarded Manual Live Orders
+
+Build:
+
+* Manual approval-based order execution
+* Broker capability checks
+* Idempotency key handling
+* Kill switch
+* Audit log
+
+### Stage 7 Guarded Automation
 
 Build:
 
 * Rule-based automation
 * DCA automation
 * Kill switch
-* OpenClaw read-only remote chat
-* Paper Trading MCP integration
+* Automation opt-in and limits
 
 ---
 
@@ -1190,7 +1216,7 @@ Start with this order:
 10. Rule CRUD
 11. Hermes adapter
 12. ResearchReport storage
-13. Toss read-only connector
+13. Broker adapter contract and current Toss read-only adapter
 14. Graphiti sidecar
 15. MiroFish runner
 
@@ -1219,4 +1245,4 @@ Avoid closed-service scraping, GUI automation, and web-internal APIs.
 
 ## 16. One-Sentence Definition
 
-GaemiGuard is a local-first desktop investment orchestrator that connects Toss Invest API, Hermes research, MiroFish scenarios, OpenClaw remote chat, OpenBB data, and Graphiti memory to help Korean retail investors manage thesis, rules, community signals, trade reviews, and rule-based automation.
+GaemiGuard is a local-first personal investment agent that connects broker adapters, Hermes research, MiroFish scenarios, optional OpenClaw remote chat, optional OpenBB data, and local memory to help Korean retail investors manage thesis, rules, evidence, trade reviews, manual trading, and later rule-based automation.

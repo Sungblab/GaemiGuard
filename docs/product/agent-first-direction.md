@@ -6,7 +6,7 @@ Updated: 2026-06-06
 
 GaemiGuard is an agent-first local personal investment workspace for Korean retail investors.
 
-The primary product is the personal investment agent. The investment guard and the small local investment terminal are supporting parts of that agent experience.
+The primary product is the personal investment agent. The investment guard, broker connections, trading actions, and the small local investment terminal are supporting parts of that agent experience.
 
 Plain product statement:
 
@@ -14,7 +14,7 @@ Plain product statement:
 
 Short Korean positioning for public copy:
 
-> 거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다.
+> 거래는 증권사에서 하고, 판단 점검은 GaemiGuard에서 합니다.
 
 ## Product Shape
 
@@ -23,6 +23,7 @@ GaemiGuard should feel like:
 - A personal investment agent that knows the user's holdings, watchlist, thesis, rules, reports, and recent decisions.
 - A pre-trade guard that checks whether a planned action conflicts with the user's own rules, current exposure, market context, or missing evidence.
 - A small local investment terminal that shows the evidence the agent used.
+- A staged path from account reading to manual trading and later rule-based automation.
 
 GaemiGuard should not become:
 
@@ -32,7 +33,9 @@ GaemiGuard should not become:
 - A recommendation app that pretends to know the future.
 - An automation-first live trading bot.
 
-Automation is not banned forever. It is intentionally staged. Live order submission and rule-based automation stay behind later gates until read-only data, memory, order review, audit logging, kill switches, idempotency, and user approval are all proven.
+Read-only is the current implementation boundary, not the final product boundary. Manual trading and rule-based automation are part of the long-term product, but they stay behind later stage gates until broker capability mapping, memory, order review, audit logging, kill switches, idempotency, and user approval are proven.
+
+Read `docs/product/broker-connection-and-trading.md` for the broker and trading authority model.
 
 ## User Workflow
 
@@ -43,8 +46,10 @@ The expected daily workflow is:
 3. The user asks Commander a question such as "What should I pay attention to today?", "Is my exposure to this stock too high?", or "What facts changed since my last thesis?"
 4. Commander delegates to specialist agents and tools.
 5. The UI shows the answer plus the evidence surface: source snapshots, freshness, warnings, research artifacts, scenario artifacts, and order review results.
-6. If the user wants to trade, GaemiGuard prepares a review or draft only in the stages where that is allowed. The actual brokerage transaction remains outside GaemiGuard until a later approved live-order stage.
+6. If the user wants to trade, GaemiGuard follows the staged trading path: draft, paper trade, user-approved live order, and only later bounded rule automation.
 7. After decisions, Memory and Report flows keep the rationale, rule changes, and follow-up checks available for later.
+
+GaemiGuard must also work without a broker connection. In no-broker mode, it can use watchlists, manual portfolio entries, thesis/rule notes, research artifacts, scenario artifacts, and sample data. It must clearly state that real holdings, cash, buying power, and order status are unavailable.
 
 ## Agent Model
 
@@ -57,7 +62,9 @@ Primary agent:
 Specialist agents:
 
 - `PortfolioAgent`: account snapshots, holdings, exposure, cash, FX, and allocation.
-- `BrokerTossAgent`: official Toss Invest API read-only facts first; future order tools only after later gates.
+- `BrokerAgent`: broker-independent account, market, trading capability, sync, freshness, and order authority coordinator.
+- `BrokerTossAgent`: Toss adapter specialist for the current implemented official OpenAPI read-only slice.
+- `BrokerKisAgent`: future KIS adapter specialist after source notes, capability mapping, and fixtures are added.
 - `ResearchAgent`: news, filings, local docs, Hermes/OpenBB research, and thesis-changing facts.
 - `ScenarioAgent`: MiroFish scenario packaging and interpretation.
 - `OrderGuardAgent`: order draft review, rule checks, hard blocks, approvals, and audit evidence.
@@ -80,9 +87,9 @@ User-facing modes:
 
 Trading authority:
 
-- Read-only account and market access is allowed only after the relevant stage and credential boundary are implemented.
+- Account and market reads require the relevant broker credential boundary or no-broker/manual data mode.
 - Order draft and paper trading are later-stage features.
-- Live order submit, modify, and cancel require deterministic Order Guard policy, audit logging, kill switch, idempotency, explicit approval, and stage-gate evidence.
+- Manual live order submit, modify, and cancel require deterministic Order Guard policy, audit logging, kill switch, idempotency, explicit approval, and stage-gate evidence.
 - Rule-based automation is a final-stage capability, not a Stage 2 or Stage 3 capability.
 
 ## Terminal And News Scope
@@ -106,6 +113,10 @@ News should be a decision-relevant input, not a standalone feed. Prefer:
 - Source-backed summaries with timestamps.
 - "What changed since my last thesis?" over generic headlines.
 - Saved research artifacts over endless scrolling.
+
+OpenDART and KRX are optional public-data connectors, not required first-run features. They should stay deferred until Korean filings, financial statements, listing metadata, or official market-reference workflows need them.
+
+Read `docs/product/external-tools-and-data.md` for the external tool and public data policy.
 
 ## External Reference Lessons
 
@@ -131,12 +142,15 @@ Because that reference has unclear source and license status, GaemiGuard must no
 
 ## Stage Implications
 
-Stage 2 remains Toss read-only connector work:
+Stage 2 is now interpreted as Broker Connection Foundation. The existing implementation is the Toss read-only adapter slice:
 
+- Define and implement the shared broker adapter contract.
+- Keep the current Toss read-only code as the first adapter implementation.
 - Finish production credential setup through the OS credential boundary.
 - Add real read-only Toss sync using the existing snapshot repository.
 - Show data freshness without pretending mock or not-configured state is connected.
 - Ground Commander account answers in real read-only snapshots only after source/freshness links exist.
+- Add KIS source notes and capability mapping before any KIS implementation.
 
 Stage 3 should make the personal investment agent useful:
 
@@ -149,14 +163,16 @@ Stage 4 should add scenario analysis:
 - MiroFish as a scenario sidecar.
 - Scenario outputs labeled as assumptions, not predictions.
 
-Stage 5 and later should handle order preparation:
+Stage 5 should handle order preparation:
 
 - Order drafts.
 - Paper trading.
 - Deterministic guard checks.
 - Audit evidence.
 
-Stage 6 and Stage 7 are the only places where live orders and rule-based automation can open.
+Stage 6 opens user-approved manual live orders.
+
+Stage 7 opens bounded rule-based automation.
 
 ## Design Rules For Future Work
 

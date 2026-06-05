@@ -13,6 +13,7 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 3. PR #5-#7 established the waterfall plan, documentation hub, setup, and contribution documents.
 4. PR #8-#9 improved the Stage 1 home screen and Windows desktop smoke testing.
 5. PR #10-#11 started the Toss read-only connector and added mock replay based snapshot persistence/sync shape.
+6. PR #12-#14 added agent-facing docs, Korean README positioning, and the agent-first product direction.
 
 ## Pull Request History
 
@@ -29,6 +30,9 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 | [#9](https://github.com/Sungblab/GaemiGuard/pull/9) | `a31655c` | 2026-06-04 | Added a Windows-safe desktop Playwright smoke command. | Established `pnpm smoke:desktop` as the verification path for desktop workflow changes on Windows. |
 | [#10](https://github.com/Sungblab/GaemiGuard/pull/10) | `c97bbee` | 2026-06-05 | Added the first Toss read-only connector slice: official OpenAPI task list, fetch client, mock replay, health status, Commander/BrokerTossAgent read-only tool contract, and mutation blocking tests. | Started Stage 2 while keeping the boundary clear: no production credential store and no real sync yet. |
 | [#11](https://github.com/Sungblab/GaemiGuard/pull/11) | `479faba` | 2026-06-05 | Added mock replay based Toss SQLite snapshot persistence and sync shape for accounts, holdings, quotes, orderbook summaries, exchange rates, market calendars, warnings, sync logs, and rate-limit metadata. | Fixed the storage model and sensitive-data rules before real Toss connectivity. |
+| [#12](https://github.com/Sungblab/GaemiGuard/pull/12) | `2aae76f` | 2026-06-06 | Added agent documentation index, handoff routing, Devflow gates, and documentation integrity checks. | Made future agent sessions easier to start and finish consistently. |
+| [#13](https://github.com/Sungblab/GaemiGuard/pull/13) | `5eccb43` | 2026-06-06 | Refreshed the public Korean README and onboarding copy. | Made the public repo easier for Korean users to understand. |
+| [#14](https://github.com/Sungblab/GaemiGuard/pull/14) | `aa12b4c` | 2026-06-06 | Defined GaemiGuard as an agent-first local personal investment workspace and added product direction docs. | Re-centered the product on the personal investment agent rather than a broker clone or terminal clone. |
 
 ## Completed Major Blocks
 
@@ -36,15 +40,18 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 
 Complete. The repo has the local desktop app, local API, SQLite, artifact persistence, Commander runtime, specialist stub, permission engine, Order Guard dry-run, and live-order blocking.
 
-### Stage 2 Toss Readonly Connector
+### Stage 2 Broker Connection Foundation
 
-In progress. The read-only connector skeleton and mock replay based snapshot persistence/sync shape are implemented.
+In progress. The current implemented code is the Toss read-only adapter skeleton and mock replay based snapshot persistence/sync shape. The product direction now treats this as the first slice of a broker-independent adapter foundation.
 
 Remaining work:
 
 - Real secret storage boundary
 - Toss credential setup/disconnect
 - Real Toss read-only sync
+- Shared broker adapter contract and capability model
+- No-broker/manual portfolio mode
+- KIS source note and capability map before any KIS implementation
 - Rate-limit aware scheduling and retry policy
 - Account/holding/data freshness UI
 - Commander answers grounded in actual read-only data and source references
@@ -55,5 +62,6 @@ Remaining work:
 - Current state: `docs/development-status.md`
 - Agent work index: `docs/agent-index.md`
 - Stage 2 contract: `docs/stages/stage-2-toss-readonly-connector.md`
+- Broker/trading direction: `docs/product/broker-connection-and-trading.md`
 - Documentation hub: `docs/README.md`
 - Single-file HTML docs: `docs/gaemiguard-all-docs.html`

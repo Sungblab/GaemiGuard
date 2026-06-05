@@ -11,6 +11,8 @@ const requiredFiles = [
   "docs/README.md",
   "docs/product/README.md",
   "docs/product/agent-first-direction.md",
+  "docs/product/broker-connection-and-trading.md",
+  "docs/product/external-tools-and-data.md",
   "docs/architecture/design-index.md",
   "docs/architecture/maps/README.md",
   "docs/contributing/workflow.md",
@@ -40,12 +42,24 @@ const requiredMentions = [
     text: "docs/product/agent-first-direction.md"
   },
   {
+    file: "docs/README.md",
+    text: "docs/product/broker-connection-and-trading.md"
+  },
+  {
+    file: "docs/README.md",
+    text: "docs/product/external-tools-and-data.md"
+  },
+  {
     file: "docs/development-status.md",
     text: "docs/agent-index.md"
   },
   {
     file: "docs/development-status.md",
     text: "docs/product/agent-first-direction.md"
+  },
+  {
+    file: "docs/development-status.md",
+    text: "docs/product/broker-connection-and-trading.md"
   },
   {
     file: "docs/architecture/design-index.md",
@@ -56,8 +70,16 @@ const requiredMentions = [
     text: "docs/product/agent-first-direction.md"
   },
   {
+    file: "docs/architecture/design-index.md",
+    text: "docs/product/broker-connection-and-trading.md"
+  },
+  {
     file: "docs/agent-index.md",
     text: "docs/product/agent-first-direction.md"
+  },
+  {
+    file: "docs/agent-index.md",
+    text: "docs/product/broker-connection-and-trading.md"
   },
   {
     file: "docs/contributing/workflow.md",

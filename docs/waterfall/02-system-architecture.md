@@ -14,7 +14,10 @@ flowchart LR
   Commander --> Policy["Permission + Order Authority"]
   Commander --> DB["SQLite"]
   Commander --> Artifacts["Markdown/JSON Artifacts"]
-  Agents --> Toss["Toss Official Open API"]
+  Agents --> Broker["Broker Adapter Contract"]
+  Broker --> Toss["Toss Official Open API"]
+  Broker --> KIS["KIS Adapter Candidate"]
+  Broker --> Manual["Manual / CSV Portfolio"]
   Agents --> MiroFish["MiroFish Sidecar"]
   Agents --> Hermes["Hermes Research"]
   Agents --> OpenBB["OpenBB"]
@@ -29,16 +32,17 @@ flowchart LR
 | Local API | HTTP boundary, health, agent run endpoints, connector endpoints |
 | Core runtime | Commander, specialists, policies, artifact writing |
 | SQLite | Durable local system of record |
+| Broker adapters | Toss now; KIS, Kiwoom, LS, manual portfolio, and CSV later |
 | Sidecars | MiroFish/Hermes/OpenBB process-bound tools |
 | Provider adapters | Codex CLI and other LLM/tool providers |
 
 ## Boundary Rules
 
-- UI never talks directly to Toss, MiroFish, Hermes, OpenBB, or Codex.
+- UI never talks directly to broker APIs, MiroFish, Hermes, OpenBB, or Codex.
 - Commander never submits live orders directly.
 - Specialist agents never bypass the policy gateway.
 - Sidecars receive sanitized context and artifact paths, not raw credentials.
-- Toss credentials stay inside the Toss connector and OS credential boundary.
+- Broker credentials stay inside the broker connector and OS credential boundary.
 - Artifacts contain enough source snapshot to reproduce reasoning, but not raw secrets.
 
 ## Required Health Checks
@@ -48,7 +52,9 @@ Every runtime boot should report:
 - API status.
 - SQLite read/write.
 - Artifact directory write.
-- Toss auth readiness and API version.
+- Broker adapter readiness, capability flags, and selected adapter status.
+- Toss auth readiness and API version when the Toss adapter is configured.
+- Future KIS readiness only after a KIS adapter exists.
 - MiroFish sidecar version/health.
 - Hermes/OpenBB availability if enabled.
 - Codex CLI availability if enabled.
@@ -60,8 +66,8 @@ Every runtime boot should report:
 
 | Failure | User-visible behavior | System behavior |
 | --- | --- | --- |
-| Toss token missing | Show connector setup needed | Do not call account APIs |
-| Toss 429 | Show rate-limit status | Backoff and preserve retry metadata |
+| Broker credential missing | Show connector setup needed or no-broker mode | Do not call account APIs |
+| Broker rate limit | Show rate-limit status | Backoff and preserve retry metadata |
 | Sidecar unavailable | Show scenario disabled | Keep account/research paths usable |
 | Artifact write failure | Block sensitive run completion | Do not allow order review approval |
 | DB write failure | Degrade to read-only UI | Block order paths |

@@ -101,7 +101,7 @@ Important implementation notes:
 
 ## GaemiGuard Connector Policy
 
-Use official Open API as the default Toss connector.
+Use official Open API as the only Toss connector. Toss is the first implemented broker adapter slice, not the product center.
 
 Do not pass Toss credentials, access tokens, or account identifiers to Hermes, MiroFish, OpenClaw, OpenBB, or other external agents. External tools should receive sanitized portfolio context only.
 
@@ -127,9 +127,10 @@ Mutation operations remain forbidden:
 
 Defer live order mutation until GaemiGuard has:
 
-- Read-only default mode
-- Separate order permission
-- Separate automation permission
+- Broker adapter capability checks
+- Stage 2 read authority complete
+- Separate Stage 6 manual order permission
+- Separate Stage 7 automation permission
 - Order Guard preview
 - User confirmation
 - Global kill switch

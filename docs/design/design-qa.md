@@ -27,6 +27,6 @@ focused region comparison evidence: focused region crops were not needed for thi
 **Follow-up Polish**
 - Add a mobile/tablet layout if this becomes more than a desktop-first Electron prototype.
 - Replace abstract ticker badges with sanctioned local brand assets only if licensing and use are clear.
-- Add a dedicated empty/first-run state for users who have not connected Toss yet.
+- Add a dedicated empty/first-run state for users who have not connected a broker yet, including no-broker/manual portfolio mode.
 
 final result: passed

@@ -23,7 +23,7 @@ Use this prompt in your coding agent:
 - pnpm docs:html을 실행해서 docs/gaemiguard-all-docs.html을 생성/갱신해줘.
 - pnpm verify를 실행해 테스트, 타입체크, 빌드를 확인해줘.
 - 빌드 산출물처럼 Git에 넣으면 안 되는 파일은 커밋하지 마.
-- API key, OAuth secret, Toss token, 계좌번호 같은 민감 정보는 만들거나 커밋하지 마.
+- API key, OAuth secret, broker token, 계좌번호 같은 민감 정보는 만들거나 커밋하지 마.
 - 막히는 부분이 있으면 정확한 에러와 다음 선택지를 알려줘.
 
 완료 기준:
@@ -48,7 +48,7 @@ The agent should:
 
 The agent should not:
 
-- Create fake Toss credentials.
+- Create fake broker credentials.
 - Ask the user to paste secrets into chat.
 - Commit `.env` files.
 - Enable live trading.

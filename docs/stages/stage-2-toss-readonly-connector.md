@@ -1,31 +1,41 @@
-# Stage 2 Gate: Toss Readonly Connector
+# Stage 2 Gate: Broker Connection Foundation
 
 Generated: 2026-06-04
+Updated: 2026-06-06
+
+File name note: this file keeps the original `stage-2-toss-readonly-connector.md` path because current code, docs, and history already reference it. The product meaning is now broader: Stage 2 is Broker Connection Foundation, and the currently implemented slice is the Toss read-only adapter.
 
 ## Objective
 
-Connect official Toss Invest Open API read-only data to GaemiGuard so Commander can answer account-aware and market-aware questions.
+Establish the broker connection foundation for GaemiGuard.
+
+Stage 2 proves that an official broker adapter can safely authenticate, sync account/market data, persist sanitized snapshots, report freshness, and feed Commander without leaking secrets or implying unsupported connection state.
+
+The first implemented adapter is Toss read-only. Future adapters such as KIS should use the same broker contract after their source notes, capability mapping, and fixtures are prepared.
 
 ## Entry Criteria
 
 - Stage 1 exit gate is accepted.
-- Toss OpenAPI version is checked against `vendor/tossinvest/openapi-1.0.3.json`.
+- Current Toss OpenAPI version is checked against `vendor/tossinvest/openapi-1.0.3.json`.
 - Secrets storage plan is implemented or mocked with explicit non-production boundary.
+- Product direction is aligned with `docs/product/broker-connection-and-trading.md`.
 
 ## In Scope
 
-- OAuth2 client credentials token issuance.
-- Account list.
-- Holdings.
-- Current prices.
-- Orderbook.
-- Exchange rate.
-- KR/US market calendars.
-- Stock warnings.
+- Broker adapter contract and capability metadata.
+- Toss OAuth2 client credentials token issuance.
+- Toss account list.
+- Toss holdings.
+- Toss current prices.
+- Toss orderbook.
+- Toss exchange rate.
+- Toss KR/US market calendars.
+- Toss stock warnings.
 - Rate-limit and retry handling.
 - Connector health check.
 - Read-only portfolio and market snapshots in SQLite.
-- Commander/Portfolio/BrokerToss tool calls for read-only data.
+- Commander/Portfolio/BrokerAgent/BrokerToss tool calls for read-only data and freshness.
+- No-broker/manual data mode can be introduced in this stage if the implementation slice includes first-run workflow.
 
 ## First Implementation Slice
 
@@ -109,6 +119,18 @@ Explicitly excluded from this second slice:
 - UI account/holdings/data freshness views.
 - Commander account answers grounded in real read-only snapshots with source links.
 
+## Product Direction Update
+
+Accepted on 2026-06-06:
+
+- GaemiGuard is broker-independent at the product level.
+- Toss is the first implemented adapter slice, not the product center.
+- KIS is a future adapter candidate after source notes and capability mapping.
+- No-broker mode must be supported so the app is useful before broker login.
+- Read-only is the current Stage 2 implementation boundary, not the final product boundary.
+- Manual live orders are Stage 6.
+- Rule-based automated trading is Stage 7.
+
 ## Out Of Scope
 
 - `POST /api/v1/orders`.
@@ -116,12 +138,15 @@ Explicitly excluded from this second slice:
 - `POST /api/v1/orders/{orderId}/cancel`.
 - Buying-power/sellable/commission as order-authority actions, unless read-only display is explicitly separated.
 - Automatic trading.
-- Unofficial Toss web-internal API use.
+- Unofficial Toss web-internal API use or any other unofficial broker web/internal API use.
+- KIS implementation before a KIS source note, capability map, fixtures, and explicit goal.
+- Public broker aggregation API service.
 
 ## Data Contract
 
 Store:
 
+- broker adapter ID and capability metadata, when implemented
 - masked account reference
 - holdings snapshot
 - quote snapshot
@@ -134,6 +159,8 @@ Store:
 Deferred until the production credential/sync slice:
 
 - connector account sequence mapping locally, kept behind the credential boundary
+- broker adapter contract implementation if not included in a narrower credential slice
+- no-broker/manual portfolio mode if not included in this stage's UI slice
 
 Do not store:
 
@@ -147,12 +174,13 @@ Do not store:
 
 UI must show:
 
-- Toss connector status.
+- broker connector status.
+- specific Toss adapter status when Toss is selected.
 - Last sync time.
 - Data freshness warnings.
 - Account/holdings table.
 - Market data source label.
-- Read-only mode badge.
+- Current authority badge, such as no broker, read account, draft-only, paper, manual live locked, or automation locked.
 
 ## Agent Contract
 
@@ -161,17 +189,20 @@ Commander can answer:
 - "내 계좌 요약해줘"
 - "이 종목 내 비중이 얼마나 돼?"
 - "삼성전자 현재가와 내 보유 비중 같이 봐줘"
+- "증권사 연결 없이 관심종목 기준으로 점검해줘"
 
 Commander cannot:
 
 - create order drafts unless Stage 5 API exists
 - submit/modify/cancel orders
 - infer missing account data as fact
+- present Toss, KIS, or any broker as connected when the adapter is not configured and freshly synced
 
 ## Exit Gate
 
 Stage 2 exits when:
 
+- Broker adapter contract and capability metadata are represented in docs and code, or a narrower gate review explicitly defers the code contract while preserving existing Toss behavior.
 - OpenAPI contract tests pass for included endpoints.
 - Mock replay tests cover 200, 401, 403, 429, and unknown enum cases.
 - Token storage does not write secrets to DB/artifacts.
@@ -179,11 +210,14 @@ Stage 2 exits when:
 - UI read-only data flow works.
 - Commander read-only account question works with source links.
 - Mutation endpoints remain unavailable or hard-blocked.
+- Stage 2 status is shown as broker connection/read authority only, not manual trading or automation.
 
 ## Remaining Gaps Before Stage 2 Exit
 
 - Production secret storage using the OS credential store.
 - User-facing credential setup and disconnect flow.
+- Shared broker adapter contract and capability model.
+- No-broker/manual portfolio first-run path, if kept in Stage 2.
 - Real Toss sync jobs using the implemented snapshot repository.
 - Production account sequence mapping behind the credential boundary.
 - Rate-limit scheduler/backoff behavior beyond response metadata normalization.
@@ -191,3 +225,4 @@ Stage 2 exits when:
 - Commander account-aware answers grounded in real connector snapshots with source links.
 - Security review for production credential lifecycle and external-agent redaction.
 - Gate review record after full read-only workflow verification.
+- KIS source note and capability map before any KIS implementation goal.

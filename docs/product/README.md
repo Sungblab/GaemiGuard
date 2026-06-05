@@ -11,6 +11,8 @@ positioning.
 | Document | Purpose |
 | --- | --- |
 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, with investment guard and local terminal surfaces as supporting pieces. |
+| `docs/product/broker-connection-and-trading.md` | Broker-independent adapter strategy, no-broker mode, manual trading, and rule-based automation authority. |
+| `docs/product/external-tools-and-data.md` | Hermes, MiroFish, OpenBB, OpenDART, KRX, FinceptTerminal, and open-source reuse policy. |
 
 ## Maintenance
 

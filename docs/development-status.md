@@ -11,7 +11,8 @@ This is the current-state document coding agents should read before continuing G
 - Recent documentation baseline: `5b924a2`, `docs: use goal format for Devflow handoffs`
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
-- Current Stage 2 baseline includes mock replay snapshot persistence/sync shape with safe freshness status.
+- Current Stage 2 baseline includes mock replay Toss snapshot persistence/sync shape with safe freshness status.
+- Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code remains the Toss read-only adapter slice.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
@@ -33,7 +34,7 @@ This is the current-state document coding agents should read before continuing G
   - `pnpm test`
   - `pnpm typecheck`
 - Current development model: Gate-Based Waterfall, not MVP iteration.
-- Active stage: Stage 2, Toss Readonly Connector.
+- Active stage: Stage 2, Broker Connection Foundation.
 - Stage 2 status: first implementation slice is complete; Stage 2 exit gate is not complete.
 
 ## Read Order For Future Goals
@@ -44,8 +45,10 @@ This is the current-state document coding agents should read before continuing G
 4. `docs/README.md`
 5. Product direction:
    - `docs/product/agent-first-direction.md`
+   - `docs/product/broker-connection-and-trading.md`
+   - `docs/product/external-tools-and-data.md`
 6. Active stage gate:
-   - currently `docs/stages/stage-2-toss-readonly-connector.md`
+   - currently `docs/stages/stage-2-toss-readonly-connector.md` (file name retained; product meaning is Broker Connection Foundation with Toss read-only as the current slice)
 7. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
@@ -100,11 +103,11 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | Stage | Status | Notes |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
-| Stage 2 Toss Readonly Connector | In progress | First connector slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Real secret store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
-| Stage 3 Research And Memory | Not started | Must wait for accepted Stage 2 read-only Toss data. |
+| Stage 2 Broker Connection Foundation | In progress | First Toss read-only adapter slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Broker adapter contract, real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
+| Stage 3 Research And Memory | Not started | Should build on accepted broker/no-broker data context and redaction boundaries. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
-| Stage 6 Guarded Live Orders | Locked | Live order submission remains forbidden before this stage. |
+| Stage 6 Guarded Manual Live Orders | Locked | User-approved manual live order submission remains forbidden before this stage. |
 | Stage 7 Rule-Based Automation | Locked | Unattended automation remains forbidden before this stage. |
 
 ## Implemented So Far
@@ -123,7 +126,7 @@ Stage 1:
 
 Stage 2 first slice:
 
-- Shared Toss read-only TypeScript operation and data contracts.
+- Shared Toss read-only TypeScript operation and data contracts. This is now interpreted as the first broker adapter slice, not as a Toss-only product commitment.
 - Official Toss Invest OpenAPI version pinned to `1.0.3`.
 - First-slice operation scope:
   - `getAccounts`
@@ -178,6 +181,8 @@ Documentation routing:
 - `docs/agent-index.md` is the short agent-facing route into the current state, handoff policy, and harness commands.
 - `docs/development-history.md` records PR-by-PR development history.
 - `docs/product/agent-first-direction.md` records the current product decision: personal investment agent first, with investment guard and local terminal surfaces supporting the agent.
+- `docs/product/broker-connection-and-trading.md` records the broker-independent adapter direction, no-broker mode, manual trading, and automation authority.
+- `docs/product/external-tools-and-data.md` records Hermes, MiroFish, OpenBB, OpenDART, KRX, FinceptTerminal, and open-source reuse priorities.
 - `docs/architecture/design-index.md` owns the source-of-truth map.
 - `docs/architecture/maps/README.md` maps source docs to code owners and verification gates.
 - `scripts/build-docs-html.mjs` builds the searchable single-file bundle.
@@ -188,6 +193,7 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 
 - Production secret storage using the OS credential store.
 - Credential setup/disconnect flow.
+- Shared broker adapter contract that can represent Toss now and KIS later without making Toss the product center.
 - Real Toss sync jobs using production credentials.
 - Production account sequence mapping and scheduling around the OS credential boundary.
 - Rate-limit scheduling/backoff behavior beyond response metadata normalization.
@@ -201,19 +207,23 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 - No Toss order create/modify/cancel implementation.
 - No live trading.
 - No automatic trading.
-- No unofficial Toss web/internal API.
-- No real Toss secrets, tokens, account numbers, order IDs, or personal identifiers in code, docs, tests, logs, DB, artifacts, or external-agent context.
+- No unofficial broker web/internal API.
+- No real broker secrets, tokens, account numbers, order IDs, or personal identifiers in code, docs, tests, logs, DB, artifacts, or external-agent context.
 - No UI copy that implies Toss is connected when only mock or not-configured mode is active.
 
 ## Recommended Next Slice
 
-After the mock replay persistence/sync slice, the next practical Stage 2 slice is production credential setup and real read-only sync:
+After the mock replay persistence/sync slice and product-direction reset, the next practical Stage 2 slice is broker connection foundation in code:
 
-1. Add production credential setup/disconnect flow backed by the OS credential store.
-2. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
-3. Add rate-limit scheduling/backoff around real sync execution.
-4. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
-5. Ground Commander account-aware answers in real read-only snapshots with source links.
-6. Complete the Stage 2 security review and gate review record.
+1. Define the shared `BrokerAdapter` contract and capability flags.
+2. Wrap the current Toss read-only connector as the first adapter implementation.
+3. Preserve all Stage 2 mutation hard blocks.
+4. Add no-broker/manual portfolio mode as a first-run path if the slice includes UI or user workflow.
+5. Add production credential setup/disconnect flow backed by the OS credential store.
+6. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
+7. Add rate-limit scheduling/backoff around real sync execution.
+8. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
+9. Ground Commander account-aware answers in real read-only snapshots with source links.
+10. Complete the Stage 2 security review and gate review record.
 
-Do not add production credential storage or UI claims of real Toss connection in the same slice unless the goal explicitly asks for that broader scope.
+Do not add KIS implementation, production credential storage, UI claims of real Toss connection, manual live orders, or automation in the same slice unless the goal explicitly asks for that broader scope.
