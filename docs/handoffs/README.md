@@ -2,19 +2,19 @@
 
 Updated: 2026-06-06
 
-긴 목표는 `/goal` 프롬프트에 모두 넣지 말고 이 폴더에 문서로 작성한다. `/goal`은 이 문서를 읽고 실행하라고 짧게 지시한다.
+Use this directory for long development goals. Do not put very large specs directly into the `/goal` prompt. The `/goal` prompt should stay short and point at the handoff document.
 
-## 사용 시점
+## When To Use
 
-- 목표가 4천자를 넘을 때
-- 금지 사항이 많을 때
-- 완료 기준을 자세히 적어야 할 때
-- 여러 세션이나 에이전트가 같은 기준을 봐야 할 때
+- The goal would exceed about 4,000 characters.
+- The task has many safety constraints.
+- Completion criteria need detailed wording.
+- Multiple sessions or agents need the same source of truth.
 
-## 작성 형식
+## Template
 
 ```markdown
-# <작업 이름>
+# <Work Name>
 
 ## Goal
 
@@ -31,10 +31,9 @@ Updated: 2026-06-06
 ## Completion Criteria
 ```
 
-## 규칙
+## Rules
 
-- 문서 안의 기준이 `/goal`보다 자세한 기준이다.
-- 작업이 끝나면 `docs/development-status.md`에 결과와 다음 작업을 반영한다.
-- Stage 문서의 완료/남은 gap도 같이 업데이트한다.
-- 문서 변경 뒤에는 `pnpm docs:agent-check`와 `pnpm docs:html`을 실행한다.
-
+- The handoff document is the detailed contract; the `/goal` prompt is only the launcher.
+- After the work is complete, update `docs/development-status.md`.
+- Also update the active stage document when completed work or remaining gaps change.
+- After documentation changes, run `pnpm docs:agent-check` and `pnpm docs:html`.

@@ -1,119 +1,64 @@
-# GaemiGuard 에이전트 작업 안내
+# GaemiGuard Agent Instructions
 
-이 문서는 Codex나 다른 에이전트가 GaemiGuard 저장소에서 작업을 시작할 때 가장 먼저 읽는 짧은 규칙이다.
+This is the first rule file for Codex and other agents working in this repository. Keep it short. Put longer status, history, and handoff details in the linked documents.
 
-목표는 두 가지다.
+## Language Policy
 
-- 다음 작업자가 어디부터 읽고 무엇을 하면 되는지 바로 알게 한다.
-- 사용자가 읽어도 이해할 수 있게, 어렵고 짧은 말보다 쉬운 한국어 설명을 우선한다.
+- Keep repository artifacts in English by default: code, comments, tests, commit messages, PR text, documentation, scripts, and CI or harness labels.
+- Reply to Sungbin in natural Korean in chat unless the user explicitly asks for another language.
+- When explaining technical work to the user, prefer plain Korean. If an English technical term is necessary, briefly explain what it means.
+- Do not make repository documents Korean just because the chat response is Korean.
 
-## 말하는 방식
+## Read First
 
-- 사용자에게 답할 때는 기본적으로 한국어로 말한다.
-- 영어 용어나 개발 용어를 꼭 써야 하면, 처음에는 쉬운 말로 풀어서 설명한다.
-- 너무 짧게 줄이다가 뜻이 어려워지는 것보다, 조금 길어도 이해되는 설명을 우선한다.
-- “하네스”처럼 프로젝트에서 이미 쓰는 말은 필요하면 함께 쓰되, 자동 검사 묶음이나 작업 보조 장치처럼 뜻을 같이 알려준다.
-- 완료했다고 말하기 전에는 실제로 어떤 검사를 돌렸고 결과가 어땠는지 함께 말한다.
-
-## 작업 전에 먼저 읽을 문서
-
-개발 작업을 시작하기 전에 아래 순서대로 읽는다.
+For every development goal, read these before changing code:
 
 1. `docs/agent-index.md`
-   - 에이전트가 어디를 보면 되는지 알려주는 길잡이다.
 2. `docs/development-status.md`
-   - 지금까지 끝난 일, 진행 중인 일, 막힌 일, 다음 작업이 정리된 현재 상태 문서다.
-3. 현재 작업 단계 문서
-   - 예: Stage 2 작업이면 `docs/stages/stage-2-toss-readonly-connector.md`
-4. 사용자가 직접 말한 문서
-   - 사용자가 특정 문서를 읽으라고 했으면 그 문서도 반드시 확인한다.
+3. The active stage gate under `docs/stages/`
+4. Any source document named by the user or by the active status entry
 
-`docs/agent-index.md`는 문서 길잡이고, `docs/development-status.md`는 현재 사실 기준이다. 둘이 다르면 `docs/development-status.md`를 먼저 믿고, 필요한 문서를 함께 고친다.
+`docs/agent-index.md` is the short routing map. `docs/development-status.md` is the current truth for what is done, what is in progress, what is blocked, and what to do next.
 
-## 작업 환경 확인
+## Setup Contract
 
-저장소를 새로 설정하거나 검증하라고 요청받으면 아래를 확인한다.
+When asked to set up or verify the repo:
 
-1. 운영체제와 셸을 확인한다.
-2. `package.json`, `pnpm-workspace.yaml`, `.gitignore`를 확인한다.
-3. Node.js 22 이상인지 확인한다.
-4. pnpm 10 이상인지 확인한다.
-5. `pnpm install`을 실행한다.
-6. `pnpm docs:agent-check`를 실행한다.
-7. `pnpm docs:html`을 실행한다.
-8. `pnpm verify`를 실행한다.
-9. 실패하면 어떤 명령이 어떤 이유로 실패했는지 그대로 보고한다.
+1. Inspect OS/shell, `package.json`, `pnpm-workspace.yaml`, and `.gitignore`.
+2. Verify Node.js 22+ and pnpm 10+.
+3. Run `pnpm install`.
+4. Run `pnpm docs:agent-check`.
+5. Run `pnpm docs:html`.
+6. Run `pnpm verify`.
+7. Report exact failures.
 
-## 절대 하면 안 되는 일
+## Safety
 
-- Toss 비밀값, 토큰, 실제 계좌번호, 주문번호, 개인 식별 정보를 만들거나, 요청하거나, 출력하거나, 저장하거나, 커밋하지 않는다.
-- 실제 자격 증명이 들어간 `.env` 파일을 만들지 않는다.
-- 승인된 나중 단계가 오기 전에는 Toss 주문 생성, 주문 수정, 주문 취소 기능을 만들지 않는다.
-- 자동매매나 실주문 기능을 만들지 않는다.
-- 비공식 Toss 웹 내부 API를 호출하지 않는다.
-- 사용자가 명시적으로 요청하지 않았는데 Hermes, MiroFish, OpenBB, Graphiti 같은 선택형 보조 도구를 설치하지 않는다.
-- `apps/desktop/dist` 같은 생성된 앱 빌드 결과물을 커밋하지 않는다.
+- Do not create, request, print, store, or commit Toss secrets, OAuth tokens, account numbers, order IDs, or personal identifiers.
+- Do not create `.env` files with real credentials.
+- Do not enable live trading, automatic trading, or Toss order mutation endpoints unless a later approved stage explicitly allows it.
+- Do not call unofficial Toss web/internal APIs.
+- Do not install optional sidecars such as Hermes, MiroFish, OpenBB, or Graphiti unless explicitly asked.
+- Keep generated app build output such as `apps/desktop/dist` out of commits.
 
-## 검증 명령
+## Verification
 
-일반 코드 작업을 마치기 전:
+- Normal repo work: `pnpm verify`
+- Documentation updates: also run `pnpm docs:agent-check` and `pnpm docs:html`
+- User-visible desktop UI workflow changes: run `pnpm smoke:desktop`
 
-```powershell
-pnpm verify
-```
+Use `pnpm smoke:desktop` instead of ad-hoc Vite preview servers on Windows.
 
-문서를 바꿨다면 아래도 함께 실행한다.
+## Documentation HTML
 
-```powershell
-pnpm docs:agent-check
-pnpm docs:html
-```
+`pnpm docs:html` rebuilds `docs/gaemiguard-all-docs.html`, the single-file documentation bundle used by humans and agents to inspect the repository context quickly. Regenerate it after documentation changes.
 
-화면 흐름이나 데스크톱 앱 사용 방식을 바꿨다면 아래도 실행한다.
+## Handoff
 
-```powershell
-pnpm smoke:desktop
-```
+When writing a next-session prompt, use the `/goal` prompt format with `CWD`, `Goal`, context, constraints, verification, and completion criteria.
 
-Windows에서는 임시 Vite 미리보기 서버를 직접 띄우기보다 `pnpm smoke:desktop`을 우선 사용한다.
+If the goal would exceed about 4,000 characters, write the full task spec under `docs/handoffs/` and keep the `/goal` prompt short.
 
-## 문서 HTML을 만드는 이유
+## Product Boundary
 
-`pnpm docs:html`은 여러 문서를 `docs/gaemiguard-all-docs.html` 한 파일로 묶는다.
-
-이 HTML은 다음 목적이 있다.
-
-- 사용자가 브라우저에서 전체 문서를 한 번에 읽기 쉽게 한다.
-- 다음 에이전트가 문서를 빠르게 훑을 수 있게 한다.
-- 문서가 여기저기 흩어져도 현재 상태와 작업 기준을 놓치지 않게 한다.
-
-그래서 문서를 바꿨다면 HTML도 다시 만들어야 한다.
-
-## 다음 세션에 넘길 때
-
-다음 작업 프롬프트를 쓸 때는 `/goal` 형식을 쓴다.
-
-포함할 내용:
-
-- `CWD`
-- 목표
-- 현재 상황
-- 먼저 읽을 문서
-- 하면 안 되는 일
-- 검증 명령
-- 완료 기준
-
-목표가 4천자를 넘을 만큼 길면 `/goal`에 전부 넣지 않는다. 긴 내용은 `docs/handoffs/` 아래 문서로 만들고, `/goal`에는 그 문서 경로만 넣는다.
-
-## 제품 경계
-
-GaemiGuard는 투자 위험을 줄이기 위한 로컬 우선 에이전트 도구다.
-
-GaemiGuard는 아래 제품이 아니다.
-
-- 수익 보장 봇
-- 증권사 복제 앱
-- 비공식 증권사 API 래퍼
-- 실거래 자동매매 도구
-
-이 경계를 흐리는 기능이나 문구를 넣지 않는다.
+GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.

@@ -387,7 +387,7 @@
 <a href="#doc-34"><span>Handoff Specs</span><small>docs/handoffs/README.md</small></a></div>
 <div class="nav-group"><button class="group-filter" data-filter="Research And Reviews">Research And Reviews <span>2</span></button><a href="#doc-35"><span>GaemiGuard Planning Research</span><small>docs/research/2026-06-04-planning-research.md</small></a>
 <a href="#doc-36"><span>Ten-Loop Planning Review</span><small>docs/reviews/2026-06-04-ten-loop-planning-review.md</small></a></div>
-<div class="nav-group"><button class="group-filter" data-filter="Open Source And Setup">Open Source And Setup <span>8</span></button><a href="#doc-37"><span>GaemiGuard 에이전트 작업 안내</span><small>AGENTS.md</small></a>
+<div class="nav-group"><button class="group-filter" data-filter="Open Source And Setup">Open Source And Setup <span>8</span></button><a href="#doc-37"><span>GaemiGuard Agent Instructions</span><small>AGENTS.md</small></a>
 <a href="#doc-38"><span>변경 기록</span><small>CHANGELOG.md</small></a>
 <a href="#doc-39"><span>행동 강령</span><small>CODE_OF_CONDUCT.md</small></a>
 <a href="#doc-40"><span>기여 가이드</span><small>CONTRIBUTING.md</small></a>
@@ -413,7 +413,7 @@
         <div class="stats">
           <span class="chip"><strong>50</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T15:20:39.937Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T15:26:28.941Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
@@ -3420,85 +3420,85 @@ Approver:</code></pre>
   <h2>GaemiGuard Agent Index</h2>
   <h1 id="doc-30-gaemiguard-agent-index">GaemiGuard Agent Index</h1>
 <p>Updated: 2026-06-06</p>
-<p>이 문서는 에이전트가 GaemiGuard 작업을 시작할 때 보는 짧은 안내서다. 자세한 내용은 여기서 링크한 원문 문서를 따른다.</p>
-<h2 id="doc-30-먼저-읽을-문서">먼저 읽을 문서</h2>
+<p>This is the short routing document for agents starting GaemiGuard work. It points to the source documents instead of replacing them.</p>
+<h2 id="doc-30-read-order">Read Order</h2>
 <div class="table-wrap"><table><thead><tr>
-<th>순서</th><th>문서</th><th>이유</th>
+<th>Order</th><th>Document</th><th>Why</th>
 </tr></thead><tbody>
 <tr>
-<td>1</td><td><code>AGENTS.md</code></td><td>짧은 규칙, 금지 사항, 검증 명령</td>
+<td>1</td><td><code>AGENTS.md</code></td><td>Short rules, safety boundaries, language policy, and verification commands.</td>
 </tr>
 <tr>
-<td>2</td><td><code>docs/agent-index.md</code></td><td>에이전트용 문서 길잡이</td>
+<td>2</td><td><code>docs/agent-index.md</code></td><td>Agent-facing route through docs, handoffs, and harness commands.</td>
 </tr>
 <tr>
-<td>3</td><td><code>docs/development-status.md</code></td><td>현재 완료/진행/다음 작업</td>
+<td>3</td><td><code>docs/development-status.md</code></td><td>Current implementation state, active work, blockers, and next work.</td>
 </tr>
 <tr>
-<td>4</td><td><code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td>현재 Stage 2 작업 기준</td>
+<td>4</td><td><code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td>Current Stage 2 contract.</td>
 </tr>
 <tr>
-<td>5</td><td><code>docs/architecture/maps/README.md</code></td><td>문서와 코드 소유 위치</td>
+<td>5</td><td><code>docs/architecture/maps/README.md</code></td><td>Source docs mapped to owning code paths and verification gates.</td>
 </tr>
 </tbody></table></div>
-<p>필요할 때만 읽을 문서:</p>
+<p>Read these only when relevant:</p>
 <div class="table-wrap"><table><thead><tr>
-<th>필요</th><th>문서</th>
+<th>Need</th><th>Document</th>
 </tr></thead><tbody>
 <tr>
-<td>전체 계획</td><td><code>docs/waterfall/00-master-plan.md</code></td>
+<td>Overall plan</td><td><code>docs/waterfall/00-master-plan.md</code></td>
 </tr>
 <tr>
-<td>개발 과정</td><td><code>docs/development-history.md</code></td>
+<td>Development history</td><td><code>docs/development-history.md</code></td>
 </tr>
 <tr>
-<td>토스 API</td><td><code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code></td>
+<td>Toss API reference</td><td><code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code></td>
 </tr>
 <tr>
-<td>Commander/runtime</td><td><code>docs/architecture/agent-runtime.md</code></td>
+<td>Commander/runtime work</td><td><code>docs/architecture/agent-runtime.md</code></td>
 </tr>
 <tr>
-<td>화면 테스트</td><td><code>docs/setup/playwright-smoke.md</code></td>
+<td>Desktop smoke testing</td><td><code>docs/setup/playwright-smoke.md</code></td>
 </tr>
 <tr>
-<td>작업 절차</td><td><code>docs/contributing/workflow.md</code></td>
+<td>Workflow rules</td><td><code>docs/contributing/workflow.md</code></td>
 </tr>
 </tbody></table></div>
-<h2 id="doc-30-현재-사실">현재 사실</h2>
+<h2 id="doc-30-current-facts">Current Facts</h2>
 <ul>
-<li>현재 개발 방식은 단계별 문 닫기 방식이다.</li>
-<li>Stage 1은 완료됐다.</li>
-<li>Stage 2는 진행 중이다.</li>
-<li>Stage 2는 아직 완료가 아니다.</li>
-<li>토스 주문 생성/수정/취소는 아직 금지다.</li>
-<li>실제 토스 비밀값, 토큰, 계좌번호, 주문번호는 코드/문서/DB/artifact/API 응답에 넣으면 안 된다.</li>
+<li>Development follows stage gates.</li>
+<li>Stage 1 is complete.</li>
+<li>Stage 2 is in progress.</li>
+<li>Stage 2 is not exited yet.</li>
+<li>Toss order create/update/cancel remains forbidden.</li>
+<li>Real Toss secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.</li>
 </ul>
-<h2 id="doc-30-현재-구현된-것">현재 구현된 것</h2>
+<h2 id="doc-30-current-implementation">Current Implementation</h2>
 <ul>
-<li>로컬 앱과 로컬 API</li>
-<li>SQLite 저장소</li>
+<li>Local desktop app and local API</li>
+<li>SQLite storage</li>
 <li>Commander runtime</li>
-<li>결과 artifact 저장</li>
-<li>권한 엔진과 실주문 차단</li>
-<li>Toss 읽기 전용 연결 뼈대</li>
-<li>Toss 가짜 응답 기반 snapshot 저장/동기화</li>
-<li>snapshot freshness health 표시</li>
+<li>Artifact persistence</li>
+<li>Permission engine and live-order blocking</li>
+<li>Toss read-only connector skeleton</li>
+<li>Mock replay based Toss snapshot persistence and sync shape</li>
+<li>Safe snapshot freshness status in health/Commander surfaces</li>
 </ul>
-<p>자세한 목록은 <code>docs/development-status.md</code>를 따른다.</p>
-<h2 id="doc-30-다음-작업을-잡는-법">다음 작업을 잡는 법</h2>
-<p>긴 목표는 <code>/goal</code> 안에 전부 넣지 않는다. 4천자를 넘는 목표는 먼저 문서로 만든다.</p>
-<p>권장 방식:</p>
+<p>Use <code>docs/development-status.md</code> for the complete current list.</p>
+<h2 id="doc-30-planning-the-next-work">Planning The Next Work</h2>
+<p>Do not put long goals entirely inside <code>/goal</code>. If a goal would exceed about 4,000 characters, write the full spec as a document first.</p>
+<p>Preferred flow:</p>
 <ol>
-<li><code>docs/handoffs/</code> 아래에 긴 작업 명세를 만든다.</li>
-<li><code>/goal</code>에는 짧은 목표와 그 문서 경로만 넣는다.</li>
-<li>완료 기준은 문서에 쓴다.</li>
-<li>작업이 끝나면 <code>docs/development-status.md</code>와 관련 stage 문서를 업데이트한다.</li>
+<li>Create a long task spec under <code>docs/handoffs/</code>.</li>
+<li>Keep <code>/goal</code> short and point it at that file.</li>
+<li>Put completion criteria in the handoff document.</li>
+<li>After completion, update <code>docs/development-status.md</code> and the relevant stage document.</li>
 </ol>
-<p>짧은 <code>/goal</code> 예시:</p>
+<p>Short <code>/goal</code> example:</p>
 <pre class="code-block"><code class="language-text">/goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
 
 Goal:
-docs/handoffs/&lt;file&gt;.md에 정의된 Stage 2 다음 작업을 코드/테스트/문서/PR/CI/main 확인까지 완료한다.
+Complete the Stage 2 next work described in docs/handoffs/&lt;file&gt;.md, including code, tests, docs, PR, CI, and main verification.
 
 First read:
 - AGENTS.md
@@ -3510,39 +3510,39 @@ Verification:
 - pnpm docs:agent-check
 - pnpm docs:html
 - pnpm verify</code></pre>
-<h2 id="doc-30-하네스-명령">하네스 명령</h2>
-<p>작업 시작 전에:</p>
+<h2 id="doc-30-harness-commands">Harness Commands</h2>
+<p>Before command-heavy work:</p>
 <pre class="code-block"><code class="language-powershell">devflow doctor --json
 devflow status --json</code></pre>
-<p>문서만 바꿔도:</p>
+<p>For documentation changes:</p>
 <pre class="code-block"><code class="language-powershell">pnpm docs:agent-check
 pnpm docs:html</code></pre>
-<p>일반 작업 완료 전:</p>
+<p>Before completing normal work:</p>
 <pre class="code-block"><code class="language-powershell">pnpm verify</code></pre>
-<p>화면 흐름을 바꿨다면:</p>
+<p>If a user-visible desktop workflow changed:</p>
 <pre class="code-block"><code class="language-powershell">pnpm smoke:desktop</code></pre>
-<h2 id="doc-30-하네스-점검-기준">하네스 점검 기준</h2>
-<p><code>pnpm docs:agent-check</code>는 에이전트가 반드시 알아야 하는 문서와 연결이 빠졌는지 검사한다. 새 핵심 문서를 추가하면 <code>scripts/check-agent-docs.mjs</code>에도 기대 항목을 추가한다.</p>
-<p>Devflow gate는 <code>.devflow/config.json</code>에 있다. 새 에이전트가 보는 기본 gate는 다음이다.</p>
+<h2 id="doc-30-harness-checks">Harness Checks</h2>
+<p><code>pnpm docs:agent-check</code> verifies that required agent-facing documents and links exist. If a new core agent document is added, update <code>scripts/check-agent-docs.mjs</code>.</p>
+<p>Devflow gates live in <code>.devflow/config.json</code>:</p>
 <ul>
 <li><code>agent-docs</code>: <code>pnpm docs:agent-check</code></li>
 <li><code>docs-html</code>: <code>pnpm docs:html</code></li>
 <li><code>verify</code>: <code>pnpm verify</code></li>
 </ul>
-<p>GitHub CI는 <code>.github/workflows/ci.yml</code>에 있다. 기본 원칙은 다음이다.</p>
+<p>GitHub CI lives in <code>.github/workflows/ci.yml</code>. Its current baseline:</p>
 <ul>
-<li>GitHub token 권한은 읽기만 허용한다.</li>
-<li>같은 브랜치의 오래된 CI는 취소한다.</li>
-<li>작업 시간이 비정상적으로 길어지면 자동으로 멈춘다.</li>
-<li><code>pnpm</code> 캐시를 사용한다.</li>
-<li>PR과 main 검사에서 <code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, <code>pnpm verify</code>를 모두 실행한다.</li>
+<li>GitHub token permissions are read-only.</li>
+<li>Older CI runs for the same branch are canceled.</li>
+<li>Jobs and install steps have timeouts.</li>
+<li>pnpm cache uses <code>pnpm-lock.yaml</code>.</li>
+<li>PR and main checks run <code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, and <code>pnpm verify</code>.</li>
 </ul>
-<h2 id="doc-30-금지">금지</h2>
+<h2 id="doc-30-do-not">Do Not</h2>
 <ul>
-<li>Stage 2에서 토스 주문 기능을 만들지 말 것.</li>
-<li>실제 비밀값을 만들거나 저장하지 말 것.</li>
-<li>mock 상태를 실제 연결처럼 말하지 말 것.</li>
-<li>문서만 바꾸고 <code>docs/gaemiguard-all-docs.html</code> 재생성을 빼먹지 말 것.</li>
+<li>Do not add Toss order functionality during Stage 2.</li>
+<li>Do not create or store real secrets.</li>
+<li>Do not present mock/not-configured status as a real Toss connection.</li>
+<li>Do not change docs without regenerating <code>docs/gaemiguard-all-docs.html</code>.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-31" data-category="Product Context" data-path="docs/agent-runtime-patterns.md">
@@ -4203,76 +4203,76 @@ pnpm docs:html</code></pre>
   <h2>GaemiGuard Development History</h2>
   <h1 id="doc-32-gaemiguard-development-history">GaemiGuard Development History</h1>
 <p>Updated: 2026-06-06</p>
-<p>이 문서는 GaemiGuard가 어떤 순서로 만들어졌는지 PR 기준으로 정리한다. 새 에이전트가 “왜 현재 구조가 이렇게 되었는지”를 빠르게 이해할 때 사용한다.</p>
-<p>현재 상태의 사실 확인은 항상 <code>docs/development-status.md</code>와 최신 <code>git log</code>를 우선한다. 이 문서는 개발 흐름을 보는 보조 문서다.</p>
-<h2 id="doc-32-한눈에-보는-흐름">한눈에 보는 흐름</h2>
+<p>This document records how GaemiGuard reached its current shape, organized by pull request. Use it when a future agent needs to understand why the current structure exists.</p>
+<p>For current truth, always prefer <code>docs/development-status.md</code> and the latest <code>git log</code>. This file is historical context.</p>
+<h2 id="doc-32-timeline-summary">Timeline Summary</h2>
 <ol>
-<li>PR #1에서 로컬 앱, API, DB, Commander, 주문 차단까지 Stage 1 뼈대를 만들었다.</li>
-<li>PR #2-#4에서 GitHub 자동 검사 도구를 최신화했다.</li>
-<li>PR #5-#7에서 Waterfall 개발 방식, 문서 허브, 설치/기여 문서를 정리했다.</li>
-<li>PR #8-#9에서 첫 화면과 Windows 데스크톱 화면 검증을 보강했다.</li>
-<li>PR #10-#11에서 Toss 읽기 전용 연결의 첫 뼈대와 가짜 응답 기반 저장/동기화 구조를 만들었다.</li>
+<li>PR #1 built the Stage 1 foundation: local app, API, database, Commander runtime, and order blocking.</li>
+<li>PR #2-#4 updated GitHub Actions dependencies.</li>
+<li>PR #5-#7 established the waterfall plan, documentation hub, setup, and contribution documents.</li>
+<li>PR #8-#9 improved the Stage 1 home screen and Windows desktop smoke testing.</li>
+<li>PR #10-#11 started the Toss read-only connector and added mock replay based snapshot persistence/sync shape.</li>
 </ol>
-<h2 id="doc-32-pr별-기록">PR별 기록</h2>
+<h2 id="doc-32-pull-request-history">Pull Request History</h2>
 <div class="table-wrap"><table><thead><tr>
-<th>PR</th><th>Merge commit</th><th>날짜</th><th>한 일</th><th>다음 작업에 남긴 의미</th>
+<th>PR</th><th>Merge commit</th><th>Date</th><th>Work completed</th><th>Meaning for later work</th>
 </tr></thead><tbody>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/1">#1</a></td><td><code>f34d948</code></td><td>2026-06-04</td><td>Stage 1 Foundation 구현. Electron/React 화면, Fastify API, SQLite, artifact 저장, Commander runtime, specialist stub, 권한 엔진, Order Guard dry-run, 실주문 차단을 추가했다.</td><td>GaemiGuard가 단순 화면이 아니라 로컬 agent runtime이라는 기준을 만들었다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/1">#1</a></td><td><code>f34d948</code></td><td>2026-06-04</td><td>Implemented Stage 1 Foundation: Electron/React desktop, Fastify API, SQLite, artifact persistence, Commander runtime, specialist stub, permission engine, Order Guard dry-run, and live-order blocking.</td><td>Established GaemiGuard as a local agent runtime, not a simple UI demo.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/2">#2</a></td><td><code>bb9a36a</code></td><td>2026-06-04</td><td>GitHub Actions <code>actions/checkout</code> 업데이트.</td><td>자동 검사 기반을 최신 상태로 맞췄다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/2">#2</a></td><td><code>bb9a36a</code></td><td>2026-06-04</td><td>Updated GitHub Actions <code>actions/checkout</code>.</td><td>Kept CI dependencies current.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/3">#3</a></td><td><code>16224c6</code></td><td>2026-06-04</td><td>GitHub Actions <code>actions/setup-node</code> 업데이트.</td><td>Node 설치 단계의 자동 검사 안정성을 맞췄다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/3">#3</a></td><td><code>16224c6</code></td><td>2026-06-04</td><td>Updated GitHub Actions <code>actions/setup-node</code>.</td><td>Kept the Node setup path current.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/4">#4</a></td><td><code>c3aa5c3</code></td><td>2026-06-04</td><td>GitHub Actions <code>pnpm/action-setup</code> 업데이트.</td><td>pnpm 설치 단계의 자동 검사 안정성을 맞췄다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/4">#4</a></td><td><code>c3aa5c3</code></td><td>2026-06-04</td><td>Updated GitHub Actions <code>pnpm/action-setup</code>.</td><td>Kept the pnpm setup path current.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/5">#5</a></td><td><code>f765cfb</code></td><td>2026-06-04</td><td>Waterfall 개발 기준 문서 추가. 단계, 금지 범위, 검증 기준, 위험 목록, 요구사항 추적을 문서화했다.</td><td>“작은 MVP”가 아니라 단계별 문 닫기 방식으로 개발한다는 원칙을 고정했다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/5">#5</a></td><td><code>f765cfb</code></td><td>2026-06-04</td><td>Added the waterfall development baseline: stages, non-scope, verification gates, risks, and traceability.</td><td>Fixed the repo direction as gated stage development rather than a loose MVP.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/6">#6</a></td><td><code>664543b</code></td><td>2026-06-04</td><td>문서 허브와 단일 HTML 문서 생성 추가.</td><td>에이전트와 사람이 한 파일에서 전체 문서를 검색할 수 있게 했다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/6">#6</a></td><td><code>664543b</code></td><td>2026-06-04</td><td>Added the documentation hub and single-file HTML documentation bundle.</td><td>Made the full documentation set searchable for humans and agents.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/7">#7</a></td><td><code>5eaf8dc</code></td><td>2026-06-04</td><td>라이선스, 설치 안내, 에이전트 보조 설치 문서를 정리했다.</td><td>저장소를 공개/협업 가능한 형태로 맞췄다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/7">#7</a></td><td><code>5eaf8dc</code></td><td>2026-06-04</td><td>Organized license, setup, and contribution documents.</td><td>Prepared the repo for clearer public collaboration and onboarding.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/8">#8</a></td><td><code>1e70036</code></td><td>2026-06-04</td><td>Stage 1 홈 화면을 제품 화면에 가깝게 개선했다.</td><td>첫 화면이 “데모”가 아니라 Today Guard 대시보드 방향을 갖게 되었다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/8">#8</a></td><td><code>1e70036</code></td><td>2026-06-04</td><td>Improved the Stage 1 home screen toward a product surface.</td><td>Gave the first screen a Today Guard dashboard direction instead of demo framing.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/9">#9</a></td><td><code>a31655c</code></td><td>2026-06-04</td><td>Windows-safe desktop Playwright smoke 명령을 추가했다.</td><td>Windows에서 화면 변경 검증은 <code>pnpm smoke:desktop</code>로 한다는 기준을 만들었다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/9">#9</a></td><td><code>a31655c</code></td><td>2026-06-04</td><td>Added a Windows-safe desktop Playwright smoke command.</td><td>Established <code>pnpm smoke:desktop</code> as the verification path for desktop workflow changes on Windows.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/10">#10</a></td><td><code>c97bbee</code></td><td>2026-06-05</td><td>Toss 읽기 전용 연결 첫 뼈대 추가. 공식 OpenAPI 작업 목록, fetch client, mock replay, health 표시, Commander/BrokerTossAgent 읽기 도구 계약, 주문 변경 차단 테스트를 추가했다.</td><td>Stage 2가 시작됐지만 실제 credential store와 실제 동기화는 아직 없다는 선을 그었다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/10">#10</a></td><td><code>c97bbee</code></td><td>2026-06-05</td><td>Added the first Toss read-only connector slice: official OpenAPI task list, fetch client, mock replay, health status, Commander/BrokerTossAgent read-only tool contract, and mutation blocking tests.</td><td>Started Stage 2 while keeping the boundary clear: no production credential store and no real sync yet.</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Sungblab/GaemiGuard/pull/11">#11</a></td><td><code>479faba</code></td><td>2026-06-05</td><td>Toss 가짜 응답 기반 SQLite 저장/동기화 구조 추가. 계좌, 보유 종목, 현재가, 호가, 환율, 장 일정, 경고, 동기화 기록, 호출 제한 정보를 저장하고 freshness를 health/Commander에 안전하게 연결했다.</td><td>실제 토스 연결 전에도 저장 구조와 민감정보 비저장 규칙을 테스트로 고정했다.</td>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/11">#11</a></td><td><code>479faba</code></td><td>2026-06-05</td><td>Added mock replay based Toss SQLite snapshot persistence and sync shape for accounts, holdings, quotes, orderbook summaries, exchange rates, market calendars, warnings, sync logs, and rate-limit metadata.</td><td>Fixed the storage model and sensitive-data rules before real Toss connectivity.</td>
 </tr>
 </tbody></table></div>
-<h2 id="doc-32-현재까지-완성된-큰-덩어리">현재까지 완성된 큰 덩어리</h2>
+<h2 id="doc-32-completed-major-blocks">Completed Major Blocks</h2>
 <h3 id="doc-32-stage-1-foundation">Stage 1 Foundation</h3>
-<p>완료됐다. 로컬 앱, 로컬 API, SQLite, artifact 저장, Commander runtime, specialist stub, 권한 엔진, Order Guard dry-run, 실주문 차단이 있다.</p>
+<p>Complete. The repo has the local desktop app, local API, SQLite, artifact persistence, Commander runtime, specialist stub, permission engine, Order Guard dry-run, and live-order blocking.</p>
 <h3 id="doc-32-stage-2-toss-readonly-connector">Stage 2 Toss Readonly Connector</h3>
-<p>진행 중이다. 읽기 전용 연결의 뼈대와 가짜 응답 기반 저장/동기화는 들어갔다.</p>
-<p>아직 남은 일:</p>
+<p>In progress. The read-only connector skeleton and mock replay based snapshot persistence/sync shape are implemented.</p>
+<p>Remaining work:</p>
 <ul>
-<li>실제 비밀값 저장 경계</li>
-<li>토스 credential setup/disconnect</li>
-<li>실제 토스 읽기 동기화</li>
-<li>호출 제한에 맞춘 실행 간격과 재시도</li>
-<li>계좌/보유/자료 freshness UI</li>
-<li>Commander가 실제 읽기 자료와 출처를 근거로 답하는 흐름</li>
-<li>Stage 2 보안 검토와 gate 기록</li>
+<li>Real secret storage boundary</li>
+<li>Toss credential setup/disconnect</li>
+<li>Real Toss read-only sync</li>
+<li>Rate-limit aware scheduling and retry policy</li>
+<li>Account/holding/data freshness UI</li>
+<li>Commander answers grounded in actual read-only data and source references</li>
+<li>Stage 2 security review and gate evidence</li>
 </ul>
-<h2 id="doc-32-문서-위치">문서 위치</h2>
+<h2 id="doc-32-related-documents">Related Documents</h2>
 <ul>
-<li>현재 상태: <code>docs/development-status.md</code></li>
-<li>에이전트 작업 인덱스: <code>docs/agent-index.md</code></li>
-<li>Stage 2 기준: <code>docs/stages/stage-2-toss-readonly-connector.md</code></li>
-<li>전체 문서 허브: <code>docs/README.md</code></li>
-<li>단일 HTML 문서: <code>docs/gaemiguard-all-docs.html</code></li>
+<li>Current state: <code>docs/development-status.md</code></li>
+<li>Agent work index: <code>docs/agent-index.md</code></li>
+<li>Stage 2 contract: <code>docs/stages/stage-2-toss-readonly-connector.md</code></li>
+<li>Documentation hub: <code>docs/README.md</code></li>
+<li>Single-file HTML docs: <code>docs/gaemiguard-all-docs.html</code></li>
 </ul>
 </article>
 <article class="doc-card" id="doc-33" data-category="Product Context" data-path="docs/gaemiguard-product-context.md">
@@ -5283,16 +5283,16 @@ Codex: logged in / not logged in</code></pre>
   <h2>Handoff Specs</h2>
   <h1 id="doc-34-handoff-specs">Handoff Specs</h1>
 <p>Updated: 2026-06-06</p>
-<p>긴 목표는 <code>/goal</code> 프롬프트에 모두 넣지 말고 이 폴더에 문서로 작성한다. <code>/goal</code>은 이 문서를 읽고 실행하라고 짧게 지시한다.</p>
-<h2 id="doc-34-사용-시점">사용 시점</h2>
+<p>Use this directory for long development goals. Do not put very large specs directly into the <code>/goal</code> prompt. The <code>/goal</code> prompt should stay short and point at the handoff document.</p>
+<h2 id="doc-34-when-to-use">When To Use</h2>
 <ul>
-<li>목표가 4천자를 넘을 때</li>
-<li>금지 사항이 많을 때</li>
-<li>완료 기준을 자세히 적어야 할 때</li>
-<li>여러 세션이나 에이전트가 같은 기준을 봐야 할 때</li>
+<li>The goal would exceed about 4,000 characters.</li>
+<li>The task has many safety constraints.</li>
+<li>Completion criteria need detailed wording.</li>
+<li>Multiple sessions or agents need the same source of truth.</li>
 </ul>
-<h2 id="doc-34-작성-형식">작성 형식</h2>
-<pre class="code-block"><code class="language-markdown"># &lt;작업 이름&gt;
+<h2 id="doc-34-template">Template</h2>
+<pre class="code-block"><code class="language-markdown"># &lt;Work Name&gt;
 
 ## Goal
 
@@ -5307,12 +5307,12 @@ Codex: logged in / not logged in</code></pre>
 ## Verification
 
 ## Completion Criteria</code></pre>
-<h2 id="doc-34-규칙">규칙</h2>
+<h2 id="doc-34-rules">Rules</h2>
 <ul>
-<li>문서 안의 기준이 <code>/goal</code>보다 자세한 기준이다.</li>
-<li>작업이 끝나면 <code>docs/development-status.md</code>에 결과와 다음 작업을 반영한다.</li>
-<li>Stage 문서의 완료/남은 gap도 같이 업데이트한다.</li>
-<li>문서 변경 뒤에는 <code>pnpm docs:agent-check</code>와 <code>pnpm docs:html</code>을 실행한다.</li>
+<li>The handoff document is the detailed contract; the <code>/goal</code> prompt is only the launcher.</li>
+<li>After the work is complete, update <code>docs/development-status.md</code>.</li>
+<li>Also update the active stage document when completed work or remaining gaps change.</li>
+<li>After documentation changes, run <code>pnpm docs:agent-check</code> and <code>pnpm docs:html</code>.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-35" data-category="Research And Reviews" data-path="docs/research/2026-06-04-planning-research.md">
@@ -5512,114 +5512,60 @@ Codex: logged in / not logged in</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-37" data-category="Open Source And Setup" data-path="AGENTS.md">
-  <div class="doc-kicker">Open Source And Setup · AGENTS.md · 5KB</div>
-  <h2>GaemiGuard 에이전트 작업 안내</h2>
-  <h1 id="doc-37-gaemiguard-에이전트-작업-안내">GaemiGuard 에이전트 작업 안내</h1>
-<p>이 문서는 Codex나 다른 에이전트가 GaemiGuard 저장소에서 작업을 시작할 때 가장 먼저 읽는 짧은 규칙이다.</p>
-<p>목표는 두 가지다.</p>
+  <div class="doc-kicker">Open Source And Setup · AGENTS.md · 3KB</div>
+  <h2>GaemiGuard Agent Instructions</h2>
+  <h1 id="doc-37-gaemiguard-agent-instructions">GaemiGuard Agent Instructions</h1>
+<p>This is the first rule file for Codex and other agents working in this repository. Keep it short. Put longer status, history, and handoff details in the linked documents.</p>
+<h2 id="doc-37-language-policy">Language Policy</h2>
 <ul>
-<li>다음 작업자가 어디부터 읽고 무엇을 하면 되는지 바로 알게 한다.</li>
-<li>사용자가 읽어도 이해할 수 있게, 어렵고 짧은 말보다 쉬운 한국어 설명을 우선한다.</li>
+<li>Keep repository artifacts in English by default: code, comments, tests, commit messages, PR text, documentation, scripts, and CI or harness labels.</li>
+<li>Reply to Sungbin in natural Korean in chat unless the user explicitly asks for another language.</li>
+<li>When explaining technical work to the user, prefer plain Korean. If an English technical term is necessary, briefly explain what it means.</li>
+<li>Do not make repository documents Korean just because the chat response is Korean.</li>
 </ul>
-<h2 id="doc-37-말하는-방식">말하는 방식</h2>
-<ul>
-<li>사용자에게 답할 때는 기본적으로 한국어로 말한다.</li>
-<li>영어 용어나 개발 용어를 꼭 써야 하면, 처음에는 쉬운 말로 풀어서 설명한다.</li>
-<li>너무 짧게 줄이다가 뜻이 어려워지는 것보다, 조금 길어도 이해되는 설명을 우선한다.</li>
-<li>“하네스”처럼 프로젝트에서 이미 쓰는 말은 필요하면 함께 쓰되, 자동 검사 묶음이나 작업 보조 장치처럼 뜻을 같이 알려준다.</li>
-<li>완료했다고 말하기 전에는 실제로 어떤 검사를 돌렸고 결과가 어땠는지 함께 말한다.</li>
-</ul>
-<h2 id="doc-37-작업-전에-먼저-읽을-문서">작업 전에 먼저 읽을 문서</h2>
-<p>개발 작업을 시작하기 전에 아래 순서대로 읽는다.</p>
+<h2 id="doc-37-read-first">Read First</h2>
+<p>For every development goal, read these before changing code:</p>
 <ol>
 <li><code>docs/agent-index.md</code></li>
-</ol>
-<ul>
-<li>에이전트가 어디를 보면 되는지 알려주는 길잡이다.</li>
-</ul>
-<ol>
 <li><code>docs/development-status.md</code></li>
+<li>The active stage gate under <code>docs/stages/</code></li>
+<li>Any source document named by the user or by the active status entry</li>
 </ol>
-<ul>
-<li>지금까지 끝난 일, 진행 중인 일, 막힌 일, 다음 작업이 정리된 현재 상태 문서다.</li>
-</ul>
+<p><code>docs/agent-index.md</code> is the short routing map. <code>docs/development-status.md</code> is the current truth for what is done, what is in progress, what is blocked, and what to do next.</p>
+<h2 id="doc-37-setup-contract">Setup Contract</h2>
+<p>When asked to set up or verify the repo:</p>
 <ol>
-<li>현재 작업 단계 문서</li>
+<li>Inspect OS/shell, <code>package.json</code>, <code>pnpm-workspace.yaml</code>, and <code>.gitignore</code>.</li>
+<li>Verify Node.js 22+ and pnpm 10+.</li>
+<li>Run <code>pnpm install</code>.</li>
+<li>Run <code>pnpm docs:agent-check</code>.</li>
+<li>Run <code>pnpm docs:html</code>.</li>
+<li>Run <code>pnpm verify</code>.</li>
+<li>Report exact failures.</li>
 </ol>
+<h2 id="doc-37-safety">Safety</h2>
 <ul>
-<li>예: Stage 2 작업이면 <code>docs/stages/stage-2-toss-readonly-connector.md</code></li>
+<li>Do not create, request, print, store, or commit Toss secrets, OAuth tokens, account numbers, order IDs, or personal identifiers.</li>
+<li>Do not create <code>.env</code> files with real credentials.</li>
+<li>Do not enable live trading, automatic trading, or Toss order mutation endpoints unless a later approved stage explicitly allows it.</li>
+<li>Do not call unofficial Toss web/internal APIs.</li>
+<li>Do not install optional sidecars such as Hermes, MiroFish, OpenBB, or Graphiti unless explicitly asked.</li>
+<li>Keep generated app build output such as <code>apps/desktop/dist</code> out of commits.</li>
 </ul>
-<ol>
-<li>사용자가 직접 말한 문서</li>
-</ol>
+<h2 id="doc-37-verification">Verification</h2>
 <ul>
-<li>사용자가 특정 문서를 읽으라고 했으면 그 문서도 반드시 확인한다.</li>
+<li>Normal repo work: <code>pnpm verify</code></li>
+<li>Documentation updates: also run <code>pnpm docs:agent-check</code> and <code>pnpm docs:html</code></li>
+<li>User-visible desktop UI workflow changes: run <code>pnpm smoke:desktop</code></li>
 </ul>
-<p><code>docs/agent-index.md</code>는 문서 길잡이고, <code>docs/development-status.md</code>는 현재 사실 기준이다. 둘이 다르면 <code>docs/development-status.md</code>를 먼저 믿고, 필요한 문서를 함께 고친다.</p>
-<h2 id="doc-37-작업-환경-확인">작업 환경 확인</h2>
-<p>저장소를 새로 설정하거나 검증하라고 요청받으면 아래를 확인한다.</p>
-<ol>
-<li>운영체제와 셸을 확인한다.</li>
-<li><code>package.json</code>, <code>pnpm-workspace.yaml</code>, <code>.gitignore</code>를 확인한다.</li>
-<li>Node.js 22 이상인지 확인한다.</li>
-<li>pnpm 10 이상인지 확인한다.</li>
-<li><code>pnpm install</code>을 실행한다.</li>
-<li><code>pnpm docs:agent-check</code>를 실행한다.</li>
-<li><code>pnpm docs:html</code>을 실행한다.</li>
-<li><code>pnpm verify</code>를 실행한다.</li>
-<li>실패하면 어떤 명령이 어떤 이유로 실패했는지 그대로 보고한다.</li>
-</ol>
-<h2 id="doc-37-절대-하면-안-되는-일">절대 하면 안 되는 일</h2>
-<ul>
-<li>Toss 비밀값, 토큰, 실제 계좌번호, 주문번호, 개인 식별 정보를 만들거나, 요청하거나, 출력하거나, 저장하거나, 커밋하지 않는다.</li>
-<li>실제 자격 증명이 들어간 <code>.env</code> 파일을 만들지 않는다.</li>
-<li>승인된 나중 단계가 오기 전에는 Toss 주문 생성, 주문 수정, 주문 취소 기능을 만들지 않는다.</li>
-<li>자동매매나 실주문 기능을 만들지 않는다.</li>
-<li>비공식 Toss 웹 내부 API를 호출하지 않는다.</li>
-<li>사용자가 명시적으로 요청하지 않았는데 Hermes, MiroFish, OpenBB, Graphiti 같은 선택형 보조 도구를 설치하지 않는다.</li>
-<li><code>apps/desktop/dist</code> 같은 생성된 앱 빌드 결과물을 커밋하지 않는다.</li>
-</ul>
-<h2 id="doc-37-검증-명령">검증 명령</h2>
-<p>일반 코드 작업을 마치기 전:</p>
-<pre class="code-block"><code class="language-powershell">pnpm verify</code></pre>
-<p>문서를 바꿨다면 아래도 함께 실행한다.</p>
-<pre class="code-block"><code class="language-powershell">pnpm docs:agent-check
-pnpm docs:html</code></pre>
-<p>화면 흐름이나 데스크톱 앱 사용 방식을 바꿨다면 아래도 실행한다.</p>
-<pre class="code-block"><code class="language-powershell">pnpm smoke:desktop</code></pre>
-<p>Windows에서는 임시 Vite 미리보기 서버를 직접 띄우기보다 <code>pnpm smoke:desktop</code>을 우선 사용한다.</p>
-<h2 id="doc-37-문서-html을-만드는-이유">문서 HTML을 만드는 이유</h2>
-<p><code>pnpm docs:html</code>은 여러 문서를 <code>docs/gaemiguard-all-docs.html</code> 한 파일로 묶는다.</p>
-<p>이 HTML은 다음 목적이 있다.</p>
-<ul>
-<li>사용자가 브라우저에서 전체 문서를 한 번에 읽기 쉽게 한다.</li>
-<li>다음 에이전트가 문서를 빠르게 훑을 수 있게 한다.</li>
-<li>문서가 여기저기 흩어져도 현재 상태와 작업 기준을 놓치지 않게 한다.</li>
-</ul>
-<p>그래서 문서를 바꿨다면 HTML도 다시 만들어야 한다.</p>
-<h2 id="doc-37-다음-세션에-넘길-때">다음 세션에 넘길 때</h2>
-<p>다음 작업 프롬프트를 쓸 때는 <code>/goal</code> 형식을 쓴다.</p>
-<p>포함할 내용:</p>
-<ul>
-<li><code>CWD</code></li>
-<li>목표</li>
-<li>현재 상황</li>
-<li>먼저 읽을 문서</li>
-<li>하면 안 되는 일</li>
-<li>검증 명령</li>
-<li>완료 기준</li>
-</ul>
-<p>목표가 4천자를 넘을 만큼 길면 <code>/goal</code>에 전부 넣지 않는다. 긴 내용은 <code>docs/handoffs/</code> 아래 문서로 만들고, <code>/goal</code>에는 그 문서 경로만 넣는다.</p>
-<h2 id="doc-37-제품-경계">제품 경계</h2>
-<p>GaemiGuard는 투자 위험을 줄이기 위한 로컬 우선 에이전트 도구다.</p>
-<p>GaemiGuard는 아래 제품이 아니다.</p>
-<ul>
-<li>수익 보장 봇</li>
-<li>증권사 복제 앱</li>
-<li>비공식 증권사 API 래퍼</li>
-<li>실거래 자동매매 도구</li>
-</ul>
-<p>이 경계를 흐리는 기능이나 문구를 넣지 않는다.</p>
+<p>Use <code>pnpm smoke:desktop</code> instead of ad-hoc Vite preview servers on Windows.</p>
+<h2 id="doc-37-documentation-html">Documentation HTML</h2>
+<p><code>pnpm docs:html</code> rebuilds <code>docs/gaemiguard-all-docs.html</code>, the single-file documentation bundle used by humans and agents to inspect the repository context quickly. Regenerate it after documentation changes.</p>
+<h2 id="doc-37-handoff">Handoff</h2>
+<p>When writing a next-session prompt, use the <code>/goal</code> prompt format with <code>CWD</code>, <code>Goal</code>, context, constraints, verification, and completion criteria.</p>
+<p>If the goal would exceed about 4,000 characters, write the full task spec under <code>docs/handoffs/</code> and keep the <code>/goal</code> prompt short.</p>
+<h2 id="doc-37-product-boundary">Product Boundary</h2>
+<p>GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.</p>
 </article>
 <article class="doc-card" id="doc-38" data-category="Open Source And Setup" data-path="CHANGELOG.md">
   <div class="doc-kicker">Open Source And Setup · CHANGELOG.md · 1KB</div>

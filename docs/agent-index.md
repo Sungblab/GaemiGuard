@@ -2,69 +2,69 @@
 
 Updated: 2026-06-06
 
-이 문서는 에이전트가 GaemiGuard 작업을 시작할 때 보는 짧은 안내서다. 자세한 내용은 여기서 링크한 원문 문서를 따른다.
+This is the short routing document for agents starting GaemiGuard work. It points to the source documents instead of replacing them.
 
-## 먼저 읽을 문서
+## Read Order
 
-| 순서 | 문서 | 이유 |
+| Order | Document | Why |
 | --- | --- | --- |
-| 1 | `AGENTS.md` | 짧은 규칙, 금지 사항, 검증 명령 |
-| 2 | `docs/agent-index.md` | 에이전트용 문서 길잡이 |
-| 3 | `docs/development-status.md` | 현재 완료/진행/다음 작업 |
-| 4 | `docs/stages/stage-2-toss-readonly-connector.md` | 현재 Stage 2 작업 기준 |
-| 5 | `docs/architecture/maps/README.md` | 문서와 코드 소유 위치 |
+| 1 | `AGENTS.md` | Short rules, safety boundaries, language policy, and verification commands. |
+| 2 | `docs/agent-index.md` | Agent-facing route through docs, handoffs, and harness commands. |
+| 3 | `docs/development-status.md` | Current implementation state, active work, blockers, and next work. |
+| 4 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
+| 5 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
-필요할 때만 읽을 문서:
+Read these only when relevant:
 
-| 필요 | 문서 |
+| Need | Document |
 | --- | --- |
-| 전체 계획 | `docs/waterfall/00-master-plan.md` |
-| 개발 과정 | `docs/development-history.md` |
-| 토스 API | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
-| Commander/runtime | `docs/architecture/agent-runtime.md` |
-| 화면 테스트 | `docs/setup/playwright-smoke.md` |
-| 작업 절차 | `docs/contributing/workflow.md` |
+| Overall plan | `docs/waterfall/00-master-plan.md` |
+| Development history | `docs/development-history.md` |
+| Toss API reference | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
+| Commander/runtime work | `docs/architecture/agent-runtime.md` |
+| Desktop smoke testing | `docs/setup/playwright-smoke.md` |
+| Workflow rules | `docs/contributing/workflow.md` |
 
-## 현재 사실
+## Current Facts
 
-- 현재 개발 방식은 단계별 문 닫기 방식이다.
-- Stage 1은 완료됐다.
-- Stage 2는 진행 중이다.
-- Stage 2는 아직 완료가 아니다.
-- 토스 주문 생성/수정/취소는 아직 금지다.
-- 실제 토스 비밀값, 토큰, 계좌번호, 주문번호는 코드/문서/DB/artifact/API 응답에 넣으면 안 된다.
+- Development follows stage gates.
+- Stage 1 is complete.
+- Stage 2 is in progress.
+- Stage 2 is not exited yet.
+- Toss order create/update/cancel remains forbidden.
+- Real Toss secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
 
-## 현재 구현된 것
+## Current Implementation
 
-- 로컬 앱과 로컬 API
-- SQLite 저장소
+- Local desktop app and local API
+- SQLite storage
 - Commander runtime
-- 결과 artifact 저장
-- 권한 엔진과 실주문 차단
-- Toss 읽기 전용 연결 뼈대
-- Toss 가짜 응답 기반 snapshot 저장/동기화
-- snapshot freshness health 표시
+- Artifact persistence
+- Permission engine and live-order blocking
+- Toss read-only connector skeleton
+- Mock replay based Toss snapshot persistence and sync shape
+- Safe snapshot freshness status in health/Commander surfaces
 
-자세한 목록은 `docs/development-status.md`를 따른다.
+Use `docs/development-status.md` for the complete current list.
 
-## 다음 작업을 잡는 법
+## Planning The Next Work
 
-긴 목표는 `/goal` 안에 전부 넣지 않는다. 4천자를 넘는 목표는 먼저 문서로 만든다.
+Do not put long goals entirely inside `/goal`. If a goal would exceed about 4,000 characters, write the full spec as a document first.
 
-권장 방식:
+Preferred flow:
 
-1. `docs/handoffs/` 아래에 긴 작업 명세를 만든다.
-2. `/goal`에는 짧은 목표와 그 문서 경로만 넣는다.
-3. 완료 기준은 문서에 쓴다.
-4. 작업이 끝나면 `docs/development-status.md`와 관련 stage 문서를 업데이트한다.
+1. Create a long task spec under `docs/handoffs/`.
+2. Keep `/goal` short and point it at that file.
+3. Put completion criteria in the handoff document.
+4. After completion, update `docs/development-status.md` and the relevant stage document.
 
-짧은 `/goal` 예시:
+Short `/goal` example:
 
 ```text
 /goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
 
 Goal:
-docs/handoffs/<file>.md에 정의된 Stage 2 다음 작업을 코드/테스트/문서/PR/CI/main 확인까지 완료한다.
+Complete the Stage 2 next work described in docs/handoffs/<file>.md, including code, tests, docs, PR, CI, and main verification.
 
 First read:
 - AGENTS.md
@@ -78,55 +78,55 @@ Verification:
 - pnpm verify
 ```
 
-## 하네스 명령
+## Harness Commands
 
-작업 시작 전에:
+Before command-heavy work:
 
 ```powershell
 devflow doctor --json
 devflow status --json
 ```
 
-문서만 바꿔도:
+For documentation changes:
 
 ```powershell
 pnpm docs:agent-check
 pnpm docs:html
 ```
 
-일반 작업 완료 전:
+Before completing normal work:
 
 ```powershell
 pnpm verify
 ```
 
-화면 흐름을 바꿨다면:
+If a user-visible desktop workflow changed:
 
 ```powershell
 pnpm smoke:desktop
 ```
 
-## 하네스 점검 기준
+## Harness Checks
 
-`pnpm docs:agent-check`는 에이전트가 반드시 알아야 하는 문서와 연결이 빠졌는지 검사한다. 새 핵심 문서를 추가하면 `scripts/check-agent-docs.mjs`에도 기대 항목을 추가한다.
+`pnpm docs:agent-check` verifies that required agent-facing documents and links exist. If a new core agent document is added, update `scripts/check-agent-docs.mjs`.
 
-Devflow gate는 `.devflow/config.json`에 있다. 새 에이전트가 보는 기본 gate는 다음이다.
+Devflow gates live in `.devflow/config.json`:
 
 - `agent-docs`: `pnpm docs:agent-check`
 - `docs-html`: `pnpm docs:html`
 - `verify`: `pnpm verify`
 
-GitHub CI는 `.github/workflows/ci.yml`에 있다. 기본 원칙은 다음이다.
+GitHub CI lives in `.github/workflows/ci.yml`. Its current baseline:
 
-- GitHub token 권한은 읽기만 허용한다.
-- 같은 브랜치의 오래된 CI는 취소한다.
-- 작업 시간이 비정상적으로 길어지면 자동으로 멈춘다.
-- `pnpm` 캐시를 사용한다.
-- PR과 main 검사에서 `pnpm docs:agent-check`, `pnpm docs:html`, `pnpm verify`를 모두 실행한다.
+- GitHub token permissions are read-only.
+- Older CI runs for the same branch are canceled.
+- Jobs and install steps have timeouts.
+- pnpm cache uses `pnpm-lock.yaml`.
+- PR and main checks run `pnpm docs:agent-check`, `pnpm docs:html`, and `pnpm verify`.
 
-## 금지
+## Do Not
 
-- Stage 2에서 토스 주문 기능을 만들지 말 것.
-- 실제 비밀값을 만들거나 저장하지 말 것.
-- mock 상태를 실제 연결처럼 말하지 말 것.
-- 문서만 바꾸고 `docs/gaemiguard-all-docs.html` 재생성을 빼먹지 말 것.
+- Do not add Toss order functionality during Stage 2.
+- Do not create or store real secrets.
+- Do not present mock/not-configured status as a real Toss connection.
+- Do not change docs without regenerating `docs/gaemiguard-all-docs.html`.

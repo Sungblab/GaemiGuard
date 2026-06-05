@@ -87,7 +87,7 @@ const requiredMentions = [
   },
   {
     file: ".github/pull_request_template.md",
-    text: "문서/에이전트 영향"
+    text: "Documentation And Agent Impact"
   }
 ];
 
