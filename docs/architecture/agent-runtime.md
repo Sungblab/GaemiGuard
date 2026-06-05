@@ -4,7 +4,9 @@ Generated: 2026-06-04
 
 ## Runtime Rule
 
-GaemiGuard owns the orchestration runtime. Codex CLI, Hermes, MiroFish, OpenBB, and Toss are adapters/tools, not the system of record.
+GaemiGuard owns the orchestration runtime. The personal investment agent is the product center. Codex CLI, Hermes, MiroFish, OpenBB, and Toss are adapters/tools, not the system of record.
+
+Terminal-style data panels are evidence surfaces for the agent. They should show source, freshness, and review state instead of becoming a standalone market terminal.
 
 ## Agents
 

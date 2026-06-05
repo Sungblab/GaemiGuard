@@ -1,8 +1,12 @@
 # GaemiGuard Project Context
 
+This is a long-running context document. The current product decision source is `docs/product/agent-first-direction.md`.
+
+Read this document as background and future option context, not as permission to implement every listed external tool or automation feature in the current stage.
+
 ## 0. Project Summary
 
-**GaemiGuard** is a local-first investment agent orchestrator for Korean retail investors.
+**GaemiGuard** is an agent-first local personal investment workspace for Korean retail investors.
 
 It is not a normal stock trading app, not a simple news summarizer, and not a generic AI auto-trading bot.
 
@@ -16,12 +20,12 @@ GaemiGuard connects:
 * Graphiti / temporal knowledge graph
 * Local LLM providers such as Codex login, OpenRouter, Ollama, and API keys
 
-The goal is to help users manage their investment thesis, rules, research, community signals, scenario simulations, trade reviews, and automation from one local desktop application.
+The goal is to help users manage their investment thesis, rules, research, scenario simulations, trade reviews, and later-stage automation from one local desktop application.
 
 Core positioning:
 
 > Toss makes trading easy.
-> GaemiGuard makes users think once more before trading.
+> GaemiGuard helps the user organize judgment before trading.
 
 ---
 
@@ -36,8 +40,8 @@ GaemiGuard is:
 * An investment research orchestrator
 * A thesis and rule management tool
 * A trade review and guardrail system
-* A community sentiment and meme intelligence viewer
-* A rule-based automation layer on top of Toss Invest API
+* A decision-relevant external signal viewer when sources and privacy boundaries are clear
+* A later-stage rule-based automation layer on top of Toss Invest API
 * A knowledge/memory system for investment research
 
 ### 1.2 What GaemiGuard is not

@@ -13,8 +13,9 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | 2 | `docs/agent-index.md` | Short agent route, handoff policy, and harness commands. |
 | 3 | `docs/development-status.md` | Current implementation state, active stage, latest verification, and next slice. |
 | 4 | `docs/README.md` | Documentation hub and routing map. |
-| 5 | Active `docs/stages/` gate | The contract for the current implementation work. |
-| 6 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
+| 5 | `docs/product/agent-first-direction.md` | Current product identity and stage implications for agent-first investment workflows. |
+| 6 | Active `docs/stages/` gate | The contract for the current implementation work. |
+| 7 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
 
 ## Truth Ownership
 
@@ -23,7 +24,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | What is implemented now? | `docs/development-status.md` | `CHANGELOG.md`, latest Git history |
 | How did the repo get here? | `docs/development-history.md` | PR list, latest Git history |
 | What should an agent read first? | `docs/agent-index.md` | `AGENTS.md`, `docs/development-status.md` |
-| What is the product promise? | `gaemiguard-design-spec.md` | `docs/gaemiguard-product-context.md`, `README.md` |
+| What is the product promise? | `docs/product/agent-first-direction.md` | `gaemiguard-design-spec.md`, `docs/gaemiguard-product-context.md`, `README.md` |
 | What is the build model? | `docs/waterfall/00-master-plan.md` | `docs/waterfall/07-testing-and-release-gates.md` |
 | What stage is active? | `docs/development-status.md` | `docs/roadmap.md`, active stage gate |
 | What is forbidden? | Active stage gate, `AGENTS.md` | `docs/waterfall/04-permission-and-safety.md` |
@@ -32,7 +33,9 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 
 ## Locked Product Shape
 
-- Product promise: "거래 전 한 번 더 생각하게 하는 투자 가드"
+- Product promise: agent-first local personal investment workspace for Korean retail investors.
+- Supporting surfaces: investment guard and small local investment terminal.
+- Public short copy: "거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다."
 - First screen: Today Guard dashboard.
 - Right sidebar: Commander Agent chat panel.
 - Runtime: local-first desktop app, no Docker required for normal startup.
@@ -58,6 +61,8 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 
 | Document | Role |
 | --- | --- |
+| `docs/product/README.md` | Product-document index. |
+| `docs/product/agent-first-direction.md` | Current product direction and stage implications. |
 | `gaemiguard-design-spec.md` | Original product and architecture decision source. |
 | `docs/gaemiguard-product-context.md` | Longer product context and module direction. |
 | `docs/agent-runtime-patterns.md` | Generalized Commander/specialist orchestration patterns. |

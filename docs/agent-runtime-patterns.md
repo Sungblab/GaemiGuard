@@ -1,707 +1,298 @@
 # Agent Runtime Patterns for GaemiGuard
 
-Generated: 2026-06-04
+Updated: 2026-06-06
 
-This is a generalized design pattern document. It captures agent-runtime architecture lessons that are useful for GaemiGuard without depending on, copying, or identifying any third-party source tree.
+This document captures reusable agent-runtime patterns for GaemiGuard.
 
-## Executive Decision
+It is not an implementation copy plan. External agent runtimes can inform the architecture only at the pattern level. Do not copy unclear, private, leaked, or license-incompatible implementation code into GaemiGuard.
 
-Yes: GaemiGuard should have an internal top-level Commander Agent.
+For current product direction, read `docs/product/agent-first-direction.md` first.
 
-The Commander Agent should not be a thin router. It should be the main runtime brain behind the right-side chat panel. It owns intent understanding, context assembly, specialist delegation, task supervision, risk synthesis, and final user-facing answers. Specialist agents do research, portfolio analysis, scenario simulation, memory updates, order review, and report writing under the Commander's control.
+## Runtime Decision
 
-For trading, the Commander may request order actions, but it must not bypass the Order Guard. The actual order path must go through deterministic policy checks, audit logging, kill switches, idempotency, and approval/auto-execution rules.
+GaemiGuard should have one top-level `CommanderAgent`.
 
-## Top-Level Finding
+The Commander is the product-facing personal investment agent. It owns intent understanding, context assembly, specialist delegation, tool supervision, risk synthesis, artifact creation, and the final user-facing answer.
 
-The reference pattern is built around one reusable agent loop:
+Specialists do bounded work under Commander supervision. They do not replace Commander as the user-facing product.
 
-1. Build session context and system prompt.
-2. Send messages to an LLM.
-3. Receive streamed assistant output.
-4. Collect tool-use blocks.
-5. Run tools under permission control.
-6. Append tool results back into the conversation.
-7. Repeat until no more tool use, max-turn, budget, abort, or compact boundary.
+## Core Pattern
 
-Subagents are not a totally different engine. They are mostly the same query loop run with a different system prompt, different tool pool, different permission context, separate transcript, and task state.
+Most useful agent runtimes share one loop:
 
-That is the key pattern to adapt into GaemiGuard.
+1. Build context and prompt sections.
+2. Send messages to a model.
+3. Receive assistant text and tool calls.
+4. Authorize each tool call.
+5. Execute allowed tools.
+6. Append tool results.
+7. Continue until the task ends, hits a budget, is stopped, or needs compaction.
+
+Subagents are usually the same loop with a different prompt, tool set, permission rules, transcript, and task state.
 
 ```mermaid
 flowchart LR
-  User["User / UI"] --> Commander["Commander Agent"]
+  User["User / UI"] --> Commander["CommanderAgent"]
   Commander --> Context["Context Builder"]
-  Commander --> AgentTool["Agent Spawn / Message / Stop"]
-  Commander --> Guard["Permission and Risk Gate"]
-  AgentTool --> Research["Research Agent"]
-  AgentTool --> Portfolio["Portfolio Agent"]
-  AgentTool --> Scenario["Scenario Agent / MiroFish"]
-  AgentTool --> OrderGuard["Order Guard Agent"]
-  AgentTool --> Memory["Memory Agent"]
-  AgentTool --> Report["Report Agent"]
-  Guard --> Tools["Tool Gateway"]
-  Tools --> Toss["Toss Invest API"]
-  Tools --> DB["SQLite and Artifacts"]
-  Tools --> Sidecars["MiroFish / Hermes / OpenBB"]
-  OrderGuard --> Approval["Approval / Auto Rule / Kill Switch"]
+  Commander --> Tasks["Task / Subagent Manager"]
+  Commander --> Policy["Permission And Risk Policy"]
+  Tasks --> Portfolio["PortfolioAgent"]
+  Tasks --> Broker["BrokerTossAgent"]
+  Tasks --> Research["ResearchAgent"]
+  Tasks --> Scenario["ScenarioAgent"]
+  Tasks --> Memory["MemoryAgent"]
+  Tasks --> Report["ReportAgent"]
+  Policy --> Tools["Tool Gateway"]
+  Tools --> DB["SQLite"]
+  Tools --> Artifacts["Markdown / JSON Artifacts"]
+  Tools --> Toss["Toss Read-Only Adapter"]
+  Tools --> Sidecars["Hermes / MiroFish / OpenBB"]
+  Commander --> Answer["Grounded Answer"]
 ```
 
-## Shape Of A Comparable Runtime
+## Primary Agents And Subagents
 
-Root package:
+GaemiGuard should distinguish primary agents from subagents.
 
-- TypeScript ESM project.
-- Bun-based scripts.
-- CLI binary name: `claude`.
-- Main binary target: `src/entrypoints/cli.tsx`.
-- Main stack: Commander, React/Ink terminal UI, Anthropic SDK, MCP SDK, OpenTelemetry, Zod, plugin/skill/custom agent systems.
+Primary agent:
 
-Major areas:
+- Receives the user's direct conversation.
+- Owns the current session.
+- Chooses whether to answer directly or delegate.
+- Synthesizes the final response.
 
-- `src/entrypoints`: fast CLI bootstraps and special modes.
-- `src/main.tsx`: main Commander CLI parser and session setup.
-- `src/QueryEngine.ts`: conversation engine wrapper for SDK/headless/REPL flows.
-- `src/query.ts`: core model-tool loop.
-- `src/Tool.ts`: tool interface and tool contract.
-- `src/tools.ts`: built-in tool registry and tool-pool assembly.
-- `src/tools/*`: concrete tools.
-- `src/tools/AgentTool`: subagent, background worker, fork, and custom agent handling.
-- `src/coordinator`: top-level coordinator mode prompt and behavior.
-- `src/tasks`: background task/task-panel model.
-- `src/hooks/toolPermission` and `src/utils/permissions`: permission request, auto mode, allow/deny, classifier, and safety checks.
-- `src/services/api`: Claude API request building, streaming/non-streaming, prompt cache, retries.
-- `src/services/mcp`: MCP client/auth/config/tool wrapping.
-- `src/skills`: local/project/user/plugin skill loading.
-- `src/bridge`, `src/server`, `src/cli/transports`: remote control, direct-connect, web terminal, structured I/O.
-- `web`: separate Next.js web UI prototype/client.
-- `mcp-server`: helper MCP server for exploring this codebase.
-- `docker`: containerized web terminal around the CLI.
+Subagent:
 
-## Core Runtime Path
+- Runs a bounded task.
+- Has a narrower prompt.
+- Has a narrower tool set.
+- Has narrower permissions.
+- Returns structured findings to Commander.
 
-Main CLI flow:
+Useful built-in mode idea:
 
-1. `src/entrypoints/cli.tsx` does fast-path dispatch before loading the full CLI.
-2. `src/main.tsx` builds Commander commands/options, resolves settings, agents, tools, MCP servers, permission mode, session state, and UI/headless mode.
-3. Interactive mode launches the REPL UI. Headless mode goes through `src/cli/print.ts`.
-4. Both converge on `QueryEngine`/`query`.
+- Ask mode: read and explain.
+- Plan mode: analyze and draft without side effects.
+- Guarded Act mode: perform bounded local writes or approved safe tasks.
 
-Key evidence:
+Trading authority is separate from all three modes. No mode can bypass Order Guard.
 
-- `src/entrypoints/cli.tsx:35` starts the bootstrap entrypoint.
-- `src/main.tsx:968` defines the main `claude` command and most CLI options.
-- `src/QueryEngine.ts:184` defines the `QueryEngine` class.
-- `src/QueryEngine.ts:209` starts `submitMessage`.
-- `src/query.ts:241` starts the inner query loop.
-- `src/services/api/claude.ts:709` handles non-streaming model calls.
-- `src/services/api/claude.ts:3213` builds system prompt blocks.
+## Agent Definition Contract
 
-The query loop is the essential reusable part:
+Each GaemiGuard agent should be defined by a small structured contract:
 
-```mermaid
-sequenceDiagram
-  participant U as User/Input
-  participant QE as QueryEngine
-  participant Q as query loop
-  participant LLM as Model API
-  participant P as Permission Gate
-  participant T as Tools
-  U->>QE: submitMessage
-  QE->>QE: process user input, context, transcript
-  QE->>Q: query(messages, tools, context)
-  Q->>LLM: callModel stream
-  LLM-->>Q: assistant text and tool_use blocks
-  Q->>P: canUseTool
-  P-->>Q: allow / deny / ask / abort
-  Q->>T: run permitted tools
-  T-->>Q: tool_result blocks
-  Q->>LLM: continue with tool results
-  Q-->>QE: final assistant/result/status
-```
+| Field | Purpose |
+| --- | --- |
+| `name` | Stable agent identifier. |
+| `mode` | `primary`, `subagent`, or `system`. |
+| `description` | When Commander should use it. |
+| `promptSections` | Product role, task rules, safety rules, and output format. |
+| `tools` | Tool allowlist or denylist. |
+| `permissions` | Read, write, external side effect, and trading authority rules. |
+| `inputs` | Required context and redaction requirements. |
+| `outputs` | Structured result shape returned to Commander. |
+| `persistence` | SQLite rows, artifacts, event logs, or no persistence. |
+| `tests` | Contract, redaction, permission, and failure tests. |
 
-## System Prompt and Context
+Do not add a new agent role without this contract.
 
-The system prompt is built as composable sections, not one static string.
+## Tool Gateway
 
-Key responsibilities:
+All model-requested actions should go through one tool gateway.
 
-- Static identity and tool-use rules.
-- Session-specific guidance based on enabled tools.
-- Memory prompt.
-- Environment info.
-- Language and output style.
-- MCP server instructions.
-- Scratchpad and tool-result summarization instructions.
-- Prompt cache boundary between stable and dynamic sections.
+Tool definitions should include:
 
-Key evidence:
+- Stable name.
+- Input schema.
+- Output schema.
+- Read/write classification.
+- Sensitive-data classification.
+- Permission check.
+- Execution function.
+- Redaction behavior.
+- Persistence behavior.
+- Test coverage.
 
-- `src/constants/prompts.ts:444` defines `getSystemPrompt`.
-- `src/constants/prompts.ts:359` checks whether AgentTool is enabled.
-- `src/constants/prompts.ts:316` builds AgentTool-specific guidance.
-- `src/context.ts:116` builds system context.
-- `src/context.ts:172` loads user memory/CLAUDE.md context.
+Important tool groups for GaemiGuard:
 
-GaemiGuard equivalent:
+- Broker read tools: accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings.
+- Market tools: instrument lookup, price history, market hours, corporate events.
+- Research tools: source fetch, news lookup, filings, local documents, Hermes/OpenBB outputs.
+- Scenario tools: MiroFish run, assumption comparison, scenario artifact creation.
+- Memory tools: thesis, rules, journal, artifact search, report recall.
+- Risk tools: exposure, concentration, cooldown, liquidity, volatility, warning checks.
+- UI tools: focus chart, open artifact, request approval, show freshness.
 
-- `CommanderSystemPrompt` should be assembled from modules:
-  - Product promise and role.
-  - User's investment principles.
-  - Account/portfolio snapshot.
-  - Active chart/selection context.
-  - Available tools and permission mode.
-  - Current risk posture.
-  - Memory and recent artifacts.
-  - Compliance boundaries.
-
-Do not keep one giant hard-coded prompt. Use section builders and cache/staleness metadata per section.
-
-## Tool System
-
-The tool contract is generic and centralized. Each tool declares schema, description, permission check behavior, render behavior, and execution behavior.
-
-Key evidence:
-
-- `src/Tool.ts` defines the generic tool contract.
-- `src/tools.ts:179` defines the default preset.
-- `src/tools.ts:193` builds the base tool list.
-- `src/services/tools/toolOrchestration.ts` runs tool batches.
-- `src/services/tools/StreamingToolExecutor.ts:40` handles streaming tool execution.
-- `src/services/tools/toolExecution.ts` handles validation, permissions, hooks, and execution.
-
-Important tool categories:
-
-- Files: read, write, edit, glob, grep, notebook edit.
-- Shell: Bash and PowerShell.
-- Web: search and fetch.
-- MCP: list/read resources, MCP auth, ToolSearch.
-- Agents: AgentTool, SendMessage, TaskStop, team tools.
-- Tasks: create, update, get, list, output.
-- Planning/workflow: enter/exit plan mode, worktree, cron, remote trigger, brief.
-- Skills/plugins: SkillTool and plugin-provided tools/commands.
-
-GaemiGuard equivalent tool categories:
-
-- Market data tools: quotes, candles, instrument lookup, exchange hours.
-- Broker tools: Toss account, balance, positions, orders, dry-run, submit, cancel.
-- Research tools: news, filings, OpenBB, Hermes, local PDFs/Markdown/CSV.
-- Scenario tools: MiroFish run, scenario compare, assumption edit.
-- Memory tools: thesis create/update, rule create/update, trade journal, artifact search.
-- Risk tools: exposure check, cooldown check, sector concentration, volatility/liquidity check.
-- UI tools: focus chart range, open artifact, ask user approval.
+Broker order mutation tools must remain absent or hard-blocked until their approved stages.
 
 ## Permission Model
 
-The reference pattern has explicit permission modes, permission rules, and safety checks.
+General agent permissions and trading authority are different systems.
 
-Key evidence:
+General permission levels:
 
-- `src/utils/permissions/PermissionMode.ts:42` maps permission modes to titles and external names.
-- `src/utils/permissions/permissionSetup.ts:295` finds dangerous classifier permissions.
-- `src/hooks/toolPermission/PermissionContext.ts` builds the approval/denial flow.
-- `src/tools/BashTool/bashPermissions.ts` hardens shell command permission checks.
-- `src/tools/PowerShellTool/powershellPermissions.ts` does the Windows equivalent.
+- `manual`: ask before writes, external side effects, and sensitive actions.
+- `guarded_auto`: allow low-risk reads and deterministic safe tasks.
+- `trusted_auto`: allow scheduled/background safe tasks after explicit setup.
+- `full_access`: local developer mode for non-trading development work only.
 
-Observed permission modes:
+Trading authority:
 
-- `default`: ask when required.
-- `plan`: restrict action while planning.
-- `acceptEdits`: allow edits under bounded conditions.
-- `bypassPermissions`: skip permission prompts.
-- `dontAsk`: non-interactive behavior.
-- `auto`: classifier-backed auto mode when feature-gated.
-- `bubble`: used for some subagent flows to bubble decisions upward.
+- Read-only broker data requires the Stage 2 credential and sync boundary.
+- Order drafts and paper trading require later stage gates.
+- Live order submit, modify, and cancel require Order Guard, audit log, kill switch, idempotency, user approval, stage evidence, and official API scope.
+- Rule-based automation is a final-stage feature.
 
-Important detail: auto mode is not just "approve everything." It strips or blocks dangerous allow rules, especially broad Bash/PowerShell/Agent permissions that could bypass classifier evaluation.
+The Commander can request a trading action review. It cannot directly bypass the Order Guard path.
 
-GaemiGuard permission modes should be:
+## Prompt And Context
 
-- `manual`: ask for all write/order/external side effects.
-- `guarded_auto`: approve low-risk reads and deterministic safe tasks; route risky tool calls through classifier/policy checks.
-- `trusted_auto`: allow scheduled/background workflows, but still enforce hard trading limits.
-- `full_access`: local-only developer mode, never the default for live trading.
-- `paper_auto`: automatic paper trading.
-- `live_auto`: live trading only after explicit user enablement, kill switches, per-rule caps, and audit logging.
+Do not keep one giant Commander prompt.
 
-The Codex-style UI mapping can be:
+Build the Commander context from sections:
 
-- "Ask for approval" -> `manual`
-- "Approve for me" -> `guarded_auto`
-- "Full access" -> `trusted_auto` for non-trading tools, never unbounded live orders
+- Product identity and boundaries.
+- User question.
+- Permission mode.
+- Active UI selection.
+- Account and portfolio freshness.
+- Holdings and market snapshots.
+- User thesis and rules.
+- Relevant research artifacts.
+- Scenario artifacts.
+- Recent agent run timeline.
+- Safety and compliance rules.
+- Tool list and output schema.
 
-For live orders, permission mode is not enough. Order submission must also pass deterministic order policy.
+Each section should carry freshness and redaction metadata when relevant.
 
-## Agent System
+## Task And Background Work
 
-The subagent architecture is the most important part for GaemiGuard.
+Investment workflows are often long-running:
 
-Key evidence:
+- Morning guard.
+- Daily or weekly report.
+- Research run.
+- Scenario run.
+- Portfolio exposure review.
+- Order draft review.
+- Later rule monitor.
 
-- `src/tools/AgentTool/AgentTool.tsx:196` defines AgentTool.
-- `src/tools/AgentTool/AgentTool.tsx:239` starts its call handler.
-- `src/tools/AgentTool/AgentTool.tsx:567` decides whether to run async/background.
-- `src/tools/AgentTool/AgentTool.tsx:575` sets worker permission context.
-- `src/tools/AgentTool/runAgent.ts:415` resolves agent permission mode.
-- `src/tools/AgentTool/runAgent.ts:502` resolves agent tools.
-- `src/tools/AgentTool/runAgent.ts:700` creates subagent context.
-- `src/tools/AgentTool/runAgent.ts:748` runs the query loop for the subagent.
-- `src/tools/AgentTool/loadAgentsDir.ts:162` defines `AgentDefinition`.
-- `src/tools/AgentTool/loadAgentsDir.ts:300` starts loading built-in/custom/plugin agents.
-- `src/tools/AgentTool/agentToolUtils.ts:70` filters tools for agents.
-- `src/tools/AgentTool/agentToolUtils.ts:122` resolves explicit tool specs.
-- `src/tasks/LocalAgentTask/LocalAgentTask.tsx` tracks background agent progress and notifications.
-- `src/tools/SendMessageTool/SendMessageTool.ts:520` defines inter-agent messaging.
-- `src/tools/TeamCreateTool/TeamCreateTool.ts:74` defines team creation.
-
-Agent definitions carry:
-
-- agent type/name
-- description / when-to-use
-- prompt/system prompt
-- tool allow/disallow specs
-- model/effort
-- permission mode
-- MCP server requirements
-- hooks
-- memory settings
-- background/isolation behavior
-
-GaemiGuard should directly implement this pattern.
-
-Recommended GaemiGuard agents:
-
-- `CommanderAgent`: top-level conductor behind the right sidebar.
-- `PortfolioAgent`: account, holdings, exposure, PnL, cash, FX, concentration.
-- `ResearchAgent`: Hermes/OpenBB/news/filings/local docs synthesis.
-- `ScenarioAgent`: MiroFish input packaging, simulation execution, result interpretation.
-- `OrderGuardAgent`: order review, policy checks, approval artifact.
-- `BrokerAgent`: Toss API adapter, read-only broker facts, dry-run/submit/cancel as gated tools.
-- `MemoryAgent`: thesis, rule, journal, artifact, temporal memory updates.
-- `ReportAgent`: daily/weekly review, trade rationale, scenario reports.
-- `SettingsSecretsAgent`: API keys, connector status, provider health.
-- `ExternalSignalAgent`: optional replacement for the current "Community Signal Agent"; keep disabled until source policy is settled.
-
-## Coordinator Mode
-
-The reference pattern has an explicit coordinator mode. This is the closest match to the user's "internal agent that commands the other agents" idea.
-
-Key evidence:
-
-- `src/coordinator/coordinatorMode.ts:36` checks coordinator mode.
-- `src/coordinator/coordinatorMode.ts:111` builds the coordinator system prompt.
-- `src/constants/tools.ts` defines the coordinator-allowed tool subset.
-
-Coordinator behavior:
-
-- Main agent supervises workers.
-- It delegates research/implementation/verification.
-- It receives task notifications as user-role messages.
-- It uses a small allowed toolset, mostly Agent, SendMessage, TaskStop, and SyntheticOutput.
-- It is responsible for synthesis and user communication.
-
-GaemiGuard Commander should use the same split:
-
-- Commander can spawn specialists.
-- Commander can send follow-up messages.
-- Commander can stop runaway work.
-- Commander can synthesize.
-- Commander should not directly own every dangerous business tool.
-
-For GaemiGuard, the Commander's default toolset should be:
-
-- `spawn_agent`
-- `send_agent_message`
-- `stop_agent`
-- `read_context`
-- `read_artifact`
-- `create_task`
-- `update_task`
-- `ask_user`
-- `draft_order_review`
-- `run_risk_gate`
-
-It should not directly call `submit_live_order` except through an explicit Order Guard path.
-
-## Task and Background Work
-
-The task system separates long-running work from foreground conversation.
-
-Key evidence:
-
-- `src/tasks/types.ts` unions all task types.
-- `src/tasks/LocalAgentTask/LocalAgentTask.tsx` tracks local background agents.
-- `src/tools/TaskCreateTool/TaskCreateTool.ts:48` defines task creation.
-- `src/tools/TaskStopTool/TaskStopTool.ts:39` defines task stop.
-- `src/tools/TaskOutputTool/TaskOutputTool.tsx:144` exposes task output.
-
-GaemiGuard needs this immediately because investment workflows are long-running:
-
-- morning research run
-- weekly portfolio review
-- scenario simulation
-- order review
-- backtest/paper trading
-- live rule monitor
-
-Each run should have:
+Represent these as tasks with:
 
 - `run_id`
-- status
+- parent run
 - owner agent
+- status
 - input snapshot
 - tool calls
 - artifacts
-- decisions
 - blocked actions
-- cost/time
+- cost/time metadata
 - final summary
 
-## Memory and Persistence
+Commander should be able to start, stop, retry, and summarize tasks.
 
-The reference pattern uses several persistence layers:
+## Memory And Persistence
 
-- conversation transcripts as `.jsonl`
-- subagent sidechain transcripts
-- CLAUDE.md/project/user memory files
-- file-based auto memory
-- task output artifacts
-- settings and plugin state
+GaemiGuard should use:
 
-Key evidence:
-
-- `src/utils/sessionStorage.ts:1408` records transcripts.
-- `src/utils/sessionStorage.ts:257` builds agent transcript paths.
-- `src/utils/conversationRecovery.ts:456` loads conversations for resume.
-- `src/utils/claudemd.ts:790` discovers memory files.
-- `src/memdir/memdir.ts:419` loads the memory prompt.
-
-GaemiGuard persistence should be:
-
-- SQLite for entities and indexes.
-- Markdown/JSON artifacts for human-readable reports and run output.
-- JSONL event logs for agent/tool/order audit.
-- Optional Graphiti/temporal memory for relationship and time-aware recall.
+- SQLite for structured entities and indexes.
+- Markdown artifacts for human-readable explanations and reports.
+- JSON artifacts for structured run output.
+- Event logs for agent, tool, permission, and order-review audit.
+- Optional temporal memory or graph tools only after the core memory contract is stable.
 
 Core entities:
 
-- Account
-- BrokerConnection
+- Account reference
+- Broker connection
 - Instrument
-- PriceSnapshot
-- Position
-- PortfolioSnapshot
+- Price snapshot
+- Holding snapshot
+- Portfolio snapshot
 - Thesis
 - Rule
-- AgentRun
-- ToolCall
-- Artifact
-- ScenarioRun
-- OrderReview
-- OrderIntent
-- OrderRequest
-- TradeJournal
-- RiskEvent
-- ApprovalDecision
-- AutomationRule
-
-## Web, Server, and Docker Parts
-
-These parts are useful but secondary.
-
-`web/`:
-
-- A separate Next.js UI.
-- Zustand store.
-- Chat layout/components/settings/file viewer/export/collaboration surfaces.
-- `web/app/api/chat/route.ts` proxies chat to a backend API.
-
-`src/server/web`:
-
-- Express + WebSocket + node-pty web terminal around the CLI.
-- Session resume, scrollback buffer, auth adapters, admin view.
-
-`docker/`:
-
-- Container builds the CLI and runs the web terminal.
-- Useful for deployment experiments.
-- Not required for GaemiGuard's local app if we use Electron + local API + sidecars.
-
-`mcp-server/`:
-
-- MCP explorer server for reading/listing/searching source.
-- Useful as a pattern for exposing GaemiGuard capabilities to other agents.
-- Not part of the core agent runtime.
-
-## Codex CLI Use in GaemiGuard
-
-Use Codex CLI as a provider/tool, not as the whole orchestration runtime.
-
-Recommended approach:
-
-- Build GaemiGuard's own orchestrator API.
-- Add provider adapters:
-  - OpenAI Responses/Agents SDK adapter.
-  - Anthropic adapter if needed.
-  - Codex CLI adapter for local coding/operator-style tasks.
-  - Local sidecar adapter for MiroFish/Hermes.
-- Let the Commander choose a provider per task.
-
-Codex CLI can be useful for:
-
-- local code/file operations
-- repo analysis
-- generating or validating strategy scripts
-- running local tools under approval modes
-- acting as one specialist agent backend
-
-Codex CLI should not be the only source of truth for:
-
-- broker order state
-- risk rules
-- audit logs
-- scheduled trading automation
-
-No, the user should not need Docker every time. The local app target should be:
-
-- Electron shell.
-- Local API process.
-- SQLite database.
-- uv-managed Python sidecars.
-- OS credential store.
-- Optional CLI providers launched as child processes.
-
-## Trading-Specific Architecture
-
-The trading path must be stricter than generic file/tool execution.
-
-```mermaid
-flowchart TD
-  Chat["Commander Chat"] --> Intent["Order Intent"]
-  Intent --> Thesis["Thesis Exists?"]
-  Thesis --> Risk["Risk Policy Checks"]
-  Risk --> DryRun["Broker Dry Run"]
-  DryRun --> Review["Order Review Artifact"]
-  Review --> Approval{"Approval / Auto Rule"}
-  Approval -->|Denied| Journal["Log Denial"]
-  Approval -->|Needs User| UI["Approval UI"]
-  Approval -->|Allowed Rule| Submit["Submit Order"]
-  UI --> Submit
-  Submit --> Confirm["Broker Confirmation"]
-  Confirm --> Audit["Immutable Audit Log"]
-```
-
-Order submission should require all of these:
-
-- current account snapshot
-- current market/session status
-- symbol/instrument validation
-- thesis or rule reference
-- exposure and cash checks
-- cooldown/overtrading checks
-- per-symbol and per-sector caps
-- price/quantity/slippage guard
-- MiroFish/Hermes risk signals considered, not blindly obeyed
-- idempotency key
-- approval record or matching auto-rule
-- global and per-rule kill switch not active
-
-## MiroFish Integration
-
-MiroFish should be a Scenario Agent sidecar, not a direct trader.
-
-Input bundle:
-
-- selected instrument(s)
-- chart range and candle data
-- volume/liquidity data
-- portfolio exposure
-- current thesis/rules
-- user question
-- Hermes/OpenBB/research summary
-- macro/FX/rates context
-- known assumptions
-
-Output artifact:
-
-- scenario range, not a single prediction
-- assumptions
-- confidence/uncertainty
-- risk factors
-- timeline
-- links to generated graph/report
-- Order Guard interpretation
-
-MiroFish output may influence an order review, but it should never bypass the Order Guard.
-
-## GaemiGuard Build Stages
-
-This is not an MVP plan. It is a staged build path.
-
-Stage 1: Local Foundation
-
-- Electron/Next shell.
-- Local API process.
-- SQLite schema.
-- artifact folder.
-- OS credential store wrapper.
-- right-sidebar Commander chat placeholder.
-
-Stage 2: Agent Runtime Core
-
-- `CommanderAgent`.
-- provider adapter interface.
-- tool registry.
-- permission modes.
-- agent run/task table.
-- JSONL audit log.
-- first specialist: `ResearchAgent` or `PortfolioAgent`.
-
-Stage 3: Toss Read-Only Connector
-
-- Toss OpenAPI schema/codegen.
-- account/positions/balances/orders read-only.
-- market data and instrument lookup.
-- connector health panel.
-
-Stage 4: Context-Aware UI
-
-- chart selection -> Commander context.
-- portfolio snapshot -> Commander context.
-- artifact viewer.
-- run timeline in right panel.
-
-Stage 5: MiroFish Scenario Sidecar
-
-- uv-managed sidecar.
-- per-run isolated working dir.
-- input bundle contract.
-- scenario artifact generation.
-- Scenario Agent integration.
-
-Stage 6: Order Guard Dry Run
-
-- order intent model.
-- deterministic risk checks.
-- dry-run broker adapter.
-- order review artifact.
-- no live submit yet.
-
-Stage 7: Human-Approved Live Orders
-
-- submit after user approval.
-- idempotency keys.
-- audit log.
-- cancel/update review.
-- global kill switch.
-
-Stage 8: Rule-Based Automation
-
-- scheduled/background tasks.
-- paper auto first.
-- live auto only per explicit rule.
-- per-rule kill switch and max loss/order caps.
-- notification and post-trade journal.
-
-Stage 9: Full Memory and Review Loop
-
-- thesis versioning.
-- trade journal automation.
-- weekly review reports.
-- Graphiti/temporal memory indexing.
-- agent self-review and verifier runs.
-
-## Design Spec Adjustments
-
-Based on `gaemiguard-design-spec.md`, these should be changed or clarified:
-
-- Do not use "MVP" as the product planning language. Use staged build.
-- Keep "Community Signal Agent" disabled or rename it to `ExternalSignalAgent` until the data source policy is chosen.
-- "Codex as local LLM provider" should become "Codex CLI provider adapter." The orchestrator remains GaemiGuard-owned.
-- "Full automatic trading" should be split into paper auto, guarded live auto, and full developer mode. Do not let "full access" mean unrestricted broker access.
-- The right sidebar should be the Commander chat panel, not only a passive assistant panel.
-- Order authority should be modeled separately from general agent authority.
-- MiroFish should be scenario evidence, not an order executor.
-- Every agent run and order review must produce artifacts and audit events.
-
-## Recommended Final Architecture
-
-```mermaid
-flowchart LR
-  subgraph Desktop["Electron App"]
-    UI["Next/React UI"]
-    Sidebar["Commander Chat Panel"]
-    Chart["Chart / Portfolio / Order Views"]
-  end
-
-  subgraph Core["Local API and Runtime"]
-    Orchestrator["GaemiGuard Orchestrator"]
-    Commander["Commander Agent"]
-    Registry["Tool and Agent Registry"]
-    Permissions["Permission / Risk Engine"]
-    Tasks["Task Runner"]
-    Audit["Audit Logger"]
-  end
-
-  subgraph Storage["Local Storage"]
-    SQLite["SQLite"]
-    Artifacts["Markdown / JSON Artifacts"]
-    Secrets["OS Credential Store"]
-  end
-
-  subgraph External["Connectors and Sidecars"]
-    Toss["Toss Invest API"]
-    Miro["MiroFish Sidecar"]
-    Hermes["Hermes Research"]
-    OpenBB["OpenBB"]
-    Codex["Codex CLI Adapter"]
-  end
-
-  UI --> Sidebar
-  Sidebar --> Orchestrator
-  Chart --> Orchestrator
-  Orchestrator --> Commander
-  Commander --> Registry
-  Registry --> Tasks
-  Tasks --> Permissions
-  Permissions --> Toss
-  Permissions --> Miro
-  Permissions --> Hermes
-  Permissions --> OpenBB
-  Permissions --> Codex
-  Orchestrator --> SQLite
-  Orchestrator --> Artifacts
-  Orchestrator --> Secrets
-  Permissions --> Audit
-  Audit --> SQLite
-  Audit --> Artifacts
-```
-
-## Non-Negotiables
-
-- Live order submit is never a generic tool call.
-- Every order action has an immutable audit event.
-- Every agent/tool run stores input snapshot and output artifact.
-- Permission mode and order authority are separate.
-- Background automation is kill-switchable globally and per rule.
-- Sidecars run behind process boundaries.
-- AGPL or uncertain-license tools stay out-of-process.
-- Predictions are represented as scenarios with assumptions and uncertainty.
-- UI must show what data the agent used.
-- User can inspect why an action was blocked or approved.
-
-## What to Build Next
-
-Build the GaemiGuard Commander runtime skeleton first:
-
-1. `agent_run` and `tool_call` SQLite tables.
-2. `CommanderAgent` interface.
-3. `ToolRegistry`.
-4. `PermissionEngine`.
-5. `spawnAgent`, `sendAgentMessage`, `stopAgent` internal tools.
-6. Right sidebar chat wired to Commander.
-7. Stub specialist agents returning artifacts.
-
-After that, connect Toss read-only and MiroFish scenario runs.
-
-This order avoids building a normal stock app first. It makes the actual product - an agentic investment terminal with guardrails - the spine from day one.
+- Research artifact
+- Scenario run
+- Agent run
+- Tool call
+- Order review
+- Approval decision
+- Trade journal
+- Risk event
+
+Raw secrets, tokens, raw account numbers, order identifiers, and direct personal identifiers must not be persisted or sent to external agent context.
+
+## Parallel Work
+
+Parallel subagents are useful only when tasks do not share mutable state or unsafe side effects.
+
+Good candidates:
+
+- Read-only code or document exploration.
+- Independent research source collection.
+- Separate scenario drafts.
+- Separate report sections.
+- Verification and review after implementation.
+
+Bad candidates:
+
+- Multiple agents editing the same files.
+- Multiple agents changing the same schema.
+- Multiple agents touching credential or order paths.
+- Any task where one result must be known before the next step.
+
+For GaemiGuard development work, parallel sessions should use separate branches or worktrees and merge through a reviewed integration branch.
+
+## UI Pattern
+
+The UI should expose what the agent did:
+
+- User question.
+- Active mode.
+- Data freshness.
+- Delegated agents.
+- Tool calls.
+- Source artifacts.
+- Blocked actions.
+- Approval prompts.
+- Final answer.
+
+The terminal-like panels are evidence surfaces. They should help the user inspect why Commander answered a certain way.
+
+## Implementation Order
+
+Recommended order:
+
+1. Keep Stage 2 focused on Toss read-only credential setup, real sync, freshness, and redaction.
+2. Add source-grounded Commander answers only after snapshots have source/freshness links.
+3. Add thesis, rules, journals, and research memory in Stage 3.
+4. Add MiroFish scenario tasks in Stage 4.
+5. Add order drafts and paper trading in Stage 5.
+6. Add live orders only in Stage 6.
+7. Add rule automation only in Stage 7.
+
+Do not turn news, terminal panels, or automation into the product center before the personal investment agent is useful.
+
+## Test Requirements
+
+Each runtime slice should test:
+
+- Agent contract shape.
+- Tool input and output validation.
+- Permission allow, ask, deny, and hard-block behavior.
+- Redaction of secrets, tokens, raw account numbers, order IDs, and personal identifiers.
+- SQLite and artifact persistence boundaries.
+- API and Commander response safety.
+- Freshness and source visibility.
+- Failure states and blocked actions.
+
+For order-related stages, tests must also cover:
+
+- Order Guard policy.
+- Idempotency.
+- Kill switch.
+- Approval capture.
+- Audit log.
+- No execution without accepted stage evidence.

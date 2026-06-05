@@ -1,6 +1,8 @@
 # GaemiGuard Roadmap
 
-GaemiGuard는 작은 MVP로 닫지 않고, 안전 장치가 검증된 순서대로 넓힙니다.
+GaemiGuard는 개인 투자 에이전트를 중심에 두고, 안전 장치가 검증된 순서대로 넓힙니다.
+
+투자 점검 가드와 작은 로컬 투자 터미널 화면은 이 에이전트가 쓴 근거를 보여주는 보조 표면입니다.
 
 Waterfall baseline:
 
