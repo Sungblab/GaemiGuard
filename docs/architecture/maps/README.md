@@ -5,7 +5,7 @@ Current routing:
 | Area | Source docs | Owning paths | Verification |
 | --- | --- | --- | --- |
 | Current development state | `docs/development-status.md` | repo-wide | `pnpm docs:html`, `pnpm verify` |
-| Agent routing and handoff | `AGENTS.md`, `docs/agent-index.md`, `docs/handoffs/README.md`, `docs/development-history.md` | `.devflow/config.json`, `plugins/devflow/`, `scripts/check-agent-docs.mjs` | `pnpm docs:agent-check`, `pnpm docs:html`, `pnpm verify` |
+| Agent routing and handoff | `AGENTS.md`, `docs/agent-index.md`, `docs/handoffs/README.md`, `docs/development-history.md` | `.devflow/config.json`, `.github/workflows/ci.yml`, `.github/pull_request_template.md`, `plugins/devflow/`, `scripts/check-agent-docs.mjs` | `pnpm docs:agent-check`, `pnpm docs:html`, `pnpm verify` |
 | Documentation routing | `docs/README.md`, `docs/architecture/design-index.md` | `scripts/build-docs-html.mjs`, `docs/gaemiguard-all-docs.html` | `pnpm docs:agent-check`, `pnpm docs:html`, `pnpm verify` |
 | Stage plan | `docs/waterfall/00-master-plan.md`, `docs/stages/` | repo-wide | stage gate evidence |
 | Agent runtime | `docs/architecture/agent-runtime.md` | `packages/core/src/commander-runtime.ts`, `apps/api/src/app.ts` | `pnpm verify` |

@@ -12,8 +12,11 @@ const requiredFiles = [
   "docs/architecture/design-index.md",
   "docs/architecture/maps/README.md",
   "docs/contributing/workflow.md",
+  "docs/testing/strategy.md",
   "docs/handoffs/README.md",
   "docs/stages/stage-2-toss-readonly-connector.md",
+  ".github/workflows/ci.yml",
+  ".github/pull_request_template.md",
   ".devflow/config.json"
 ];
 
@@ -49,6 +52,42 @@ const requiredMentions = [
   {
     file: ".devflow/config.json",
     text: "docs:agent-check"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "contents: read"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "cancel-in-progress: true"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "pnpm docs:agent-check"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "pnpm docs:html"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "timeout-minutes"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "cache: pnpm"
+  },
+  {
+    file: ".github/workflows/ci.yml",
+    text: "cache-dependency-path: pnpm-lock.yaml"
+  },
+  {
+    file: ".github/pull_request_template.md",
+    text: "pnpm docs:agent-check"
+  },
+  {
+    file: ".github/pull_request_template.md",
+    text: "문서/에이전트 영향"
   }
 ];
 

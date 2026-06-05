@@ -116,6 +116,14 @@ Devflow gate는 `.devflow/config.json`에 있다. 새 에이전트가 보는 기
 - `docs-html`: `pnpm docs:html`
 - `verify`: `pnpm verify`
 
+GitHub CI는 `.github/workflows/ci.yml`에 있다. 기본 원칙은 다음이다.
+
+- GitHub token 권한은 읽기만 허용한다.
+- 같은 브랜치의 오래된 CI는 취소한다.
+- 작업 시간이 비정상적으로 길어지면 자동으로 멈춘다.
+- `pnpm` 캐시를 사용한다.
+- PR과 main 검사에서 `pnpm docs:agent-check`, `pnpm docs:html`, `pnpm verify`를 모두 실행한다.
+
 ## 금지
 
 - Stage 2에서 토스 주문 기능을 만들지 말 것.

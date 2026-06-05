@@ -413,7 +413,7 @@
         <div class="stats">
           <span class="chip"><strong>50</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T15:07:33.077Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T15:16:19.395Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
@@ -1171,6 +1171,7 @@ prototypes/      초기 UI 프로토타입</code></pre>
 <li><code>pnpm docs:html</code></li>
 <li><code>pnpm verify</code></li>
 </ul>
+<p>GitHub CI also runs these gates on PRs and main pushes. The workflow keeps token permissions read-only, cancels older runs for the same branch, and uses pnpm caching.</p>
 <p>For user-visible desktop UI workflow changes, also run:</p>
 <ul>
 <li><code>pnpm smoke:desktop</code></li>
@@ -3246,7 +3247,7 @@ Approver:</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-27" data-category="Architecture" data-path="docs/architecture/maps/README.md">
-  <div class="doc-kicker">Architecture · docs/architecture/maps/README.md · 1KB</div>
+  <div class="doc-kicker">Architecture · docs/architecture/maps/README.md · 2KB</div>
   <h2>Architecture Maps</h2>
   <h1 id="doc-27-architecture-maps">Architecture Maps</h1>
 <p>Current routing:</p>
@@ -3257,7 +3258,7 @@ Approver:</code></pre>
 <td>Current development state</td><td><code>docs/development-status.md</code></td><td>repo-wide</td><td><code>pnpm docs:html</code>, <code>pnpm verify</code></td>
 </tr>
 <tr>
-<td>Agent routing and handoff</td><td><code>AGENTS.md</code>, <code>docs/agent-index.md</code>, <code>docs/handoffs/README.md</code>, <code>docs/development-history.md</code></td><td><code>.devflow/config.json</code>, <code>plugins/devflow/</code>, <code>scripts/check-agent-docs.mjs</code></td><td><code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, <code>pnpm verify</code></td>
+<td>Agent routing and handoff</td><td><code>AGENTS.md</code>, <code>docs/agent-index.md</code>, <code>docs/handoffs/README.md</code>, <code>docs/development-history.md</code></td><td><code>.devflow/config.json</code>, <code>.github/workflows/ci.yml</code>, <code>.github/pull_request_template.md</code>, <code>plugins/devflow/</code>, <code>scripts/check-agent-docs.mjs</code></td><td><code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, <code>pnpm verify</code></td>
 </tr>
 <tr>
 <td>Documentation routing</td><td><code>docs/README.md</code>, <code>docs/architecture/design-index.md</code></td><td><code>scripts/build-docs-html.mjs</code>, <code>docs/gaemiguard-all-docs.html</code></td><td><code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, <code>pnpm verify</code></td>
@@ -3527,6 +3528,14 @@ pnpm docs:html</code></pre>
 <li><code>agent-docs</code>: <code>pnpm docs:agent-check</code></li>
 <li><code>docs-html</code>: <code>pnpm docs:html</code></li>
 <li><code>verify</code>: <code>pnpm verify</code></li>
+</ul>
+<p>GitHub CI는 <code>.github/workflows/ci.yml</code>에 있다. 기본 원칙은 다음이다.</p>
+<ul>
+<li>GitHub token 권한은 읽기만 허용한다.</li>
+<li>같은 브랜치의 오래된 CI는 취소한다.</li>
+<li>작업 시간이 비정상적으로 길어지면 자동으로 멈춘다.</li>
+<li><code>pnpm</code> 캐시를 사용한다.</li>
+<li>PR과 main 검사에서 <code>pnpm docs:agent-check</code>, <code>pnpm docs:html</code>, <code>pnpm verify</code>를 모두 실행한다.</li>
 </ul>
 <h2 id="doc-30-금지">금지</h2>
 <ul>
