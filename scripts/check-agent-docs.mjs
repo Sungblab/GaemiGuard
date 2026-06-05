@@ -9,6 +9,8 @@ const requiredFiles = [
   "docs/development-status.md",
   "docs/development-history.md",
   "docs/README.md",
+  "docs/product/README.md",
+  "docs/product/agent-first-direction.md",
   "docs/architecture/design-index.md",
   "docs/architecture/maps/README.md",
   "docs/contributing/workflow.md",
@@ -34,12 +36,28 @@ const requiredMentions = [
     text: "docs/development-history.md"
   },
   {
+    file: "docs/README.md",
+    text: "docs/product/agent-first-direction.md"
+  },
+  {
     file: "docs/development-status.md",
     text: "docs/agent-index.md"
   },
   {
+    file: "docs/development-status.md",
+    text: "docs/product/agent-first-direction.md"
+  },
+  {
     file: "docs/architecture/design-index.md",
     text: "docs/development-history.md"
+  },
+  {
+    file: "docs/architecture/design-index.md",
+    text: "docs/product/agent-first-direction.md"
+  },
+  {
+    file: "docs/agent-index.md",
+    text: "docs/product/agent-first-direction.md"
   },
   {
     file: "docs/contributing/workflow.md",

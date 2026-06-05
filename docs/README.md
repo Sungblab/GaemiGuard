@@ -9,6 +9,7 @@ This is the routing page for the repository documentation. Use it to decide what
 | Agent entry point and short routing | `docs/agent-index.md` |
 | Current implementation state and next work | `docs/development-status.md` |
 | Development history by PR | `docs/development-history.md` |
+| Product direction | `docs/product/agent-first-direction.md` |
 | Agent instructions and safety rules | `AGENTS.md` |
 | Overall development model | `docs/waterfall/00-master-plan.md` |
 | Stage sequence | `docs/roadmap.md` |
@@ -21,7 +22,7 @@ This is the routing page for the repository documentation. Use it to decide what
 | Agent routing | `docs/agent-index.md` | Short read order, handoff policy, and harness commands. |
 | Current state | `docs/development-status.md` | What is done, active, blocked, and next. |
 | Development history | `docs/development-history.md` | PR-by-PR record of how the repo reached the current state. |
-| Product shape | `gaemiguard-design-spec.md`, `docs/gaemiguard-product-context.md` | Product promise, target workflows, and long-running context. |
+| Product shape | `docs/product/agent-first-direction.md`, `gaemiguard-design-spec.md`, `docs/gaemiguard-product-context.md` | Current agent-first product direction, product promise, target workflows, and long-running context. |
 | Waterfall governance | `docs/waterfall/00-master-plan.md`, `docs/waterfall/` | Stage policy, safety model, gates, risks, and traceability. |
 | Stage contracts | `docs/stages/` | Per-stage scope, non-scope, contracts, tests, and exit criteria. |
 | Architecture | `docs/architecture/agent-runtime.md`, `docs/architecture/design-index.md`, `docs/architecture/maps/README.md` | Runtime ownership, document index, and code-to-doc routing. |
@@ -52,6 +53,13 @@ Read these together for Stage 2 work:
 | `docs/testing/strategy.md` | Verification gates and when to run desktop smoke. |
 | `docs/setup/agent-assisted-setup.md` | Setup contract for agent-assisted local installation. |
 | `docs/setup/playwright-smoke.md` | Windows-safe Playwright smoke details. |
+
+## Product Documents
+
+| Document | Role |
+| --- | --- |
+| `docs/product/README.md` | Product-document index. |
+| `docs/product/agent-first-direction.md` | Current direction: personal investment agent first; investment guard and local terminal surfaces support that agent. |
 
 ## Maintenance Rules
 

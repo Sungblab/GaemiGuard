@@ -4,9 +4,11 @@ Generated: 2026-06-04
 
 ## Product Identity
 
-GaemiGuard helps a Korean retail investor ask an agent about their account, market context, research, scenario assumptions, and trade rationale before acting.
+GaemiGuard is an agent-first local personal investment workspace for Korean retail investors.
 
-The app should feel like a serious investment operations terminal, not a consumer landing page.
+It helps the user ask an agent about their account, market context, research, scenario assumptions, personal rules, and trade rationale before acting.
+
+The app may include dense terminal-like data surfaces, but those surfaces support the agent. The product should not become a general financial terminal where the agent is only an add-on.
 
 ## Target User
 
@@ -50,6 +52,8 @@ Secondary:
 - Social/community signal product.
 - Strategy marketplace.
 - Full HTS clone.
+- Bloomberg/OpenBB clone.
+- Generic news-feed product.
 - Live auto trading before Stage 7.
 - Trading through unofficial Toss web-internal APIs by default.
 - Claims of guaranteed future price or guaranteed profit.

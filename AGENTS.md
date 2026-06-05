@@ -62,4 +62,8 @@ If the goal would exceed about 4,000 characters, write the full task spec under 
 
 ## Product Boundary
 
-GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.
+GaemiGuard is an agent-first local personal investment workspace for Korean retail investors.
+
+The primary product is the personal investment agent. The investment guard and the small local investment terminal are supporting parts of that agent experience.
+
+GaemiGuard is not a profit bot, brokerage clone, unofficial broker wrapper, Bloomberg/OpenBB clone, news-feed product, or automation-first live trading bot.

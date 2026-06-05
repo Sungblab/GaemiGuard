@@ -4,9 +4,9 @@ Generated: 2026-06-04
 
 ## UI Direction
 
-GaemiGuard uses a Toss-inspired, dense operational UI.
+GaemiGuard uses an agent-first operational UI.
 
-It should be clean and fast to scan, but it is not a marketing landing page. The first screen is the product.
+It can be dense and terminal-like where useful, but the screen exists to show the agent's evidence, freshness, and review state. It is not a marketing landing page, a Toss clone, or a general Bloomberg-style market terminal. The first screen is the product.
 
 ## First Screen
 
@@ -20,6 +20,8 @@ The first screen is **Today Guard**:
 - Recent agent runs.
 - Order Guard status.
 - Persistent Commander panel on the right.
+
+Today Guard should answer the daily question: "What should I pay attention to before I act?"
 
 ## Right Sidebar
 
@@ -45,6 +47,13 @@ It must show:
 3. Commander summarizes market/account risk.
 4. Research tasks are suggested or run depending on permission mode.
 5. Output is saved as a daily guard artifact.
+
+### Evidence Review
+
+1. User reads a Commander answer.
+2. UI shows the underlying snapshot freshness, source artifacts, warning flags, scenario assumptions, or research records.
+3. User can open the supporting artifact instead of trusting a bare chat answer.
+4. If evidence is missing, stale, or mock-only, the UI must say so.
 
 ### Account Question
 

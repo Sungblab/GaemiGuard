@@ -11,8 +11,9 @@ This is the short routing document for agents starting GaemiGuard work. It point
 | 1 | `AGENTS.md` | Short rules, safety boundaries, language policy, and verification commands. |
 | 2 | `docs/agent-index.md` | Agent-facing route through docs, handoffs, and harness commands. |
 | 3 | `docs/development-status.md` | Current implementation state, active work, blockers, and next work. |
-| 4 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
-| 5 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
+| 4 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, guard and terminal as supporting surfaces. |
+| 5 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
+| 6 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
 Read these only when relevant:
 
@@ -20,6 +21,7 @@ Read these only when relevant:
 | --- | --- |
 | Overall plan | `docs/waterfall/00-master-plan.md` |
 | Development history | `docs/development-history.md` |
+| Product direction | `docs/product/README.md`, `docs/product/agent-first-direction.md` |
 | Toss API reference | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
 | Commander/runtime work | `docs/architecture/agent-runtime.md` |
 | Desktop smoke testing | `docs/setup/playwright-smoke.md` |
@@ -31,6 +33,7 @@ Read these only when relevant:
 - Stage 1 is complete.
 - Stage 2 is in progress.
 - Stage 2 is not exited yet.
+- Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.
 - Toss order create/update/cancel remains forbidden.
 - Real Toss secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
 

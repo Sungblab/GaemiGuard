@@ -42,14 +42,16 @@ This is the current-state document coding agents should read before continuing G
 2. `docs/agent-index.md`
 3. `docs/development-status.md`
 4. `docs/README.md`
-5. Active stage gate:
+5. Product direction:
+   - `docs/product/agent-first-direction.md`
+6. Active stage gate:
    - currently `docs/stages/stage-2-toss-readonly-connector.md`
-6. Source references for the active work:
+7. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
    - Desktop smoke work: `docs/setup/playwright-smoke.md`
-7. `docs/development-history.md` when the task asks why earlier PRs or stages shaped the current code.
-8. Run `rg` against code/tests before assuming implementation status.
+8. `docs/development-history.md` when the task asks why earlier PRs or stages shaped the current code.
+9. Run `rg` against code/tests before assuming implementation status.
 
 ## Next-Session Prompt Format
 
@@ -175,6 +177,7 @@ Documentation routing:
 - `docs/README.md` is the documentation hub.
 - `docs/agent-index.md` is the short agent-facing route into the current state, handoff policy, and harness commands.
 - `docs/development-history.md` records PR-by-PR development history.
+- `docs/product/agent-first-direction.md` records the current product decision: personal investment agent first, with investment guard and local terminal surfaces supporting the agent.
 - `docs/architecture/design-index.md` owns the source-of-truth map.
 - `docs/architecture/maps/README.md` maps source docs to code owners and verification gates.
 - `scripts/build-docs-html.mjs` builds the searchable single-file bundle.

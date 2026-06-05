@@ -6,7 +6,9 @@ Generated: 2026-06-04
 
 GaemiGuard uses an internal `CommanderAgent`.
 
-The Commander is the runtime owner behind the right sidebar. It is not a thin router. It receives user intent, assembles context, delegates to specialists, supervises tool execution, synthesizes the answer, and records the run.
+The Commander is the runtime owner behind the right sidebar and the primary product surface. It is not a thin router. It receives user intent, assembles context, delegates to specialists, supervises tool execution, synthesizes the answer, and records the run.
+
+The UI terminal surfaces exist to show the evidence Commander and the specialists used. They should not displace the personal investment agent as the center of the product.
 
 ## Agent Roles
 
@@ -22,6 +24,8 @@ The Commander is the runtime owner behind the right sidebar. It is not a thin ro
 | ReportAgent | Daily/weekly review and trade-rationale reports | 3 |
 | SettingsSecretsAgent | Connector health, provider health, credential setup | 2 |
 | ExternalSignalAgent | Optional external signal ingestion, disabled by default | 7 or later |
+
+Early stages can implement specialists as deterministic services or tool-backed tasks. A specialist role does not require a separate autonomous LLM loop until the stage needs it.
 
 ## Agent Loop
 
