@@ -405,7 +405,7 @@
         <div class="stats">
           <span class="chip"><strong>42</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-04T13:56:11.913Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T03:53:08.183Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
@@ -991,7 +991,7 @@ prototypes/      초기 UI 프로토타입</code></pre>
 <li>Release Review: docs, changelog, version, rollback, telemetry/local logs.</li>
 </ol>
 <h2 id="doc-3-current-state">Current State</h2>
-<p>Stage 1 foundation exists in the codebase and passes CI. The next development stage is Stage 2. Before Stage 2 implementation, the waterfall document set must be treated as the planning baseline.</p>
+<p>Stage 1 foundation exists in the codebase and passes CI. Stage 2 has started with a first Toss read-only connector slice: official operation constants, connector/client skeleton, mock credential/token boundary, API health wiring, and Commander/BrokerToss read-only tool contract. Stage 2 is not exited until the full read-only workflow, persistence, UI, security review, and gate evidence are complete.</p>
 </article>
 <article class="doc-card" id="doc-4" data-category="Waterfall" data-path="docs/waterfall/01-product-requirements.md">
   <div class="doc-kicker">Waterfall · docs/waterfall/01-product-requirements.md · 3KB</div>
@@ -2078,7 +2078,7 @@ Approver:</code></pre>
 <p>Implemented and merged to <code>main</code> before this waterfall package. Keep this document as the baseline gate record shape for future stages.</p>
 </article>
 <article class="doc-card" id="doc-16" data-category="Stage Gates" data-path="docs/stages/stage-2-toss-readonly-connector.md">
-  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 2KB</div>
+  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 6KB</div>
   <h2>Stage 2 Gate: Toss Readonly Connector</h2>
   <h1 id="doc-16-stage-2-gate-toss-readonly-connector">Stage 2 Gate: Toss Readonly Connector</h1>
 <p>Generated: 2026-06-04</p>
@@ -2104,6 +2104,79 @@ Approver:</code></pre>
 <li>Connector health check.</li>
 <li>Read-only portfolio and market snapshots in SQLite.</li>
 <li>Commander/Portfolio/BrokerToss tool calls for read-only data.</li>
+</ul>
+<h2 id="doc-16-first-implementation-slice">First Implementation Slice</h2>
+<p>Implemented on 2026-06-05 as the first Stage 2 slice:</p>
+<ul>
+<li>TypeScript read-only connector contract and official OpenAPI operation constants.</li>
+<li>Fetch-based <code>TossInvestReadonlyClient</code> skeleton with injected credential provider and in-memory token cache.</li>
+<li>Mock replay connector for tests and local health wiring.</li>
+<li>API <code>/health</code> exposes <code>toss_read_only</code> status with OpenAPI version <code>1.0.3</code>, included operations, forbidden mutation operations, and read-only tool names.</li>
+<li>Commander adds a <code>BrokerTossAgent</code> timeline event only for the read-only tool contract; it does not claim that Toss is connected when credentials are absent.</li>
+<li>Live order submission remains blocked by the permission engine in Stage 1 and Stage 2 read-only mode.</li>
+<li>Tests cover 200 replay, 401, 403, 429, unknown enum values, mutation exclusion, health wiring, and mock secret/token non-persistence to SQLite/artifacts.</li>
+</ul>
+<p>First-slice official data operations:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operation</th><th>Method</th><th>Path</th><th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td><code>getAccounts</code></td><td>GET</td><td><code>/api/v1/accounts</code></td><td>Returns masked account references only.</td>
+</tr>
+<tr>
+<td><code>getHoldings</code></td><td>GET</td><td><code>/api/v1/holdings</code></td><td>Requires <code>X-Tossinvest-Account</code>; account sequence is passed at request time.</td>
+</tr>
+<tr>
+<td><code>getPrices</code></td><td>GET</td><td><code>/api/v1/prices</code></td><td>Current price lookup by symbol list.</td>
+</tr>
+<tr>
+<td><code>getOrderbook</code></td><td>GET</td><td><code>/api/v1/orderbook</code></td><td>Returned as an orderbook summary with best ask/bid plus levels.</td>
+</tr>
+<tr>
+<td><code>getExchangeRate</code></td><td>GET</td><td><code>/api/v1/exchange-rate</code></td><td>KRW/USD style FX lookup.</td>
+</tr>
+<tr>
+<td><code>getKrMarketCalendar</code></td><td>GET</td><td><code>/api/v1/market-calendar/KR</code></td><td>KR market calendar.</td>
+</tr>
+<tr>
+<td><code>getUsMarketCalendar</code></td><td>GET</td><td><code>/api/v1/market-calendar/US</code></td><td>US market calendar.</td>
+</tr>
+<tr>
+<td><code>getStockWarnings</code></td><td>GET</td><td><code>/api/v1/stocks/{symbol}/warnings</code></td><td>Unknown warning enum values are preserved as forward-compatible unknowns.</td>
+</tr>
+</tbody></table></div>
+<p>Auth boundary:</p>
+<ul>
+<li><code>issueOAuth2Token</code> is modeled for OAuth2 client credentials token issuance.</li>
+<li>This slice supports static/mock credential providers and an in-memory token cache only.</li>
+<li>Production OS credential-store integration is not implemented yet.</li>
+<li>Raw client secrets and access tokens must not be written to SQLite, artifacts, Commander responses, external agent context, or docs.</li>
+</ul>
+<p>Explicitly forbidden mutation operations:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Operation</th><th>Method</th><th>Path</th><th>Policy</th>
+</tr></thead><tbody>
+<tr>
+<td><code>createOrder</code></td><td>POST</td><td><code>/api/v1/orders</code></td><td>Hard-blocked in connector policy.</td>
+</tr>
+<tr>
+<td><code>modifyOrder</code></td><td>POST</td><td><code>/api/v1/orders/{orderId}/modify</code></td><td>Hard-blocked in connector policy.</td>
+</tr>
+<tr>
+<td><code>cancelOrder</code></td><td>POST</td><td><code>/api/v1/orders/{orderId}/cancel</code></td><td>Hard-blocked in connector policy.</td>
+</tr>
+</tbody></table></div>
+<p>Explicitly excluded from this first slice:</p>
+<ul>
+<li><code>getOrders</code></li>
+<li><code>getOrder</code></li>
+<li><code>getBuyingPower</code></li>
+<li><code>getSellableQuantity</code></li>
+<li><code>getCommissions</code></li>
+<li><code>getTrades</code></li>
+<li><code>getPriceLimit</code></li>
+<li><code>getCandles</code></li>
+<li><code>getStocks</code></li>
 </ul>
 <h2 id="doc-16-out-of-scope">Out Of Scope</h2>
 <ul>
@@ -2165,6 +2238,17 @@ Approver:</code></pre>
 <li>UI read-only data flow works.</li>
 <li>Commander read-only account question works with source links.</li>
 <li>Mutation endpoints remain unavailable or hard-blocked.</li>
+</ul>
+<h2 id="doc-16-remaining-gaps-before-stage-2-exit">Remaining Gaps Before Stage 2 Exit</h2>
+<ul>
+<li>Production secret storage using the OS credential store.</li>
+<li>User-facing credential setup and disconnect flow.</li>
+<li>Real Toss sync jobs and SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings, sync logs, and rate-limit metadata.</li>
+<li>Rate-limit scheduler/backoff behavior beyond response metadata normalization.</li>
+<li>UI account/holdings/data freshness views.</li>
+<li>Commander account-aware answers grounded in real connector snapshots with source links.</li>
+<li>Security review for production credential lifecycle and external-agent redaction.</li>
+<li>Gate review record after full read-only workflow verification.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-17" data-category="Stage Gates" data-path="docs/stages/stage-3-research-memory.md">
@@ -2740,7 +2824,7 @@ Approver:</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-24" data-category="Architecture" data-path="docs/architecture/agent-runtime.md">
-  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 2KB</div>
+  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 3KB</div>
   <h2>Agent Runtime Architecture</h2>
   <h1 id="doc-24-agent-runtime-architecture">Agent Runtime Architecture</h1>
 <p>Generated: 2026-06-04</p>
@@ -2792,7 +2876,17 @@ Approver:</code></pre>
 <p>Trading rule:</p>
 <ul>
 <li><code>submit_live_order</code> is blocked in Stage 1 for every permission mode.</li>
+<li><code>submit_live_order</code> is also blocked in the Stage 2 Toss read-only connector slice for every permission mode.</li>
 <li>Future live submission must pass Order Guard, audit log, kill switch, user approval or explicit automation rule, and idempotency.</li>
+</ul>
+<h2 id="doc-24-stage-2-first-slice-runtime">Stage 2 First Slice Runtime</h2>
+<p>The first Stage 2 slice introduces the official Toss Invest OpenAPI read-only connector contract without enabling a production credential store.</p>
+<ul>
+<li><code>BrokerTossAgent</code> can advertise only read-only tool names: account list, holdings, current prices, orderbook summary, exchange rate, market calendar, and stock warnings.</li>
+<li>The API health check reports the connector mode and official OpenAPI version.</li>
+<li>Default local runtime mode is <code>not_configured</code>; tests may inject a <code>mock_replay</code> connector.</li>
+<li>Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.</li>
+<li>Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-25" data-category="Architecture" data-path="docs/architecture/design-index.md">
@@ -5155,7 +5249,7 @@ uv run pytest -q</code></pre>
 <h2 id="doc-38-gaemiguard-connector-policy">GaemiGuard Connector Policy</h2>
 <p>Use official Open API as the default Toss connector.</p>
 <p>Do not pass Toss credentials, access tokens, or account identifiers to Hermes, MiroFish, OpenClaw, OpenBB, or other external agents. External tools should receive sanitized portfolio context only.</p>
-<p>Recommended v0.1 connector scope:</p>
+<p>Stage 2 first-slice connector scope:</p>
 <ol>
 <li><code>issueOAuth2Token</code></li>
 <li><code>getAccounts</code></li>
@@ -5167,6 +5261,13 @@ uv run pytest -q</code></pre>
 <li><code>getUsMarketCalendar</code></li>
 <li><code>getStockWarnings</code></li>
 </ol>
+<p>The first implementation slice excludes order history and order-info reads (<code>getOrders</code>, <code>getOrder</code>, <code>getBuyingPower</code>, <code>getSellableQuantity</code>, <code>getCommissions</code>) until they are separated from order authority in product and UI copy.</p>
+<p>Mutation operations remain forbidden:</p>
+<ul>
+<li><code>createOrder</code></li>
+<li><code>modifyOrder</code></li>
+<li><code>cancelOrder</code></li>
+</ul>
 <p>Defer live order mutation until GaemiGuard has:</p>
 <ul>
 <li>Read-only default mode</li>

@@ -59,5 +59,15 @@ General modes:
 Trading rule:
 
 - `submit_live_order` is blocked in Stage 1 for every permission mode.
+- `submit_live_order` is also blocked in the Stage 2 Toss read-only connector slice for every permission mode.
 - Future live submission must pass Order Guard, audit log, kill switch, user approval or explicit automation rule, and idempotency.
 
+## Stage 2 First Slice Runtime
+
+The first Stage 2 slice introduces the official Toss Invest OpenAPI read-only connector contract without enabling a production credential store.
+
+- `BrokerTossAgent` can advertise only read-only tool names: account list, holdings, current prices, orderbook summary, exchange rate, market calendar, and stock warnings.
+- The API health check reports the connector mode and official OpenAPI version.
+- Default local runtime mode is `not_configured`; tests may inject a `mock_replay` connector.
+- Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.
+- Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.

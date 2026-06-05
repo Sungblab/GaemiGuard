@@ -1,14 +1,15 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import cors from "@fastify/cors";
-import { FileArtifactStore, createCommanderRuntime } from "@gaemiguard/core";
+import { FileArtifactStore, createCommanderRuntime, createUnavailableTossReadonlyConnector } from "@gaemiguard/core";
 import { createGaemiGuardDatabase, type GaemiGuardDatabase } from "@gaemiguard/db";
-import type { CommanderContext, PermissionMode } from "@gaemiguard/shared";
+import type { CommanderContext, HealthCheck, PermissionMode, TossReadonlyConnector } from "@gaemiguard/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
 
 export type BuildApiAppOptions = {
   dataDir: string;
+  tossReadOnlyConnector?: TossReadonlyConnector;
 };
 
 const chatSchema = z.object({
@@ -28,7 +29,8 @@ const chatSchema = z.object({
     .optional()
 });
 
-function healthChecks() {
+async function healthChecks(tossReadOnlyConnector: TossReadonlyConnector): Promise<HealthCheck[]> {
+  const tossStatus = await tossReadOnlyConnector.getStatus();
   return [
     {
       name: "local_api",
@@ -50,11 +52,7 @@ function healthChecks() {
       status: "ok",
       message: "Commander runtime is available."
     },
-    {
-      name: "toss_read_only",
-      status: "not_configured",
-      message: "Toss Invest connector is intentionally not connected in Stage 1 foundation."
-    },
+    tossStatus,
     {
       name: "sidecars",
       status: "not_configured",
@@ -72,11 +70,13 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   const dataDir = options.dataDir;
   const artifactDir = path.join(dataDir, "artifacts");
   mkdirSync(artifactDir, { recursive: true });
+  const tossReadOnlyConnector = options.tossReadOnlyConnector ?? createUnavailableTossReadonlyConnector();
 
   const db: GaemiGuardDatabase = createGaemiGuardDatabase({ dataDir });
   const commander = createCommanderRuntime({
     repository: db.runs,
-    artifactStore: new FileArtifactStore(artifactDir)
+    artifactStore: new FileArtifactStore(artifactDir),
+    tossReadOnlyConnector
   });
 
   const app = Fastify({ logger: false });
@@ -88,8 +88,9 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
 
   app.get("/health", async () => ({
     ok: true,
-    stage: "stage_1_foundation",
-    checks: healthChecks()
+    stage: "stage_2_toss_readonly_connector",
+    gate: "first_slice",
+    checks: await healthChecks(tossReadOnlyConnector)
   }));
 
   app.post("/chat", async (request, reply) => {
@@ -132,4 +133,3 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
 
   return app;
 }
-

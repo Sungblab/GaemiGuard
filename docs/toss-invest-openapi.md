@@ -105,7 +105,7 @@ Use official Open API as the default Toss connector.
 
 Do not pass Toss credentials, access tokens, or account identifiers to Hermes, MiroFish, OpenClaw, OpenBB, or other external agents. External tools should receive sanitized portfolio context only.
 
-Recommended v0.1 connector scope:
+Stage 2 first-slice connector scope:
 
 1. `issueOAuth2Token`
 2. `getAccounts`
@@ -117,6 +117,14 @@ Recommended v0.1 connector scope:
 8. `getUsMarketCalendar`
 9. `getStockWarnings`
 
+The first implementation slice excludes order history and order-info reads (`getOrders`, `getOrder`, `getBuyingPower`, `getSellableQuantity`, `getCommissions`) until they are separated from order authority in product and UI copy.
+
+Mutation operations remain forbidden:
+
+- `createOrder`
+- `modifyOrder`
+- `cancelOrder`
+
 Defer live order mutation until GaemiGuard has:
 
 - Read-only default mode
@@ -126,4 +134,3 @@ Defer live order mutation until GaemiGuard has:
 - User confirmation
 - Global kill switch
 - Audit log
-

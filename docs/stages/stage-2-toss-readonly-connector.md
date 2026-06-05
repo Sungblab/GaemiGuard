@@ -27,6 +27,58 @@ Connect official Toss Invest Open API read-only data to GaemiGuard so Commander 
 - Read-only portfolio and market snapshots in SQLite.
 - Commander/Portfolio/BrokerToss tool calls for read-only data.
 
+## First Implementation Slice
+
+Implemented on 2026-06-05 as the first Stage 2 slice:
+
+- TypeScript read-only connector contract and official OpenAPI operation constants.
+- Fetch-based `TossInvestReadonlyClient` skeleton with injected credential provider and in-memory token cache.
+- Mock replay connector for tests and local health wiring.
+- API `/health` exposes `toss_read_only` status with OpenAPI version `1.0.3`, included operations, forbidden mutation operations, and read-only tool names.
+- Commander adds a `BrokerTossAgent` timeline event only for the read-only tool contract; it does not claim that Toss is connected when credentials are absent.
+- Live order submission remains blocked by the permission engine in Stage 1 and Stage 2 read-only mode.
+- Tests cover 200 replay, 401, 403, 429, unknown enum values, mutation exclusion, health wiring, and mock secret/token non-persistence to SQLite/artifacts.
+
+First-slice official data operations:
+
+| Operation | Method | Path | Notes |
+| --- | --- | --- | --- |
+| `getAccounts` | GET | `/api/v1/accounts` | Returns masked account references only. |
+| `getHoldings` | GET | `/api/v1/holdings` | Requires `X-Tossinvest-Account`; account sequence is passed at request time. |
+| `getPrices` | GET | `/api/v1/prices` | Current price lookup by symbol list. |
+| `getOrderbook` | GET | `/api/v1/orderbook` | Returned as an orderbook summary with best ask/bid plus levels. |
+| `getExchangeRate` | GET | `/api/v1/exchange-rate` | KRW/USD style FX lookup. |
+| `getKrMarketCalendar` | GET | `/api/v1/market-calendar/KR` | KR market calendar. |
+| `getUsMarketCalendar` | GET | `/api/v1/market-calendar/US` | US market calendar. |
+| `getStockWarnings` | GET | `/api/v1/stocks/{symbol}/warnings` | Unknown warning enum values are preserved as forward-compatible unknowns. |
+
+Auth boundary:
+
+- `issueOAuth2Token` is modeled for OAuth2 client credentials token issuance.
+- This slice supports static/mock credential providers and an in-memory token cache only.
+- Production OS credential-store integration is not implemented yet.
+- Raw client secrets and access tokens must not be written to SQLite, artifacts, Commander responses, external agent context, or docs.
+
+Explicitly forbidden mutation operations:
+
+| Operation | Method | Path | Policy |
+| --- | --- | --- | --- |
+| `createOrder` | POST | `/api/v1/orders` | Hard-blocked in connector policy. |
+| `modifyOrder` | POST | `/api/v1/orders/{orderId}/modify` | Hard-blocked in connector policy. |
+| `cancelOrder` | POST | `/api/v1/orders/{orderId}/cancel` | Hard-blocked in connector policy. |
+
+Explicitly excluded from this first slice:
+
+- `getOrders`
+- `getOrder`
+- `getBuyingPower`
+- `getSellableQuantity`
+- `getCommissions`
+- `getTrades`
+- `getPriceLimit`
+- `getCandles`
+- `getStocks`
+
 ## Out Of Scope
 
 - `POST /api/v1/orders`.
@@ -91,3 +143,14 @@ Stage 2 exits when:
 - UI read-only data flow works.
 - Commander read-only account question works with source links.
 - Mutation endpoints remain unavailable or hard-blocked.
+
+## Remaining Gaps Before Stage 2 Exit
+
+- Production secret storage using the OS credential store.
+- User-facing credential setup and disconnect flow.
+- Real Toss sync jobs and SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings, sync logs, and rate-limit metadata.
+- Rate-limit scheduler/backoff behavior beyond response metadata normalization.
+- UI account/holdings/data freshness views.
+- Commander account-aware answers grounded in real connector snapshots with source links.
+- Security review for production credential lifecycle and external-agent redaction.
+- Gate review record after full read-only workflow verification.
