@@ -1,0 +1,14 @@
+{
+  "name": "devflow",
+  "version": "0.0.0",
+  "description": "Repo-local workflow continuity for Claude Code.",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "keywords": [
+    "handoff",
+    "review",
+    "gates",
+    "continuity"
+  ]
+}

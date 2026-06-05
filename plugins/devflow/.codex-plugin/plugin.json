@@ -1,0 +1,12 @@
+{
+  "name": "devflow",
+  "version": "0.0.0",
+  "displayName": "Devflow Native",
+  "description": "Repo-local workflow continuity for Codex.",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "shortDescription": "Records project truth, gates, review state, and handoffs."
+  }
+}

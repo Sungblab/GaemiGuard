@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "devflow": {
+      "command": "node",
+      "args": [
+        "C:/Users/Sungbin/AppData/Roaming/npm/node_modules/devflow-native/packages/mcp/src/stdio.js"
+      ],
+      "cwd": "C:/Users/Sungbin/AppData/Roaming/npm/node_modules/devflow-native"
+    }
+  }
+}

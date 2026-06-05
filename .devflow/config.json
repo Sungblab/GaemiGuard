@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "standard",
+  "defaultPlatform": "windows-powershell",
+  "review": {
+    "required": true
+  },
+  "gates": [
+    {
+      "id": "docs-html",
+      "command": "pnpm docs:html"
+    },
+    {
+      "id": "verify",
+      "command": "pnpm verify"
+    }
+  ]
+}
