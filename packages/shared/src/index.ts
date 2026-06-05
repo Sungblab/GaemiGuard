@@ -1,4 +1,6 @@
-export type Stage = "stage_1_foundation";
+export * from "./toss-readonly";
+
+export type Stage = "stage_1_foundation" | "stage_2_toss_readonly_connector";
 
 export type PermissionMode = "manual" | "guarded_auto" | "trusted_auto" | "full_access";
 
@@ -121,5 +123,5 @@ export type HealthCheck = {
   name: string;
   status: "ok" | "disabled" | "not_configured" | "warning" | "error";
   message: string;
+  metadata?: Record<string, unknown>;
 };
-

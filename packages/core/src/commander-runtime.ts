@@ -6,7 +6,9 @@ import type {
   ArtifactRecord,
   CommanderRequest,
   CommanderResponse,
-  PermissionMode
+  PermissionMode,
+  TossReadonlyConnector,
+  TossReadonlyConnectorStatus
 } from "@gaemiguard/shared";
 import { InMemoryArtifactStore, type ArtifactStore } from "./artifact-store";
 import { reviewOrderIntent } from "./order-guard";
@@ -41,6 +43,7 @@ export class InMemoryAgentRunRepository implements AgentRunRepository {
 export type CommanderRuntimeOptions = {
   repository: AgentRunRepository;
   artifactStore: ArtifactStore;
+  tossReadOnlyConnector?: TossReadonlyConnector;
   clock?: () => Date;
   idFactory?: (prefix: string) => string;
 };
@@ -101,14 +104,24 @@ function buildScenarioMarkdown(symbol: string, userMessage: string): string {
   ].join("\n");
 }
 
-function buildAnswer(symbol: string, permissionMode: PermissionMode): string {
-  return [
+function buildAnswer(symbol: string, permissionMode: PermissionMode, tossStatus?: TossReadonlyConnectorStatus): string {
+  const sentences = [
     `${symbol} 기준으로 Portfolio, Research, Scenario, Order Guard를 순서대로 확인했습니다.`,
     "현재 Stage 1은 실제 Toss 계좌/주문 연결 전 foundation 단계라 샘플 포트폴리오와 제한된 리서치 컨텍스트만 사용합니다.",
     "추가매수 판단은 투자 논리, 비중, 현금 조건, 최근 리스크를 먼저 연결해야 합니다.",
     `권한 모드는 ${permissionMode}이지만 실주문은 Stage 1에서 차단됩니다.`,
     "지금 생성된 주문 초안은 dry-run review로만 남겼고, 투자 성과를 약속하지 않습니다."
-  ].join(" ");
+  ];
+
+  if (tossStatus) {
+    sentences.splice(
+      2,
+      0,
+      `Toss 읽기 도구는 ${tossStatus.status} 상태이며, 계좌/시세 조회 계약만 열려 있고 주문 생성/정정/취소는 제외됩니다.`
+    );
+  }
+
+  return sentences.join(" ");
 }
 
 export function createCommanderRuntime(options: CommanderRuntimeOptions): CommanderRuntime {
@@ -133,6 +146,20 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
           holdings: DEFAULT_HOLDINGS
         })
       );
+
+      const tossStatus = options.tossReadOnlyConnector ? await options.tossReadOnlyConnector.getStatus() : undefined;
+      if (tossStatus && options.tossReadOnlyConnector) {
+        const tossContract = options.tossReadOnlyConnector.getToolContract();
+        timeline.push(
+          event(idFactory, runId, "BrokerTossAgent", "specialist_called", "Published Toss read-only tool contract.", startedAt, {
+            connectorStatus: tossStatus.status,
+            toolContract: tossContract.tools,
+            includedOperations: tossContract.includedOperations,
+            forbiddenOperations: tossContract.forbiddenOperations
+          })
+        );
+      }
+
       timeline.push(
         event(idFactory, runId, "ResearchAgent", "specialist_called", "Prepared research limitations and source plan.", startedAt, {
           limitation: "Hermes/OpenBB connectors are not connected in Stage 1 foundation."
@@ -182,7 +209,7 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       });
 
       const finishedAt = clock().toISOString();
-      const answer = buildAnswer(symbol, request.permissionMode);
+      const answer = buildAnswer(symbol, request.permissionMode, tossStatus);
 
       timeline.push(
         event(idFactory, runId, "CommanderAgent", "run_completed", "Commander synthesized the Stage 1 answer.", finishedAt, {

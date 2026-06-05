@@ -98,4 +98,4 @@ For each stage:
 
 ## Current State
 
-Stage 1 foundation exists in the codebase and passes CI. The next development stage is Stage 2. Before Stage 2 implementation, the waterfall document set must be treated as the planning baseline.
+Stage 1 foundation exists in the codebase and passes CI. Stage 2 has started with a first Toss read-only connector slice: official operation constants, connector/client skeleton, mock credential/token boundary, API health wiring, and Commander/BrokerToss read-only tool contract. Stage 2 is not exited until the full read-only workflow, persistence, UI, security review, and gate evidence are complete.

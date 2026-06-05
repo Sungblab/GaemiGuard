@@ -19,6 +19,19 @@ describe("evaluateToolPermission", () => {
     }
   });
 
+  it("continues to block live order submission in the Stage 2 read-only connector slice", () => {
+    const result = evaluateToolPermission({
+      mode: "full_access",
+      action: "submit_live_order",
+      risk: "critical",
+      stage: "stage_2_toss_readonly_connector"
+    });
+
+    expect(result.decision).toBe("blocked");
+    expect(result.auditRequired).toBe(true);
+    expect(result.reason).toContain("Stage 2");
+  });
+
   it("allows read-only market and account tools in guarded modes", () => {
     expect(
       evaluateToolPermission({
@@ -52,4 +65,3 @@ describe("evaluateToolPermission", () => {
     expect(result.reason).toContain("dry-run");
   });
 });
-
