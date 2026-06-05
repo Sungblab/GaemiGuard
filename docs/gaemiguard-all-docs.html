@@ -410,13 +410,13 @@
         <div class="stats">
           <span class="chip"><strong>47</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T04:20:57.223Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T05:08:37.932Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
       <div id="noResults" class="no-results">검색 결과가 없습니다.</div>
       <article class="doc-card" id="doc-0" data-category="Overview" data-path="docs/development-status.md">
-  <div class="doc-kicker">Overview · docs/development-status.md · 7KB</div>
+  <div class="doc-kicker">Overview · docs/development-status.md · 9KB</div>
   <h2>GaemiGuard Development Status</h2>
   <h1 id="doc-0-gaemiguard-development-status">GaemiGuard Development Status</h1>
 <p>Updated: 2026-06-05</p>
@@ -428,6 +428,7 @@
 <li>Recent documentation baseline: <code>5b924a2</code>, <code>docs: use goal format for Devflow handoffs</code></li>
 <li>Recent infrastructure baseline: <code>e41067e</code>, <code>chore: install Devflow Native harness</code></li>
 <li>Recent feature baseline: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
+<li>Current Stage 2 baseline includes mock replay snapshot persistence/sync shape with safe freshness status.</li>
 <li>Latest verified commands for the current main baseline:</li>
 <li><code>devflow doctor --json</code></li>
 <li><code>devflow status --json</code></li>
@@ -441,6 +442,12 @@
 <li><code>pnpm verify</code></li>
 <li>PR CI <code>verify</code></li>
 <li>main push CI</li>
+<li>Latest local verification for the current persistence/sync slice:</li>
+<li><code>pnpm docs:html</code></li>
+<li><code>pnpm verify</code></li>
+<li>Earlier focused checks for the persistence/sync slice:</li>
+<li><code>pnpm test</code></li>
+<li><code>pnpm typecheck</code></li>
 <li>Current development model: Gate-Based Waterfall, not MVP iteration.</li>
 <li>Active stage: Stage 2, Toss Readonly Connector.</li>
 <li>Stage 2 status: first implementation slice is complete; Stage 2 exit gate is not complete.</li>
@@ -508,7 +515,7 @@ Completion criteria:
 <td>Stage 1 Foundation Runtime</td><td>Complete</td><td>Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block.</td>
 </tr>
 <tr>
-<td>Stage 2 Toss Readonly Connector</td><td>In progress</td><td>First read-only connector slice is merged. Real secret store, sync persistence, UI data flow, and account-grounded Commander answers remain.</td>
+<td>Stage 2 Toss Readonly Connector</td><td>In progress</td><td>First connector slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Real secret store, real sync jobs, UI data flow, and account-grounded Commander answers remain.</td>
 </tr>
 <tr>
 <td>Stage 3 Research And Memory</td><td>Not started</td><td>Must wait for accepted Stage 2 read-only Toss data.</td>
@@ -564,6 +571,24 @@ Completion criteria:
 <li>Commander/BrokerTossAgent exposes only read-only tool contract metadata.</li>
 <li>Tests cover 200, 401, 403, 429, unknown enum, mutation exclusion, health wiring, and non-persistence of mock private boundary values.</li>
 </ul>
+<p>Stage 2 persistence/sync slice:</p>
+<ul>
+<li>SQLite tables and repository APIs for mock replay read-only Toss snapshots:</li>
+<li>masked account references</li>
+<li>holdings snapshots</li>
+<li>quote/current price snapshots</li>
+<li>orderbook summary snapshots</li>
+<li>exchange rate snapshots</li>
+<li>KR/US market calendar snapshots</li>
+<li>stock warning snapshots</li>
+<li>sync logs</li>
+<li>rate-limit metadata</li>
+<li><code>syncMockTossReadonlySnapshots</code> orchestrates only the Stage 2 read-only connector methods and writes snapshot families to SQLite.</li>
+<li>Mock replay connector now returns fixture data for every included read-only operation.</li>
+<li>API <code>/health</code> can include safe <code>snapshotFreshness</code> metadata after an explicit mock replay sync; it still distinguishes <code>not_configured</code> and <code>mock_replay</code>.</li>
+<li>Commander/BrokerTossAgent can include snapshot availability/freshness metadata only. It does not answer with holdings or account facts from the snapshot in this slice.</li>
+<li>Tests prove raw mock client secrets, access tokens, raw account numbers, and order identifier sentinels are not stored in SQLite, artifacts, API responses, or Commander/external-agent context.</li>
+</ul>
 <p>Devflow Native:</p>
 <ul>
 <li>Repo-local Devflow scaffold is installed.</li>
@@ -584,8 +609,8 @@ Completion criteria:
 <ul>
 <li>Production secret storage using the OS credential store.</li>
 <li>Credential setup/disconnect flow.</li>
-<li>Real Toss sync jobs.</li>
-<li>SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.</li>
+<li>Real Toss sync jobs using production credentials.</li>
+<li>Production account sequence mapping and scheduling around the OS credential boundary.</li>
 <li>Rate-limit scheduling/backoff behavior beyond response metadata normalization.</li>
 <li>Account/holdings/data freshness UI.</li>
 <li>Commander answers grounded in real read-only snapshots with source links.</li>
@@ -602,14 +627,14 @@ Completion criteria:
 <li>No UI copy that implies Toss is connected when only mock or not-configured mode is active.</li>
 </ul>
 <h2 id="doc-0-recommended-next-slice">Recommended Next Slice</h2>
-<p>The next practical Stage 2 slice is persistence and sync shape, still using mock replay:</p>
+<p>After the mock replay persistence/sync slice, the next practical Stage 2 slice is production credential setup and real read-only sync:</p>
 <ol>
-<li>Add SQLite tables/repository APIs for read-only Toss snapshots and sync logs.</li>
-<li>Add fixture-backed sync service that writes masked account and market snapshots.</li>
-<li>Prove secret/token values are not stored in those tables.</li>
-<li>Expose last sync/freshness status through API health or a narrow read-only endpoint.</li>
-<li>Update this file and <code>docs/stages/stage-2-toss-readonly-connector.md</code>.</li>
-<li>Run <code>pnpm docs:html</code> and <code>pnpm verify</code>.</li>
+<li>Add production credential setup/disconnect flow backed by the OS credential store.</li>
+<li>Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.</li>
+<li>Add rate-limit scheduling/backoff around real sync execution.</li>
+<li>Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.</li>
+<li>Ground Commander account-aware answers in real read-only snapshots with source links.</li>
+<li>Complete the Stage 2 security review and gate review record.</li>
 </ol>
 <p>Do not add production credential storage or UI claims of real Toss connection in the same slice unless the goal explicitly asks for that broader scope.</p>
 </article>
@@ -2370,7 +2395,7 @@ Approver:</code></pre>
 <p>If a requirement maps to a future stage, earlier stages must still block behavior that would prematurely satisfy it unsafely.</p>
 </article>
 <article class="doc-card" id="doc-19" data-category="Stage Gates" data-path="docs/stages/stage-2-toss-readonly-connector.md">
-  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 6KB</div>
+  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 8KB</div>
   <h2>Stage 2 Gate: Toss Readonly Connector</h2>
   <h1 id="doc-19-stage-2-gate-toss-readonly-connector">Stage 2 Gate: Toss Readonly Connector</h1>
 <p>Generated: 2026-06-04</p>
@@ -2470,6 +2495,35 @@ Approver:</code></pre>
 <li><code>getCandles</code></li>
 <li><code>getStocks</code></li>
 </ul>
+<h2 id="doc-19-second-implementation-slice">Second Implementation Slice</h2>
+<p>Implemented on 2026-06-05 as the Stage 2 persistence/sync shape slice:</p>
+<ul>
+<li>SQLite snapshot tables and repository APIs for read-only Toss mock replay data:</li>
+<li><code>toss_readonly_accounts</code></li>
+<li><code>toss_holdings_snapshots</code></li>
+<li><code>toss_quote_snapshots</code></li>
+<li><code>toss_orderbook_summary_snapshots</code></li>
+<li><code>toss_exchange_rate_snapshots</code></li>
+<li><code>toss_market_calendar_snapshots</code></li>
+<li><code>toss_stock_warning_snapshots</code></li>
+<li><code>toss_sync_logs</code></li>
+<li><code>toss_rate_limit_metadata</code></li>
+<li><code>syncMockTossReadonlySnapshots</code> calls only the included Stage 2 read-only operations and persists a bounded snapshot bundle.</li>
+<li>Mock replay connector fixture coverage now includes accounts, holdings, prices, orderbook summary, FX, KR/US market calendars, and stock warnings.</li>
+<li>Account persistence uses masked account references only. Connector account sequence is used only during the in-memory sync call and is not stored by this slice.</li>
+<li>API <code>/health</code> can expose <code>snapshotFreshness</code> after an explicit mock replay sync. The metadata identifies <code>mock_replay_snapshot</code>, freshness, last successful sync time, snapshot counts, and rate-limit scopes.</li>
+<li>Commander/BrokerTossAgent can receive snapshot availability/freshness metadata only; it still cannot state holdings, balances, or account facts as true connector-grounded answers.</li>
+<li>Tests cover snapshot persistence, sync logs, rate-limit metadata, raw secret/token/account/order-id non-storage, health freshness wiring, Commander redaction, and mutation hard-block preservation.</li>
+</ul>
+<p>Explicitly excluded from this second slice:</p>
+<ul>
+<li>Production OS credential store.</li>
+<li>User credential setup or disconnect UI.</li>
+<li>Real Toss API sync jobs.</li>
+<li>Production account sequence mapping.</li>
+<li>UI account/holdings/data freshness views.</li>
+<li>Commander account answers grounded in real read-only snapshots with source links.</li>
+</ul>
 <h2 id="doc-19-out-of-scope">Out Of Scope</h2>
 <ul>
 <li><code>POST /api/v1/orders</code>.</li>
@@ -2483,7 +2537,6 @@ Approver:</code></pre>
 <p>Store:</p>
 <ul>
 <li>masked account reference</li>
-<li>connector account sequence mapping locally</li>
 <li>holdings snapshot</li>
 <li>quote snapshot</li>
 <li>orderbook snapshot summary</li>
@@ -2492,11 +2545,17 @@ Approver:</code></pre>
 <li>stock warning snapshot</li>
 <li>sync log and rate-limit metadata</li>
 </ul>
+<p>Deferred until the production credential/sync slice:</p>
+<ul>
+<li>connector account sequence mapping locally, kept behind the credential boundary</li>
+</ul>
 <p>Do not store:</p>
 <ul>
 <li>raw client secret in SQLite</li>
 <li>raw access token in artifact</li>
 <li>unmasked account number in external artifacts</li>
+<li>raw account number in SQLite</li>
+<li>order identifiers in Stage 2 read-only snapshot persistence</li>
 </ul>
 <h2 id="doc-19-ui-contract">UI Contract</h2>
 <p>UI must show:</p>
@@ -2527,6 +2586,7 @@ Approver:</code></pre>
 <li>OpenAPI contract tests pass for included endpoints.</li>
 <li>Mock replay tests cover 200, 401, 403, 429, and unknown enum cases.</li>
 <li>Token storage does not write secrets to DB/artifacts.</li>
+<li>Mock replay snapshot persistence does not write raw secrets, tokens, raw account numbers, or order identifiers to DB/artifacts/API/Commander context.</li>
 <li>UI read-only data flow works.</li>
 <li>Commander read-only account question works with source links.</li>
 <li>Mutation endpoints remain unavailable or hard-blocked.</li>
@@ -2535,7 +2595,8 @@ Approver:</code></pre>
 <ul>
 <li>Production secret storage using the OS credential store.</li>
 <li>User-facing credential setup and disconnect flow.</li>
-<li>Real Toss sync jobs and SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings, sync logs, and rate-limit metadata.</li>
+<li>Real Toss sync jobs using the implemented snapshot repository.</li>
+<li>Production account sequence mapping behind the credential boundary.</li>
 <li>Rate-limit scheduler/backoff behavior beyond response metadata normalization.</li>
 <li>UI account/holdings/data freshness views.</li>
 <li>Commander account-aware answers grounded in real connector snapshots with source links.</li>
@@ -3160,7 +3221,7 @@ Approver:</code></pre>
 <td>Agent runtime</td><td><code>docs/architecture/agent-runtime.md</code></td><td><code>packages/core/src/commander-runtime.ts</code>, <code>apps/api/src/app.ts</code></td><td><code>pnpm verify</code></td>
 </tr>
 <tr>
-<td>Toss read-only connector</td><td><code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code></td><td><code>packages/shared/src/toss-readonly.ts</code>, <code>packages/core/src/toss-readonly-connector.ts</code></td><td>connector tests, <code>pnpm verify</code></td>
+<td>Toss read-only connector</td><td><code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code>, <code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td><code>packages/shared/src/toss-readonly.ts</code>, <code>packages/core/src/toss-readonly-connector.ts</code>, <code>packages/core/src/toss-readonly-sync.ts</code>, <code>packages/db/src/schema.ts</code>, <code>packages/db/src/sqlite.ts</code>, <code>apps/api/src/app.ts</code></td><td>connector tests, DB snapshot tests, API health tests, <code>pnpm verify</code></td>
 </tr>
 <tr>
 <td>Desktop smoke</td><td><code>docs/setup/playwright-smoke.md</code></td><td><code>apps/desktop/</code>, <code>scripts/smoke-desktop-ui.ps1</code></td><td><code>pnpm smoke:desktop</code></td>
@@ -3168,7 +3229,7 @@ Approver:</code></pre>
 </tbody></table></div>
 </article>
 <article class="doc-card" id="doc-28" data-category="Architecture" data-path="docs/architecture/agent-runtime.md">
-  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 3KB</div>
+  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 4KB</div>
   <h2>Agent Runtime Architecture</h2>
   <h1 id="doc-28-agent-runtime-architecture">Agent Runtime Architecture</h1>
 <p>Generated: 2026-06-04</p>
@@ -3231,6 +3292,15 @@ Approver:</code></pre>
 <li>Default local runtime mode is <code>not_configured</code>; tests may inject a <code>mock_replay</code> connector.</li>
 <li>Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.</li>
 <li>Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.</li>
+</ul>
+<h2 id="doc-28-stage-2-persistence-sync-slice-runtime">Stage 2 Persistence/Sync Slice Runtime</h2>
+<p>The second Stage 2 slice adds mock replay snapshot persistence without enabling production credentials or real Toss sync.</p>
+<ul>
+<li><code>syncMockTossReadonlySnapshots</code> calls only the Stage 2 read-only connector operations and writes snapshot data to SQLite.</li>
+<li>Stored account data is limited to masked account references. Raw account numbers, client secrets, access tokens, and order identifiers are not stored or forwarded.</li>
+<li>SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.</li>
+<li>API <code>/health</code> can report <code>snapshotFreshness</code> for explicit mock replay syncs. It distinguishes <code>not_configured</code> from <code>mock_replay</code> and must not describe mock replay as a real Toss connection.</li>
+<li><code>BrokerTossAgent</code> can include snapshot availability/freshness in timeline metadata. It still must not answer with holdings, balances, or account facts as grounded facts until the real sync and source-link slice is complete.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-29" data-category="Architecture" data-path="docs/architecture/stage-1-foundation.md">

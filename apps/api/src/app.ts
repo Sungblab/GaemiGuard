@@ -1,15 +1,31 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import cors from "@fastify/cors";
-import { FileArtifactStore, createCommanderRuntime, createUnavailableTossReadonlyConnector } from "@gaemiguard/core";
+import {
+  FileArtifactStore,
+  createCommanderRuntime,
+  createUnavailableTossReadonlyConnector,
+  syncMockTossReadonlySnapshots
+} from "@gaemiguard/core";
 import { createGaemiGuardDatabase, type GaemiGuardDatabase } from "@gaemiguard/db";
-import type { CommanderContext, HealthCheck, PermissionMode, TossReadonlyConnector } from "@gaemiguard/shared";
+import type {
+  CommanderContext,
+  HealthCheck,
+  PermissionMode,
+  TossReadonlyConnector,
+  TossReadonlySnapshotRepository
+} from "@gaemiguard/shared";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
 
 export type BuildApiAppOptions = {
   dataDir: string;
   tossReadOnlyConnector?: TossReadonlyConnector;
+  tossReadonlyMockSync?: {
+    enabled: boolean;
+    symbols?: string[];
+  };
+  clock?: () => Date;
 };
 
 const chatSchema = z.object({
@@ -29,8 +45,25 @@ const chatSchema = z.object({
     .optional()
 });
 
-async function healthChecks(tossReadOnlyConnector: TossReadonlyConnector): Promise<HealthCheck[]> {
+async function healthChecks(
+  tossReadOnlyConnector: TossReadonlyConnector,
+  tossSnapshotReader: TossReadonlySnapshotRepository,
+  clock: () => Date
+): Promise<HealthCheck[]> {
   const tossStatus = await tossReadOnlyConnector.getStatus();
+  const snapshotFreshness = await tossSnapshotReader.getFreshnessStatus({ now: clock().toISOString() });
+  const tossStatusWithSnapshot =
+    snapshotFreshness.status === "never_synced"
+      ? tossStatus
+      : {
+          ...tossStatus,
+          message: `${tossStatus.message} Mock replay snapshot freshness is ${snapshotFreshness.status}.`,
+          metadata: {
+            ...tossStatus.metadata,
+            snapshotFreshness
+          }
+        };
+
   return [
     {
       name: "local_api",
@@ -52,7 +85,7 @@ async function healthChecks(tossReadOnlyConnector: TossReadonlyConnector): Promi
       status: "ok",
       message: "Commander runtime is available."
     },
-    tossStatus,
+    tossStatusWithSnapshot,
     {
       name: "sidecars",
       status: "not_configured",
@@ -71,12 +104,24 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   const artifactDir = path.join(dataDir, "artifacts");
   mkdirSync(artifactDir, { recursive: true });
   const tossReadOnlyConnector = options.tossReadOnlyConnector ?? createUnavailableTossReadonlyConnector();
+  const clock = options.clock ?? (() => new Date());
 
   const db: GaemiGuardDatabase = createGaemiGuardDatabase({ dataDir });
+  if (options.tossReadonlyMockSync?.enabled) {
+    await syncMockTossReadonlySnapshots({
+      connector: tossReadOnlyConnector,
+      repository: db.tossReadonlySnapshots,
+      ...(options.tossReadonlyMockSync.symbols ? { symbols: options.tossReadonlyMockSync.symbols } : {}),
+      clock
+    });
+  }
+
   const commander = createCommanderRuntime({
     repository: db.runs,
     artifactStore: new FileArtifactStore(artifactDir),
-    tossReadOnlyConnector
+    tossReadOnlyConnector,
+    tossSnapshotReader: db.tossReadonlySnapshots,
+    clock
   });
 
   const app = Fastify({ logger: false });
@@ -89,8 +134,8 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   app.get("/health", async () => ({
     ok: true,
     stage: "stage_2_toss_readonly_connector",
-    gate: "first_slice",
-    checks: await healthChecks(tossReadOnlyConnector)
+    gate: "persistence_sync_slice",
+    checks: await healthChecks(tossReadOnlyConnector, db.tossReadonlySnapshots, clock)
   }));
 
   app.post("/chat", async (request, reply) => {

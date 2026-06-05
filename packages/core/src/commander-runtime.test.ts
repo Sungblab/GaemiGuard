@@ -93,4 +93,76 @@ describe("createCommanderRuntime", () => {
     expect(serialized).not.toContain("fixture-private-value-alpha");
     expect(serialized).not.toContain("fixture-private-value-beta");
   });
+
+  it("adds only Toss snapshot availability and freshness to BrokerTossAgent context", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      tossReadOnlyConnector: createMockTossReadonlyConnector({
+        clientId: "mock_client_id",
+        clientSecret: "fixture-private-value-alpha",
+        accessToken: "fixture-private-value-beta"
+      }),
+      tossSnapshotReader: {
+        async getFreshnessStatus() {
+          return {
+            mode: "mock_replay",
+            status: "fresh",
+            source: "mock_replay_snapshot",
+            lastSuccessfulSyncAt: "2026-06-05T01:00:00.000Z",
+            ageSeconds: 180,
+            staleAfterSeconds: 300,
+            accountCount: 1,
+            holdingCount: 1,
+            quoteCount: 1,
+            orderbookCount: 1,
+            exchangeRateCount: 1,
+            marketCalendarCount: 2,
+            stockWarningCount: 1,
+            rateLimitScopes: ["getAccounts", "getHoldings"],
+            message: "Mock replay Toss read-only snapshots are fresh."
+          };
+        }
+      },
+      clock: () => new Date("2026-06-05T01:03:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "토스 스냅샷 상태만 알려줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    const brokerEvent = response.timeline.find((event) => event.agent === "BrokerTossAgent");
+    expect(brokerEvent?.metadata?.snapshotFreshness).toMatchObject({
+      mode: "mock_replay",
+      status: "fresh",
+      lastSuccessfulSyncAt: "2026-06-05T01:00:00.000Z",
+      accountCount: 1
+    });
+    expect(response.answer).toContain("스냅샷 freshness");
+    expect(response.answer).not.toContain("삼성전자 10주");
+    expect(response.answer).not.toContain("현재 계좌");
+
+    const serialized = JSON.stringify({
+      response,
+      artifactContents: [...artifacts.contents.values()]
+    });
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear"
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+    }
+  });
 });

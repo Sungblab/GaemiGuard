@@ -137,6 +137,7 @@ export type TossReadonlyConnectorStatus = {
     includedOperations: readonly TossStage2ReadonlyDataOperationId[];
     forbiddenOperations: readonly TossForbiddenMutationOperationId[];
     tools: readonly TossReadonlyToolName[];
+    snapshotFreshness?: TossReadonlySnapshotFreshness;
   };
 };
 
@@ -278,6 +279,104 @@ export type TossConnectorResult<T> = {
   rateLimit: TossRateLimitSnapshot;
   requestId?: string;
 };
+
+export type TossReadonlySnapshotSource = "mock_replay_snapshot";
+
+export type TossReadonlySnapshotFreshness = {
+  mode: Extract<TossConnectorMode, "mock_replay">;
+  status: "never_synced" | "fresh" | "stale";
+  source: TossReadonlySnapshotSource;
+  lastSuccessfulSyncAt?: string;
+  ageSeconds?: number;
+  staleAfterSeconds: number;
+  accountCount: number;
+  holdingCount: number;
+  quoteCount: number;
+  orderbookCount: number;
+  exchangeRateCount: number;
+  marketCalendarCount: number;
+  stockWarningCount: number;
+  rateLimitScopes: TossStage2ReadonlyDataOperationId[];
+  message: string;
+};
+
+export type TossReadonlySnapshotFreshnessRequest = {
+  now?: string;
+  staleAfterSeconds?: number;
+};
+
+export type TossReadonlyStoredAccount = {
+  accountRef: string;
+  maskedAccountNo: string;
+  accountType: TossAccountType;
+  lastSyncedAt: string;
+};
+
+export type TossReadonlyStoredHoldingsSnapshot = {
+  snapshotId: string;
+  accountRef: string;
+  syncedAt: string;
+  overview: TossHoldingsOverview;
+};
+
+export type TossReadonlyStoredStockWarningSnapshot = {
+  snapshotId: string;
+  symbol: string;
+  syncedAt: string;
+  warnings: TossStockWarning[];
+};
+
+export type TossReadonlyStoredRateLimitMetadata = {
+  scope: TossStage2ReadonlyDataOperationId;
+  capturedAt: string;
+  metadata: TossRateLimitSnapshot;
+};
+
+export type TossReadonlyStoredSyncLog = {
+  id: string;
+  mode: Extract<TossConnectorMode, "mock_replay">;
+  status: "succeeded" | "failed" | "skipped";
+  startedAt: string;
+  finishedAt: string;
+  message: string;
+  accountCount: number;
+  holdingCount: number;
+  quoteCount: number;
+  orderbookCount: number;
+  exchangeRateCount: number;
+  marketCalendarCount: number;
+  stockWarningCount: number;
+};
+
+export type TossReadonlySnapshotWrite = {
+  syncLog: TossReadonlyStoredSyncLog;
+  accounts: TossReadonlyStoredAccount[];
+  holdings: TossReadonlyStoredHoldingsSnapshot[];
+  quotes: Array<TossQuote & { syncedAt: string }>;
+  orderbooks: Array<TossOrderbookSummary & { syncedAt: string }>;
+  exchangeRates: Array<TossExchangeRate & { syncedAt: string }>;
+  marketCalendars: Array<TossMarketCalendar & { syncedAt: string }>;
+  stockWarnings: TossReadonlyStoredStockWarningSnapshot[];
+  rateLimits: TossReadonlyStoredRateLimitMetadata[];
+};
+
+export type TossReadonlySnapshotBundle = {
+  accounts: TossReadonlyStoredAccount[];
+  holdings: TossReadonlyStoredHoldingsSnapshot[];
+  quotes: Array<TossQuote & { syncedAt: string }>;
+  orderbooks: Array<TossOrderbookSummary & { syncedAt: string }>;
+  exchangeRates: Array<TossExchangeRate & { syncedAt: string }>;
+  marketCalendars: Array<TossMarketCalendar & { syncedAt: string }>;
+  stockWarnings: TossReadonlyStoredStockWarningSnapshot[];
+  syncLogs: TossReadonlyStoredSyncLog[];
+  rateLimits: TossReadonlyStoredRateLimitMetadata[];
+};
+
+export interface TossReadonlySnapshotRepository {
+  saveSyncSnapshot(snapshot: TossReadonlySnapshotWrite): Promise<void>;
+  getFreshnessStatus(request?: TossReadonlySnapshotFreshnessRequest): Promise<TossReadonlySnapshotFreshness>;
+  readLatest(): Promise<TossReadonlySnapshotBundle>;
+}
 
 export type TossAccountRequest = Record<string, never>;
 

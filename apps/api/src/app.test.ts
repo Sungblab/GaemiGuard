@@ -114,4 +114,80 @@ describe("buildApiApp", () => {
 
     await app.close();
   });
+
+  it("exposes safe Toss mock snapshot freshness in health and Commander metadata", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({
+      dataDir,
+      tossReadOnlyConnector: createMockTossReadonlyConnector({
+        clientId: "mock_client_id",
+        clientSecret: "fixture-private-value-alpha",
+        accessToken: "fixture-private-value-beta"
+      }),
+      tossReadonlyMockSync: {
+        enabled: true,
+        symbols: ["005930"]
+      },
+      clock: () => new Date("2026-06-05T01:03:00.000Z")
+    });
+
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.statusCode).toBe(200);
+    const tossCheck = health.json().checks.find((check: { name: string }) => check.name === "toss_read_only");
+    expect(tossCheck).toMatchObject({
+      status: "ok",
+      metadata: {
+        mode: "mock_replay",
+        snapshotFreshness: {
+          mode: "mock_replay",
+          status: "fresh",
+          source: "mock_replay_snapshot",
+          lastSuccessfulSyncAt: "2026-06-05T01:03:00.000Z",
+          accountCount: 1,
+          holdingCount: 1,
+          quoteCount: 1
+        }
+      }
+    });
+    expect(tossCheck.message).toContain("mock replay");
+    expect(tossCheck.message).not.toContain("connected");
+
+    const chat = await app.inject({
+      method: "POST",
+      url: "/chat",
+      payload: {
+        message: "토스 스냅샷 freshness만 확인해줘",
+        permissionMode: "manual",
+        context: {
+          selectedSymbol: "005930"
+        }
+      }
+    });
+    expect(chat.statusCode).toBe(200);
+    const brokerEvent = chat
+      .json()
+      .timeline.find((event: { agent: string }) => event.agent === "BrokerTossAgent");
+    expect(brokerEvent.metadata.snapshotFreshness).toMatchObject({
+      mode: "mock_replay",
+      status: "fresh",
+      accountCount: 1
+    });
+    expect(chat.body).not.toContain("삼성전자 10주");
+
+    const serializedApiResponses = `${health.body}\n${chat.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear"
+    ]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
 });
