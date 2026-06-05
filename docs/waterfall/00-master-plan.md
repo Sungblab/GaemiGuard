@@ -8,22 +8,23 @@ GaemiGuard will use **Gate-Based Waterfall**.
 
 This means all major product stages are planned before implementation. Each stage has a fixed contract: objective, scope, non-scope, architecture impact, data contract, permission contract, UI contract, tests, and exit gate. A later stage can change an earlier decision only through the change-control process.
 
-This is not a small MVP plan. It is a staged build plan for a local-first investment guard and agent orchestrator.
+This is not a small MVP plan. It is a staged build plan for a local-first personal investment agent, broker adapter runtime, investment guard, and trading authority system.
 
 ## Product Promise
 
-**거래 전 한 번 더 생각하게 하는 투자 가드**
+**한국 개인투자자를 위한 로컬 개인 투자 에이전트**
 
-Toss makes trading easy. GaemiGuard makes judgment safer.
+Brokerage apps execute trades. GaemiGuard organizes judgment, evidence, trading authority, and automation boundaries before action.
 
 ## Strategic Scope
 
 GaemiGuard is:
 
-- A local-first desktop investment guard.
-- A Commander Agent terminal for account-aware investing.
+- A local-first desktop personal investment agent.
+- A broker-independent adapter runtime for Toss, KIS, future brokers, manual portfolio entry, and CSV import.
+- A Commander Agent workspace for account-aware and no-broker investing.
 - A research, memory, scenario, and order-review orchestrator.
-- A stage-gated path toward guarded live orders and rule-based automation.
+- A stage-gated path toward user-approved manual live orders and rule-based automation.
 
 GaemiGuard is not:
 
@@ -31,18 +32,19 @@ GaemiGuard is not:
 - A profit guarantee bot.
 - A high-frequency trading system.
 - A social trading/community product.
-- An unofficial Toss web-internal API wrapper.
+- An unofficial broker web-internal API wrapper.
+- A public broker aggregation API business.
 
 ## Stage Sequence
 
 | Stage | Name | Primary proof | Hard forbidden until stage exit |
 | --- | --- | --- | --- |
-| 1 | Foundation Runtime | App/API/DB/artifacts/Commander/Order Guard dry-run work locally | Toss credentials, live orders, automation |
-| 2 | Toss Readonly Connector | Official Toss read APIs populate account and market context | Order create/modify/cancel |
+| 1 | Foundation Runtime | App/API/DB/artifacts/Commander/Order Guard dry-run work locally | Broker credentials, live orders, automation |
+| 2 | Broker Connection Foundation | Broker adapter contract plus current Toss read-only adapter populate account and market context | Order create/modify/cancel |
 | 3 | Research And Memory | Thesis, rules, journal, and sourced research become queryable | Forecast-driven order decisions |
 | 4 | MiroFish Scenario | Scenario runs produce auditable artifacts from selected chart/account context | MiroFish-triggered orders |
 | 5 | Paper Trading And Order Draft | Order drafts and paper trades pass deterministic guard checks | Live order submission |
-| 6 | Guarded Live Orders | User-approved limited live orders with kill switch and audit | Unattended rule automation |
+| 6 | Guarded Manual Live Orders | User-approved limited live orders with kill switch and audit | Unattended rule automation |
 | 7 | Rule-Based Automation | User-defined rules can execute within bounded authority | Unbounded automation |
 
 ## Governance Model
@@ -77,12 +79,16 @@ Cross-cutting planning evidence:
 
 - Local-first by default.
 - Remote sync off by default.
-- Toss official API first.
+- Broker-independent core by default.
+- Official broker APIs only.
+- Toss read-only is the first implemented adapter slice.
+- KIS requires source notes and capability mapping before implementation.
+- No-broker/manual portfolio mode must remain possible.
 - Secrets in OS credential store.
 - Sensitive data masked before external model/tool calls.
 - Agent runs logged.
 - Artifacts written for important analysis and order decisions.
-- Live orders disabled until Stage 6.
+- Manual live orders disabled until Stage 6.
 - Automation disabled until Stage 7.
 
 ## Company-Style Review Cadence
@@ -98,4 +104,4 @@ For each stage:
 
 ## Current State
 
-Stage 1 foundation exists in the codebase and passes CI. Stage 2 has started with a first Toss read-only connector slice: official operation constants, connector/client skeleton, mock credential/token boundary, API health wiring, and Commander/BrokerToss read-only tool contract. Stage 2 is not exited until the full read-only workflow, persistence, UI, security review, and gate evidence are complete.
+Stage 1 foundation exists in the codebase and passes CI. Stage 2 has started with a first Toss read-only adapter slice: official operation constants, connector/client skeleton, mock credential/token boundary, API health wiring, Commander/BrokerToss read-only tool contract, and mock snapshot persistence. Stage 2 is not exited until the broker connection foundation, full read/freshness workflow, persistence, UI, security review, and gate evidence are complete.

@@ -12,8 +12,9 @@ This is the short routing document for agents starting GaemiGuard work. It point
 | 2 | `docs/agent-index.md` | Agent-facing route through docs, handoffs, and harness commands. |
 | 3 | `docs/development-status.md` | Current implementation state, active work, blockers, and next work. |
 | 4 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, guard and terminal as supporting surfaces. |
-| 5 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
-| 6 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
+| 5 | `docs/product/broker-connection-and-trading.md` | Broker-independent adapter strategy, no-broker mode, manual trading, and automation authority. |
+| 6 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
+| 7 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
 Read these only when relevant:
 
@@ -21,7 +22,7 @@ Read these only when relevant:
 | --- | --- |
 | Overall plan | `docs/waterfall/00-master-plan.md` |
 | Development history | `docs/development-history.md` |
-| Product direction | `docs/product/README.md`, `docs/product/agent-first-direction.md` |
+| Product direction | `docs/product/README.md`, `docs/product/agent-first-direction.md`, `docs/product/broker-connection-and-trading.md`, `docs/product/external-tools-and-data.md` |
 | Toss API reference | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
 | Commander/runtime work | `docs/architecture/agent-runtime.md` |
 | Desktop smoke testing | `docs/setup/playwright-smoke.md` |
@@ -34,8 +35,9 @@ Read these only when relevant:
 - Stage 2 is in progress.
 - Stage 2 is not exited yet.
 - Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.
+- Broker direction is adapter-based: Toss is the first implemented read-only adapter slice; KIS is a future adapter candidate after source notes and capability mapping.
 - Toss order create/update/cancel remains forbidden.
-- Real Toss secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
+- Real broker secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
 
 ## Current Implementation
 
@@ -47,6 +49,7 @@ Read these only when relevant:
 - Toss read-only connector skeleton
 - Mock replay based Toss snapshot persistence and sync shape
 - Safe snapshot freshness status in health/Commander surfaces
+- Broker adapter/trading authority direction documented, but not implemented yet
 
 Use `docs/development-status.md` for the complete current list.
 

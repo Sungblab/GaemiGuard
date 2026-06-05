@@ -25,7 +25,7 @@ Prove GaemiGuard is a working local agentic investment guard runtime, not just a
 
 ## Out Of Scope
 
-- Real Toss credentials.
+- Real broker credentials.
 - Real account data.
 - Live orders.
 - Automatic trading.

@@ -1,16 +1,16 @@
-# Stage 6 Gate: Guarded Live Orders
+# Stage 6 Gate: Guarded Manual Live Orders
 
 Generated: 2026-06-04
 
 ## Objective
 
-Enable limited user-approved live order submit/modify/cancel through official Toss API with Order Guard, kill switch, idempotency, and audit evidence.
+Enable limited user-approved manual live order submit/modify/cancel through official broker APIs with Order Guard, kill switch, idempotency, and audit evidence.
 
 ## Entry Criteria
 
 - Stage 5 paper trading accepted.
 - External compliance/security review refreshed.
-- Toss production access and terms reviewed.
+- Target broker production access and terms reviewed.
 - Emergency rollback and kill switch tested.
 
 ## In Scope
@@ -18,7 +18,7 @@ Enable limited user-approved live order submit/modify/cancel through official To
 - User-approved live order submit.
 - User-approved live cancel.
 - User-approved live modify.
-- High-value confirmation handling if required by Toss.
+- High-value confirmation handling if required by the target broker.
 - Idempotency key handling.
 - Order result reconciliation.
 - Order status polling.
@@ -31,6 +31,7 @@ Enable limited user-approved live order submit/modify/cancel through official To
 - Derivative automatic orders.
 - Loss-recovery automation.
 - External social-signal-driven orders.
+- Any broker not covered by a Stage 6 adapter-specific review.
 
 ## Live Order Preconditions
 
@@ -45,7 +46,8 @@ All must be true:
 - Approval not expired.
 - Idempotency key generated and unused.
 - Audit log write succeeds.
-- Toss mutation request uses official API only.
+- Broker mutation request uses official API only.
+- Adapter declares the required manual order capability.
 
 ## UI Contract
 

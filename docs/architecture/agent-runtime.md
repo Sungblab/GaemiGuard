@@ -4,7 +4,7 @@ Generated: 2026-06-04
 
 ## Runtime Rule
 
-GaemiGuard owns the orchestration runtime. The personal investment agent is the product center. Codex CLI, Hermes, MiroFish, OpenBB, and Toss are adapters/tools, not the system of record.
+GaemiGuard owns the orchestration runtime. The personal investment agent is the product center. Codex CLI, Hermes, MiroFish, OpenBB, Toss, KIS, and future broker connectors are adapters/tools, not the system of record.
 
 Terminal-style data panels are evidence surfaces for the agent. They should show source, freshness, and review state instead of becoming a standalone market terminal.
 
@@ -17,7 +17,9 @@ Terminal-style data panels are evidence surfaces for the agent. They should show
 - `OrderGuardAgent`: order draft review, rule checks, approval surface, and hard blocks.
 - `MemoryAgent`: thesis, rules, journal, artifact, and temporal memory updates.
 - `ReportAgent`: daily/weekly review and trade rationale reports.
-- `BrokerTossAgent`: Toss read-only facts and future gated order operations.
+- `BrokerAgent`: broker-independent capability, credential, sync, freshness, and trading authority coordination.
+- `BrokerTossAgent`: current Toss read-only adapter slice and future gated Toss operations.
+- `BrokerKisAgent`: future KIS adapter after source notes, capability mapping, and fixtures.
 - `SettingsSecretsAgent`: connector health, provider health, and credential setup.
 
 ## Stage 1 Runtime
@@ -61,18 +63,20 @@ General modes:
 Trading rule:
 
 - `submit_live_order` is blocked in Stage 1 for every permission mode.
-- `submit_live_order` is also blocked in the Stage 2 Toss read-only connector slice for every permission mode.
-- Future live submission must pass Order Guard, audit log, kill switch, user approval or explicit automation rule, and idempotency.
+- `submit_live_order` is also blocked in the Stage 2 Broker Connection Foundation slice for every permission mode.
+- Future live submission must pass broker capability checks, Order Guard, audit log, kill switch, user approval or explicit automation rule, and idempotency.
 
-## Stage 2 First Slice Runtime
+## Stage 2 Broker Connection Runtime
 
-The first Stage 2 slice introduces the official Toss Invest OpenAPI read-only connector contract without enabling a production credential store.
+Stage 2 is now interpreted as Broker Connection Foundation. The first implemented slice introduces the official Toss Invest OpenAPI read-only connector contract without enabling a production credential store.
 
+- `BrokerAgent` is the broker-independent runtime role.
 - `BrokerTossAgent` can advertise only read-only tool names: account list, holdings, current prices, orderbook summary, exchange rate, market calendar, and stock warnings.
 - The API health check reports the connector mode and official OpenAPI version.
 - Default local runtime mode is `not_configured`; tests may inject a `mock_replay` connector.
 - Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.
 - Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.
+- KIS is a future adapter candidate, not implemented in the current code.
 
 ## Stage 2 Persistence/Sync Slice Runtime
 
@@ -83,3 +87,4 @@ The second Stage 2 slice adds mock replay snapshot persistence without enabling 
 - SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.
 - API `/health` can report `snapshotFreshness` for explicit mock replay syncs. It distinguishes `not_configured` from `mock_replay` and must not describe mock replay as a real Toss connection.
 - `BrokerTossAgent` can include snapshot availability/freshness in timeline metadata. It still must not answer with holdings, balances, or account facts as grounded facts until the real sync and source-link slice is complete.
+- No-broker/manual portfolio mode is a product requirement but not implemented in the current runtime slice.

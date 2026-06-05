@@ -4,7 +4,7 @@ Generated: 2026-06-04
 
 ## Objective
 
-Allow user-defined investment rules to trigger bounded automated trading actions under strict authority, audit, and kill-switch controls.
+Allow user-defined investment rules to trigger bounded automated trading actions under strict authority, audit, broker capability, and kill-switch controls.
 
 ## Entry Criteria
 
@@ -12,6 +12,7 @@ Allow user-defined investment rules to trigger bounded automated trading actions
 - Automation risk review complete.
 - Rule engine and simulation history approved.
 - User has explicit automation setup flow.
+- Target broker adapter declares automation capability and has adapter-specific review evidence.
 
 ## In Scope
 
@@ -42,6 +43,7 @@ Every automated action must satisfy:
 - Rule kill switch off.
 - Global kill switch off.
 - Account/instrument verified.
+- Broker automation capability verified.
 - Data freshness valid.
 - Order Guard checks pass.
 - Automation budget not exceeded.

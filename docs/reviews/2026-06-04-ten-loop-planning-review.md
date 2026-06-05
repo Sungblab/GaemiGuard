@@ -4,6 +4,8 @@ Generated: 2026-06-04
 
 Purpose: convert the conversation and existing repo into a company-grade waterfall plan by repeatedly planning, reviewing, researching, and tightening the design. This file is the evidence that the planning loop was run ten times.
 
+Current note: this file records the original planning loop. Later product decisions broaden Stage 2 from a Toss-only connector stage into Broker Connection Foundation, with Toss as the first read-only adapter slice. See `docs/product/broker-connection-and-trading.md`.
+
 ## Loop 1: Product Boundary
 
 **Plan:** Position GaemiGuard as an investment guard, not another brokerage app.
@@ -12,7 +14,7 @@ Purpose: convert the conversation and existing repo into a company-grade waterfa
 
 **Research:** Toss has an official Open API path, so GaemiGuard can focus on agentic guardrails around official broker access instead of reinventing a broker UI.
 
-**Decision:** Product scope is a local-first agent terminal for safer investment decisions. Do not compete with Toss on fast trading UX.
+**Decision:** Product scope is a local-first personal investment agent for safer investment decisions. Do not compete with broker apps on fast trading UX.
 
 **Change locked:** README, PRD, and UI spec must lead with guard/orchestrator language.
 
@@ -50,7 +52,7 @@ Purpose: convert the conversation and existing repo into a company-grade waterfa
 
 **Decision:** Use it only as a safety-pattern reference. Do not make it a production dependency.
 
-**Change locked:** Official Toss Open API is the default. Experimental unofficial adapters require a separate change request.
+**Change locked:** Official broker APIs are the default policy. Toss is the first adapter slice. Experimental unofficial adapters require a separate change request.
 
 ## Loop 5: Commander Agent Architecture
 
@@ -132,7 +134,7 @@ The ten loops produce these changes:
 - Keep all seven stages designed up front.
 - Promote Commander Agent to runtime owner.
 - Separate general agent permissions from trading authority.
-- Make Stage 2 official Toss read-only only.
+- Make Stage 2 official broker read-only first, with Toss as the current adapter slice.
 - Treat unofficial Toss CLI as reference, not dependency.
 - Treat MiroFish as scenario/advisory, not execution.
 - Require audit, artifacts, and redaction from the beginning.

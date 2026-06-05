@@ -25,7 +25,7 @@ Generated: 2026-06-04
 
 | ID | Risk | Stage | Impact | Likelihood | Mitigation | Gate owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| R-101 | Toss API version changes | 2+ | 4 | 3 | OpenAPI version check, contract tests, mock replay | Architecture |
+| R-101 | Broker API version changes | 2+ | 4 | 3 | Adapter-specific source notes, OpenAPI/version checks, contract tests, mock replay | Architecture |
 | R-102 | Rate limits break sync | 2+ | 3 | 3 | Header-aware backoff and sync status | Architecture |
 | R-103 | Decimal precision error in money/quantity | 2+ | 5 | 2 | Decimal strings in core, tests for money paths | QA |
 | R-104 | Sidecar failure blocks main app | 4+ | 3 | 3 | Health checks, isolated working dirs, graceful degradation | Architecture |
@@ -45,7 +45,7 @@ Generated: 2026-06-04
 | ID | Risk | Stage | Impact | Likelihood | Mitigation | Gate owner |
 | --- | --- | --- | --- | --- | --- | --- |
 | R-301 | Financial AI guidance changes before live trading | 5-7 | 4 | 3 | Refresh research before Stage 5, 6, 7 | Product + safety |
-| R-302 | Unofficial Toss API dependency creates terms risk | 2+ | 5 | 2 | Official Toss Open API default; unofficial adapters disabled | Product |
+| R-302 | Unofficial broker API dependency creates terms risk | 2+ | 5 | 2 | Official broker APIs only; unofficial adapters disabled | Product |
 | R-303 | Open-source issue leaks user secrets | all | 4 | 2 | SECURITY.md, issue warning, GitGuardian checks | Security |
 
 ## Risk Gate

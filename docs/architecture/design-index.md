@@ -14,8 +14,9 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | 3 | `docs/development-status.md` | Current implementation state, active stage, latest verification, and next slice. |
 | 4 | `docs/README.md` | Documentation hub and routing map. |
 | 5 | `docs/product/agent-first-direction.md` | Current product identity and stage implications for agent-first investment workflows. |
-| 6 | Active `docs/stages/` gate | The contract for the current implementation work. |
-| 7 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
+| 6 | `docs/product/broker-connection-and-trading.md` | Broker adapter, no-broker mode, manual trading, and automation authority direction. |
+| 7 | Active `docs/stages/` gate | The contract for the current implementation work. |
+| 8 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
 
 ## Truth Ownership
 
@@ -24,7 +25,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | What is implemented now? | `docs/development-status.md` | `CHANGELOG.md`, latest Git history |
 | How did the repo get here? | `docs/development-history.md` | PR list, latest Git history |
 | What should an agent read first? | `docs/agent-index.md` | `AGENTS.md`, `docs/development-status.md` |
-| What is the product promise? | `docs/product/agent-first-direction.md` | `gaemiguard-design-spec.md`, `docs/gaemiguard-product-context.md`, `README.md` |
+| What is the product promise? | `docs/product/agent-first-direction.md` | `docs/product/broker-connection-and-trading.md`, `docs/product/external-tools-and-data.md`, `gaemiguard-design-spec.md`, `docs/gaemiguard-product-context.md`, `README.md` |
 | What is the build model? | `docs/waterfall/00-master-plan.md` | `docs/waterfall/07-testing-and-release-gates.md` |
 | What stage is active? | `docs/development-status.md` | `docs/roadmap.md`, active stage gate |
 | What is forbidden? | Active stage gate, `AGENTS.md` | `docs/waterfall/04-permission-and-safety.md` |
@@ -36,25 +37,27 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 - Product promise: agent-first local personal investment workspace for Korean retail investors.
 - Supporting surfaces: investment guard and small local investment terminal.
 - Public short copy: "거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다."
+- Broker model: broker-independent adapter contract; Toss is first implemented adapter slice, KIS is a future candidate.
+- No-broker mode: watchlist, thesis/rules, manual portfolio, CSV, research, scenarios, and sample data must work without broker login.
 - First screen: Today Guard dashboard.
 - Right sidebar: Commander Agent chat panel.
 - Runtime: local-first desktop app, no Docker required for normal startup.
 - Storage: SQLite plus Markdown/JSON artifacts.
-- Toss: official Toss Invest OpenAPI first.
+- Broker APIs: official APIs only; no unofficial broker web/internal APIs.
 - Agent model: internal Commander Agent plus specialists.
 - MiroFish: scenario/price-analysis sidecar, never an order executor.
-- Trading path: Order Guard, audit log, kill switch, approval/idempotency, and deterministic policy before live orders.
+- Trading path: Order Guard, audit log, kill switch, approval/idempotency, and deterministic policy before manual live orders or automation.
 
 ## Stage Gate Contracts
 
 | Stage | Gate document | Current status |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | `docs/stages/stage-1-foundation-gate.md` | Complete |
-| Stage 2 Toss Readonly Connector | `docs/stages/stage-2-toss-readonly-connector.md` | In progress |
+| Stage 2 Broker Connection Foundation | `docs/stages/stage-2-toss-readonly-connector.md` | In progress |
 | Stage 3 Research And Memory | `docs/stages/stage-3-research-memory.md` | Not started |
 | Stage 4 MiroFish Scenario | `docs/stages/stage-4-mirofish-scenario.md` | Not started |
 | Stage 5 Paper Trading And Order Draft | `docs/stages/stage-5-paper-trading-order-draft.md` | Not started |
-| Stage 6 Guarded Live Orders | `docs/stages/stage-6-guarded-live-orders.md` | Locked |
+| Stage 6 Guarded Manual Live Orders | `docs/stages/stage-6-guarded-live-orders.md` | Locked |
 | Stage 7 Rule-Based Automation | `docs/stages/stage-7-rule-based-automation.md` | Locked |
 
 ## Product And Research Sources
@@ -63,6 +66,8 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | --- | --- |
 | `docs/product/README.md` | Product-document index. |
 | `docs/product/agent-first-direction.md` | Current product direction and stage implications. |
+| `docs/product/broker-connection-and-trading.md` | Broker adapter and trading authority direction. |
+| `docs/product/external-tools-and-data.md` | External tools, public data, FinceptTerminal reference, and open-source reuse policy. |
 | `gaemiguard-design-spec.md` | Original product and architecture decision source. |
 | `docs/gaemiguard-product-context.md` | Longer product context and module direction. |
 | `docs/agent-runtime-patterns.md` | Generalized Commander/specialist orchestration patterns. |
@@ -76,6 +81,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | `docs/toss-invest-openapi.md` | Agent-readable Toss Invest OpenAPI summary. |
 | `vendor/tossinvest/openapi-1.0.3.json` | Exact vendored OpenAPI source. |
 | `vendor/tossinvest/README.md` | Vendored source notes. |
+| Future KIS source note | Required before implementing a KIS adapter. |
 | `docs/mirofish-sidecar-porting.md` | Windows-native MiroFish sidecar decision and boundary. |
 | `external/mirofish-cli/` | Local MiroFish CLI fork/wrapper, intentionally outside Git. |
 | `external/mirofish-original/` | Original MiroFish source reference, intentionally outside Git. |

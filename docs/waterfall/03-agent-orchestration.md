@@ -15,8 +15,10 @@ The UI terminal surfaces exist to show the evidence Commander and the specialist
 | Agent | Responsibility | Stage introduced |
 | --- | --- | --- |
 | CommanderAgent | Top-level orchestration, context assembly, delegation, final synthesis | 1 |
-| PortfolioAgent | Accounts, holdings, exposure, cash, FX, allocation | 1 stub, 2 real |
-| BrokerTossAgent | Official Toss API connector and broker facts | 2 |
+| PortfolioAgent | Accounts, holdings, manual portfolio, exposure, cash, FX, allocation | 1 stub, 2 real |
+| BrokerAgent | Broker-independent capability, credential, sync, freshness, and trading authority coordination | 2 |
+| BrokerTossAgent | Official Toss API adapter facts and current read-only slice | 2 |
+| BrokerKisAgent | Future KIS adapter after source note, capability map, and fixtures | future 2+ |
 | ResearchAgent | Hermes/OpenBB/news/local document synthesis | 1 stub, 3 real |
 | MemoryAgent | Thesis, rules, journals, temporal memory, recall | 3 |
 | ScenarioAgent | MiroFish input packaging and scenario interpretation | 1 stub, 4 real |
@@ -65,13 +67,14 @@ sequenceDiagram
 
 | Category | Examples | Permission tier |
 | --- | --- | --- |
-| Read-only market/account | quotes, holdings, calendars | Read-safe |
+| Broker read | accounts, holdings, cash, quotes, calendars, warnings | Read-safe |
 | Local memory | thesis read, journal search | Workspace-scoped |
 | Local writes | thesis update, rule update, artifact write | Approval depending on mode |
 | Sidecar run | MiroFish, Hermes, OpenBB | Tool approval and sandbox |
 | Provider run | Codex CLI, LLM provider | Provider approval and masking |
 | Order draft | dry-run review, buying-power check | Order review authority |
-| Live order | submit, modify, cancel | Trading authority only |
+| Manual live order | submit, modify, cancel after explicit user approval | Trading authority only |
+| Rule automation | bounded order action under active user rule | Automation authority only |
 
 ## Orchestration Gate
 

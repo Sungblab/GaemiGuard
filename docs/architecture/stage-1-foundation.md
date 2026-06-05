@@ -31,7 +31,7 @@ The first working slice must create one real loop:
 
 - Live order submission.
 - Live automatic trading.
-- Toss credentials or real account connection.
+- Broker credentials or real account connection.
 - Full MiroFish execution.
 - Hermes/OpenBB execution.
 - Graphiti ingestion.
@@ -63,4 +63,3 @@ Expected Stage 1 result:
 - Scenario specialist creates a MiroFish-ready hypothetical scenario artifact.
 - Order Guard creates an order draft review but blocks live submission.
 - Commander returns a grounded answer with uncertainty and artifact links.
-

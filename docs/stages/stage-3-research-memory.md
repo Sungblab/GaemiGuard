@@ -8,7 +8,7 @@ Make investment rationale, rules, research, and trade-review memory queryable wi
 
 ## Entry Criteria
 
-- Stage 2 read-only Toss data accepted.
+- Stage 2 broker connection foundation accepted, or no-broker/manual data mode explicitly accepted for research-only workflows.
 - Data classification and redaction tests cover account-sensitive fields.
 - Artifact schema can link source snapshots.
 
@@ -47,6 +47,12 @@ Do not store:
 - raw secrets
 - unredacted broker tokens
 - source files outside user-approved workspace without explicit import
+
+## Connector Policy
+
+OpenDART and KRX are optional public-data connectors, not Stage 3 entry requirements.
+
+Stage 3 may add them only when the workflow needs Korean filings, financial statements, listing metadata, or official market reference data. The default implementation should work with local documents, broker snapshots, watchlists, thesis/rules, and Hermes/OpenBB-style research adapters.
 
 ## UI Contract
 

@@ -43,12 +43,14 @@ Approver:
 
 These cannot be relaxed through a minor change:
 
-- Stage 2 remains read-only.
+- Stage 2 remains broker-read only and must not open order mutations.
 - Stage 4 MiroFish cannot execute orders.
 - Stage 5 cannot submit live orders.
-- Stage 6 cannot run unattended automation.
+- Stage 6 is manual user-approved live orders only and cannot run unattended automation.
 - Stage 7 automation must remain bounded by user rules and kill switch.
 - `full_access` local developer mode cannot imply trading permission.
+
+Clarification: Stage 2 being read-only is an implementation gate, not the final product boundary. The final product direction includes manual trading and rule-based automation after their approved stages.
 
 ## Change Log Location
 

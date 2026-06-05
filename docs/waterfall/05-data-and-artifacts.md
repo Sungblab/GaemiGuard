@@ -14,6 +14,9 @@ GaemiGuard uses:
 
 | Entity | Purpose |
 | --- | --- |
+| BrokerProvider | Broker or data-adapter identity such as Toss, KIS, manual, or CSV |
+| BrokerCapability | Adapter-supported read, order, realtime, and automation capabilities |
+| BrokerConnection | Credential status, selected account scope, and freshness metadata |
 | Account | Broker account identity, masked display, connector mapping |
 | Instrument | Symbol, market, exchange, identifiers, warnings |
 | Position | Holdings snapshot and exposure |
@@ -25,6 +28,8 @@ GaemiGuard uses:
 | Rule | User investment principle or automation condition |
 | ScenarioRun | MiroFish/Hermes/OpenBB scenario request/result |
 | OrderReview | Draft order, guard checks, result, approval state |
+| OrderIntent | User or automation request before an order draft exists |
+| OrderExecution | Live or paper execution result, reconciliation status, and broker response summary |
 | TradeJournal | User-visible record of trades, reasons, outcomes |
 | AuditEvent | Sensitive action record |
 
@@ -57,6 +62,7 @@ Every meaningful analysis artifact must include:
 
 Order-related artifacts additionally require:
 
+- broker provider and capability used
 - order draft summary
 - checks run
 - checks passed

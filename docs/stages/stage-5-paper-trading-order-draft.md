@@ -11,10 +11,12 @@ Create order drafts and paper-trading simulations that prove Order Guard, audit 
 - Stage 4 scenario artifacts accepted.
 - Compliance/security research refreshed.
 - Order Guard deterministic rule table approved.
+- Broker adapter capability model accepted.
 
 ## In Scope
 
 - Order draft builder.
+- Broker capability check before draft/paper action.
 - Buying power/sellable/commission read checks.
 - Paper trade execution.
 - Order Guard rule table.
@@ -49,6 +51,7 @@ Create order drafts and paper-trading simulations that prove Order Guard, audit 
 - MiroFish/Hermes risk signal
 - kill switch
 - approval expiry
+- broker capability
 
 ## UI Contract
 
@@ -68,6 +71,7 @@ Order draft screen must show:
 - uncertainty
 - approval owner
 - idempotency key
+- broker capability used
 
 ## Exit Gate
 
@@ -78,4 +82,4 @@ Stage 5 exits when:
 - All hard blocks are covered by tests.
 - Approval UI can approve/reject paper action.
 - Audit log is written before paper action completes.
-- Live Toss mutation endpoints remain blocked.
+- Live broker mutation endpoints remain blocked.
