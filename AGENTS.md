@@ -5,6 +5,7 @@ This is the first rule file for Codex and other agents working in this repositor
 ## Language Policy
 
 - Keep repository artifacts in English by default: code, comments, tests, commit messages, PR text, documentation, scripts, and CI or harness labels.
+- Public-facing Korean documents are allowed when the user explicitly requests them; `README.md` is Korean because the intended audience is Korean.
 - Reply to Sungbin in natural Korean in chat unless the user explicitly asks for another language.
 - When explaining technical work to the user, prefer plain Korean. If an English technical term is necessary, briefly explain what it means.
 - Do not make repository documents Korean just because the chat response is Korean.
