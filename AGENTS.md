@@ -39,6 +39,10 @@ When asked to set up or verify the repo:
 
 Use `pnpm smoke:desktop` instead of ad-hoc Vite preview servers on Windows.
 
+## Handoff
+
+When writing a next-session prompt, use the `/goal` prompt format with `CWD`, `Goal`, context, constraints, verification, and completion criteria.
+
 ## Product Boundary
 
 GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.

@@ -7,8 +7,17 @@ This is the first document coding agents should read before continuing GaemiGuar
 ## Current Baseline
 
 - Active branch after the latest completed goal: `main`
-- Latest completed implementation: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
-- Latest verified commands for that implementation:
+- Latest completed implementation: `e41067e`, `chore: install Devflow Native harness`
+- Previous feature implementation: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
+- Latest verified commands for the current main baseline:
+  - `devflow doctor --json`
+  - `devflow status --json`
+  - `devflow harness health --json`
+  - `devflow health --json`
+  - `devflow harness inspect --json`
+  - `devflow gates run docs-html --json`
+  - `devflow gates run verify --json`
+- Latest verified commands for PR #10:
   - `pnpm docs:html`
   - `pnpm verify`
   - PR CI `verify`
@@ -29,6 +38,46 @@ This is the first document coding agents should read before continuing GaemiGuar
    - Agent runtime work: `docs/architecture/agent-runtime.md`
    - Desktop smoke work: `docs/setup/playwright-smoke.md`
 6. Run `rg` against code/tests before assuming implementation status.
+
+## Next-Session Prompt Format
+
+Future handoff prompts should use the user's `/goal` format, not a loose narrative prompt.
+
+Required shape:
+
+```text
+/goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
+
+Goal:
+<concrete objective>
+
+Context:
+- <current state>
+- <relevant prior work>
+
+First read:
+- AGENTS.md
+- docs/development-status.md
+- docs/waterfall/00-master-plan.md
+- <active stage/source docs>
+
+Do not:
+- <stage-specific forbidden actions>
+
+Implementation scope:
+1. <task>
+2. <task>
+
+Verification:
+- pnpm verify
+- pnpm docs:html, when docs change
+- pnpm smoke:desktop, when desktop UI workflow changes
+
+Completion criteria:
+- <observable done state>
+```
+
+Devflow next-session prompts and manual handoffs should follow this structure.
 
 ## Stage Status
 
@@ -80,6 +129,14 @@ Stage 2 first slice:
 - API `/health` exposes safe Toss read-only connector status.
 - Commander/BrokerTossAgent exposes only read-only tool contract metadata.
 - Tests cover 200, 401, 403, 429, unknown enum, mutation exclusion, health wiring, and non-persistence of mock private boundary values.
+
+Devflow Native:
+
+- Repo-local Devflow scaffold is installed.
+- Codex and Claude harness files are installed under `plugins/devflow/`.
+- Devflow gates are configured as `docs-html` (`pnpm docs:html`) and `verify` (`pnpm verify`).
+- Devflow review evidence is required by `.devflow/config.json`.
+- Agent host restart/new session is required for the repo-local hooks, skills, and MCP config to load.
 
 ## Active Stage 2 Gaps
 

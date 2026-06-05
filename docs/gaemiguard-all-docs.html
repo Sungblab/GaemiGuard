@@ -410,13 +410,13 @@
         <div class="stats">
           <span class="chip"><strong>47</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T04:08:03.590Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T04:12:39.703Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
       <div id="noResults" class="no-results">검색 결과가 없습니다.</div>
       <article class="doc-card" id="doc-0" data-category="Overview" data-path="docs/development-status.md">
-  <div class="doc-kicker">Overview · docs/development-status.md · 5KB</div>
+  <div class="doc-kicker">Overview · docs/development-status.md · 7KB</div>
   <h2>GaemiGuard Development Status</h2>
   <h1 id="doc-0-gaemiguard-development-status">GaemiGuard Development Status</h1>
 <p>Updated: 2026-06-05</p>
@@ -424,8 +424,17 @@
 <h2 id="doc-0-current-baseline">Current Baseline</h2>
 <ul>
 <li>Active branch after the latest completed goal: <code>main</code></li>
-<li>Latest completed implementation: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
-<li>Latest verified commands for that implementation:</li>
+<li>Latest completed implementation: <code>e41067e</code>, <code>chore: install Devflow Native harness</code></li>
+<li>Previous feature implementation: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
+<li>Latest verified commands for the current main baseline:</li>
+<li><code>devflow doctor --json</code></li>
+<li><code>devflow status --json</code></li>
+<li><code>devflow harness health --json</code></li>
+<li><code>devflow health --json</code></li>
+<li><code>devflow harness inspect --json</code></li>
+<li><code>devflow gates run docs-html --json</code></li>
+<li><code>devflow gates run verify --json</code></li>
+<li>Latest verified commands for PR #10:</li>
 <li><code>pnpm docs:html</code></li>
 <li><code>pnpm verify</code></li>
 <li>PR CI <code>verify</code></li>
@@ -455,6 +464,39 @@
 <ol>
 <li>Run <code>rg</code> against code/tests before assuming implementation status.</li>
 </ol>
+<h2 id="doc-0-next-session-prompt-format">Next-Session Prompt Format</h2>
+<p>Future handoff prompts should use the user&#39;s <code>/goal</code> format, not a loose narrative prompt.</p>
+<p>Required shape:</p>
+<pre class="code-block"><code class="language-text">/goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
+
+Goal:
+&lt;concrete objective&gt;
+
+Context:
+- &lt;current state&gt;
+- &lt;relevant prior work&gt;
+
+First read:
+- AGENTS.md
+- docs/development-status.md
+- docs/waterfall/00-master-plan.md
+- &lt;active stage/source docs&gt;
+
+Do not:
+- &lt;stage-specific forbidden actions&gt;
+
+Implementation scope:
+1. &lt;task&gt;
+2. &lt;task&gt;
+
+Verification:
+- pnpm verify
+- pnpm docs:html, when docs change
+- pnpm smoke:desktop, when desktop UI workflow changes
+
+Completion criteria:
+- &lt;observable done state&gt;</code></pre>
+<p>Devflow next-session prompts and manual handoffs should follow this structure.</p>
 <h2 id="doc-0-stage-status">Stage Status</h2>
 <div class="table-wrap"><table><thead><tr>
 <th>Stage</th><th>Status</th><th>Notes</th>
@@ -518,6 +560,14 @@
 <li>API <code>/health</code> exposes safe Toss read-only connector status.</li>
 <li>Commander/BrokerTossAgent exposes only read-only tool contract metadata.</li>
 <li>Tests cover 200, 401, 403, 429, unknown enum, mutation exclusion, health wiring, and non-persistence of mock private boundary values.</li>
+</ul>
+<p>Devflow Native:</p>
+<ul>
+<li>Repo-local Devflow scaffold is installed.</li>
+<li>Codex and Claude harness files are installed under <code>plugins/devflow/</code>.</li>
+<li>Devflow gates are configured as <code>docs-html</code> (<code>pnpm docs:html</code>) and <code>verify</code> (<code>pnpm verify</code>).</li>
+<li>Devflow review evidence is required by <code>.devflow/config.json</code>.</li>
+<li>Agent host restart/new session is required for the repo-local hooks, skills, and MCP config to load.</li>
 </ul>
 <h2 id="doc-0-active-stage-2-gaps">Active Stage 2 Gaps</h2>
 <p>Do not treat Stage 2 as exited until these are implemented and verified:</p>
@@ -3884,6 +3934,7 @@ Approver:</code></pre>
 <li>Before finishing, run the relevant gates from <code>.devflow/config.json</code>.</li>
 <li>When Devflow review evidence is required, run <code>devflow review request --work &lt;id&gt;</code>, then record the result with <code>devflow review record --work &lt;id&gt;</code>.</li>
 <li>Record completed work with <code>devflow finish</code> and include changed files, gates, risks, review evidence, and the next-session prompt.</li>
+<li>Write next-session prompts in the user&#39;s <code>/goal</code> format with <code>CWD</code>, <code>Goal</code>, context, constraints, verification, and completion criteria.</li>
 </ol>
 </article>
 <article class="doc-card" id="doc-31" data-category="Product Context" data-path="docs/gaemiguard-product-context.md">
@@ -4959,6 +5010,8 @@ Codex: logged in / not logged in</code></pre>
 <li>User-visible desktop UI workflow changes: run <code>pnpm smoke:desktop</code></li>
 </ul>
 <p>Use <code>pnpm smoke:desktop</code> instead of ad-hoc Vite preview servers on Windows.</p>
+<h2 id="doc-34-handoff">Handoff</h2>
+<p>When writing a next-session prompt, use the <code>/goal</code> prompt format with <code>CWD</code>, <code>Goal</code>, context, constraints, verification, and completion criteria.</p>
 <h2 id="doc-34-product-boundary">Product Boundary</h2>
 <p>GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.</p>
 </article>
