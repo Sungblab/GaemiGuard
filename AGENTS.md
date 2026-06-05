@@ -1,15 +1,24 @@
 # GaemiGuard Agent Instructions
 
+This is the first rule file for Codex and other agents working in this repository. Keep it short. Put longer status, history, and handoff details in the linked documents.
+
+## Language Policy
+
+- Keep repository artifacts in English by default: code, comments, tests, commit messages, PR text, documentation, scripts, and CI or harness labels.
+- Reply to Sungbin in natural Korean in chat unless the user explicitly asks for another language.
+- When explaining technical work to the user, prefer plain Korean. If an English technical term is necessary, briefly explain what it means.
+- Do not make repository documents Korean just because the chat response is Korean.
+
 ## Read First
 
 For every development goal, read these before changing code:
 
-1. `docs/development-status.md`
-2. `docs/waterfall/00-master-plan.md`
+1. `docs/agent-index.md`
+2. `docs/development-status.md`
 3. The active stage gate under `docs/stages/`
 4. Any source document named by the user or by the active status entry
 
-`docs/development-status.md` is the handoff map for what is done, what is in progress, what is blocked, and what to do next.
+`docs/agent-index.md` is the short routing map. `docs/development-status.md` is the current truth for what is done, what is in progress, what is blocked, and what to do next.
 
 ## Setup Contract
 
@@ -18,9 +27,10 @@ When asked to set up or verify the repo:
 1. Inspect OS/shell, `package.json`, `pnpm-workspace.yaml`, and `.gitignore`.
 2. Verify Node.js 22+ and pnpm 10+.
 3. Run `pnpm install`.
-4. Run `pnpm docs:html`.
-5. Run `pnpm verify`.
-6. Report exact failures.
+4. Run `pnpm docs:agent-check`.
+5. Run `pnpm docs:html`.
+6. Run `pnpm verify`.
+7. Report exact failures.
 
 ## Safety
 
@@ -34,14 +44,20 @@ When asked to set up or verify the repo:
 ## Verification
 
 - Normal repo work: `pnpm verify`
-- Documentation updates: also run `pnpm docs:html`
+- Documentation updates: also run `pnpm docs:agent-check` and `pnpm docs:html`
 - User-visible desktop UI workflow changes: run `pnpm smoke:desktop`
 
 Use `pnpm smoke:desktop` instead of ad-hoc Vite preview servers on Windows.
 
+## Documentation HTML
+
+`pnpm docs:html` rebuilds `docs/gaemiguard-all-docs.html`, the single-file documentation bundle used by humans and agents to inspect the repository context quickly. Regenerate it after documentation changes.
+
 ## Handoff
 
 When writing a next-session prompt, use the `/goal` prompt format with `CWD`, `Goal`, context, constraints, verification, and completion criteria.
+
+If the goal would exceed about 4,000 characters, write the full task spec under `docs/handoffs/` and keep the `/goal` prompt short.
 
 ## Product Boundary
 

@@ -17,6 +17,7 @@
     "dev": "concurrently -k -n api,desktop \"pnpm --filter @gaemiguard/api dev\" \"pnpm --filter @gaemiguard/desktop dev\"",
     "dev:api": "pnpm --filter @gaemiguard/api dev",
     "dev:desktop": "pnpm --filter @gaemiguard/desktop dev",
+    "docs:agent-check": "node scripts/check-agent-docs.mjs",
     "docs:html": "node scripts/build-docs-html.mjs",
     "smoke:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke-desktop-ui.ps1",
     "verify": "pnpm test && pnpm typecheck && pnpm build",

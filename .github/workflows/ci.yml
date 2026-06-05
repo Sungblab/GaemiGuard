@@ -7,9 +7,17 @@ on:
       - main
       - stage-*
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -25,9 +33,17 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
+        timeout-minutes: 5
         run: pnpm install --frozen-lockfile
+
+      - name: Check agent docs
+        run: pnpm docs:agent-check
+
+      - name: Build docs HTML
+        run: pnpm docs:html
 
       - name: Run tests
         run: pnpm test

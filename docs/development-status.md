@@ -1,8 +1,8 @@
 # GaemiGuard Development Status
 
-Updated: 2026-06-05
+Updated: 2026-06-06
 
-This is the first document coding agents should read before continuing GaemiGuard development. It records the current implementation state, the active stage, the next work, and the documents that define the rules.
+This is the current-state document coding agents should read before continuing GaemiGuard development. Use `docs/agent-index.md` as the short routing map, then use this file for the current implementation state, active stage, next work, and blocking rules.
 
 ## Current Baseline
 
@@ -12,6 +12,7 @@ This is the first document coding agents should read before continuing GaemiGuar
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes mock replay snapshot persistence/sync shape with safe freshness status.
+- Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
   - `devflow status --json`
@@ -38,20 +39,23 @@ This is the first document coding agents should read before continuing GaemiGuar
 ## Read Order For Future Goals
 
 1. `AGENTS.md`
-2. `docs/development-status.md`
-3. `docs/README.md`
-4. `docs/waterfall/00-master-plan.md`
+2. `docs/agent-index.md`
+3. `docs/development-status.md`
+4. `docs/README.md`
 5. Active stage gate:
    - currently `docs/stages/stage-2-toss-readonly-connector.md`
 6. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
    - Desktop smoke work: `docs/setup/playwright-smoke.md`
-7. Run `rg` against code/tests before assuming implementation status.
+7. `docs/development-history.md` when the task asks why earlier PRs or stages shaped the current code.
+8. Run `rg` against code/tests before assuming implementation status.
 
 ## Next-Session Prompt Format
 
 Future handoff prompts should use the user's `/goal` format, not a loose narrative prompt.
+
+If a goal prompt would exceed about 4,000 characters, write the long task spec under `docs/handoffs/` and make the `/goal` prompt point to that file. See `docs/agent-index.md` and `docs/handoffs/README.md`.
 
 Required shape:
 
@@ -169,6 +173,8 @@ Devflow Native:
 Documentation routing:
 
 - `docs/README.md` is the documentation hub.
+- `docs/agent-index.md` is the short agent-facing route into the current state, handoff policy, and harness commands.
+- `docs/development-history.md` records PR-by-PR development history.
 - `docs/architecture/design-index.md` owns the source-of-truth map.
 - `docs/architecture/maps/README.md` maps source docs to code owners and verification gates.
 - `scripts/build-docs-html.mjs` builds the searchable single-file bundle.

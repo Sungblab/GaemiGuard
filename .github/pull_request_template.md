@@ -1,15 +1,24 @@
-## 변경 요약
+## Summary
 
 -
 
-## 검증
+## Verification
 
--
+- [ ] Ran `pnpm docs:agent-check` or explained why it is not needed
+- [ ] Ran `pnpm docs:html` or made no documentation changes
+- [ ] Ran `pnpm verify`
+- [ ] Ran `pnpm smoke:desktop` if a user-visible desktop workflow changed
 
-## 투자/보안 영향
+## Investment And Security Impact
 
--
+- [ ] Did not create or store Toss secrets, tokens, account IDs, or order IDs
+- [ ] Did not add order create/update/cancel or automated trading paths
 
-## 남은 리스크
+## Documentation And Agent Impact
+
+- [ ] Updated affected docs among `AGENTS.md`, `docs/agent-index.md`, and `docs/development-status.md`
+- [ ] Put long next-work specs under `docs/handoffs/`
+
+## Remaining Risk
 
 -
