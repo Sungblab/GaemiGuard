@@ -131,6 +131,31 @@ Accepted on 2026-06-06:
 - Manual live orders are Stage 6.
 - Rule-based automated trading is Stage 7.
 
+## Third Implementation Slice
+
+Implemented on 2026-06-06 as the Stage 2 broker adapter/manual foundation slice:
+
+- Shared `BrokerAdapter` contract and capability model added in `packages/shared/src/broker-adapter.ts`.
+- Common adapter status includes provider identity, display name, authority level, capabilities, connection status, freshness, and disabled order mutation capabilities.
+- Toss read-only connector is wrapped as the first adapter implementation in `packages/core/src/broker-adapter.ts`.
+- Toss adapter status distinguishes:
+  - `not_configured` when credentials are absent
+  - `mock_replay` when fixture replay is injected
+  - future `readonly_available` for a production read-only credential boundary
+- Toss adapter maps Toss-specific account, holding, quote, orderbook, FX, calendar, and warning data into common broker types without exposing account sequence values.
+- No-broker/manual portfolio foundation added with local watchlist, manual holding, and manual cash models.
+- SQLite tables added for `manual_watchlist_items`, `manual_holdings`, and `manual_cash_balances`.
+- Manual portfolio API endpoints added:
+  - `GET /portfolio/manual`
+  - `PUT /portfolio/manual/watchlist`
+  - `PUT /portfolio/manual/holdings`
+  - `PUT /portfolio/manual/cash`
+- Manual mode uses the synthetic account reference `manual:default`; no raw broker account reference is accepted or stored.
+- API `/health` includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.
+- Commander emits `BrokerAgent` broker-independent availability/freshness/capability metadata before Toss specialist metadata.
+- `BrokerTossAgent` remains the Toss adapter specialist and does not answer account facts from availability metadata alone.
+- Tests prove raw secret/token/account/order sentinel values are not stored or exposed through DB/API/Commander/manual portfolio paths, and order mutation remains unavailable.
+
 ## Out Of Scope
 
 - `POST /api/v1/orders`.
@@ -146,8 +171,10 @@ Accepted on 2026-06-06:
 
 Store:
 
-- broker adapter ID and capability metadata, when implemented
+- broker adapter ID and capability metadata
 - masked account reference
+- synthetic manual account reference
+- manual watchlist, holding, and cash inputs
 - holdings snapshot
 - quote snapshot
 - orderbook snapshot summary
@@ -159,8 +186,8 @@ Store:
 Deferred until the production credential/sync slice:
 
 - connector account sequence mapping locally, kept behind the credential boundary
-- broker adapter contract implementation if not included in a narrower credential slice
-- no-broker/manual portfolio mode if not included in this stage's UI slice
+- user-facing credential setup and disconnect flow
+- real Toss sync jobs using production credentials
 
 Do not store:
 
@@ -216,8 +243,6 @@ Stage 2 exits when:
 
 - Production secret storage using the OS credential store.
 - User-facing credential setup and disconnect flow.
-- Shared broker adapter contract and capability model.
-- No-broker/manual portfolio first-run path, if kept in Stage 2.
 - Real Toss sync jobs using the implemented snapshot repository.
 - Production account sequence mapping behind the credential boundary.
 - Rate-limit scheduler/backoff behavior beyond response metadata normalization.

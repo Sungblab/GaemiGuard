@@ -417,13 +417,13 @@
         <div class="stats">
           <span class="chip"><strong>54</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T16:57:50.750Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T17:45:34.262Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
       <div id="noResults" class="no-results">검색 결과가 없습니다.</div>
       <article class="doc-card" id="doc-0" data-category="Overview" data-path="docs/development-status.md">
-  <div class="doc-kicker">Overview · docs/development-status.md · 11KB</div>
+  <div class="doc-kicker">Overview · docs/development-status.md · 12KB</div>
   <h2>GaemiGuard Development Status</h2>
   <h1 id="doc-0-gaemiguard-development-status">GaemiGuard Development Status</h1>
 <p>Updated: 2026-06-06</p>
@@ -436,7 +436,7 @@
 <li>Recent infrastructure baseline: <code>e41067e</code>, <code>chore: install Devflow Native harness</code></li>
 <li>Recent feature baseline: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
 <li>Current Stage 2 baseline includes mock replay Toss snapshot persistence/sync shape with safe freshness status.</li>
-<li>Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code remains the Toss read-only adapter slice.</li>
+<li>Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, and a no-broker/manual portfolio foundation.</li>
 <li>Development history is indexed in <code>docs/development-history.md</code>.</li>
 <li>Latest verified commands for the current main baseline:</li>
 <li><code>devflow doctor --json</code></li>
@@ -534,7 +534,7 @@ Completion criteria:
 <td>Stage 1 Foundation Runtime</td><td>Complete</td><td>Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block.</td>
 </tr>
 <tr>
-<td>Stage 2 Broker Connection Foundation</td><td>In progress</td><td>First Toss read-only adapter slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Broker adapter contract, real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain.</td>
+<td>Stage 2 Broker Connection Foundation</td><td>In progress</td><td>First Toss read-only adapter slice, mock replay SQLite snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, manual portfolio foundation, broker health aggregation, and BrokerAgent metadata are implemented. Real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain.</td>
 </tr>
 <tr>
 <td>Stage 3 Research And Memory</td><td>Not started</td><td>Should build on accepted broker/no-broker data context and redaction boundaries.</td>
@@ -608,6 +608,18 @@ Completion criteria:
 <li>Commander/BrokerTossAgent can include snapshot availability/freshness metadata only. It does not answer with holdings or account facts from the snapshot in this slice.</li>
 <li>Tests prove raw mock client secrets, access tokens, raw account numbers, and order identifier sentinels are not stored in SQLite, artifacts, API responses, or Commander/external-agent context.</li>
 </ul>
+<p>Stage 2 broker adapter/manual foundation slice:</p>
+<ul>
+<li>Shared <code>BrokerAdapter</code> TypeScript contract and capability metadata live in <code>packages/shared/src/broker-adapter.ts</code>.</li>
+<li>Toss read-only is wrapped as the first broker adapter in <code>packages/core/src/broker-adapter.ts</code>.</li>
+<li>Toss adapter status distinguishes <code>not_configured</code>, <code>mock_replay</code>, and future <code>readonly_available</code>; order create/modify/cancel capabilities are disabled.</li>
+<li>Manual no-broker mode has a local service/DB/API foundation for watchlist items, manual holdings, and manual cash balances using the synthetic <code>manual:default</code> account reference.</li>
+<li>API <code>/health</code> now includes a <code>broker_adapters</code> check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability without calling any real broker API.</li>
+<li>API manual portfolio endpoints are available at <code>GET /portfolio/manual</code>, <code>PUT /portfolio/manual/watchlist</code>, <code>PUT /portfolio/manual/holdings</code>, and <code>PUT /portfolio/manual/cash</code>.</li>
+<li>Commander emits broker-independent <code>BrokerAgent</code> availability/freshness/capability metadata before Toss specialist metadata.</li>
+<li><code>BrokerTossAgent</code> remains the Toss adapter specialist and still does not create holdings, balances, or account facts without source/freshness grounding.</li>
+<li>Tests cover adapter status mapping, manual portfolio persistence/API behavior, redaction of secret/account/order sentinels, and order mutation unavailability.</li>
+</ul>
 <p>Devflow Native:</p>
 <ul>
 <li>Repo-local Devflow scaffold is installed.</li>
@@ -633,7 +645,6 @@ Completion criteria:
 <ul>
 <li>Production secret storage using the OS credential store.</li>
 <li>Credential setup/disconnect flow.</li>
-<li>Shared broker adapter contract that can represent Toss now and KIS later without making Toss the product center.</li>
 <li>Real Toss sync jobs using production credentials.</li>
 <li>Production account sequence mapping and scheduling around the OS credential boundary.</li>
 <li>Rate-limit scheduling/backoff behavior beyond response metadata normalization.</li>
@@ -652,14 +663,11 @@ Completion criteria:
 <li>No UI copy that implies Toss is connected when only mock or not-configured mode is active.</li>
 </ul>
 <h2 id="doc-0-recommended-next-slice">Recommended Next Slice</h2>
-<p>After the mock replay persistence/sync slice and product-direction reset, the next practical Stage 2 slice is broker connection foundation in code:</p>
+<p>After the broker adapter/manual foundation slice, the next practical Stage 2 slice is production-safe credential and real read-only sync setup:</p>
 <ol>
-<li>Define the shared <code>BrokerAdapter</code> contract and capability flags.</li>
-<li>Wrap the current Toss read-only connector as the first adapter implementation.</li>
-<li>Preserve all Stage 2 mutation hard blocks.</li>
-<li>Add no-broker/manual portfolio mode as a first-run path if the slice includes UI or user workflow.</li>
 <li>Add production credential setup/disconnect flow backed by the OS credential store.</li>
 <li>Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.</li>
+<li>Add production account sequence mapping behind the credential boundary.</li>
 <li>Add rate-limit scheduling/backoff around real sync execution.</li>
 <li>Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.</li>
 <li>Ground Commander account-aware answers in real read-only snapshots with source links.</li>
@@ -1283,7 +1291,7 @@ vendor/
 </tr>
 </tbody></table></div>
 <h2 id="doc-6-active-stage">Active Stage</h2>
-<p>Stage 2, Broker Connection Foundation, is in progress. The current implemented slice is the Toss read-only adapter and snapshot persistence.</p>
+<p>Stage 2, Broker Connection Foundation, is in progress. The current implemented slices are the Toss read-only adapter, snapshot persistence, the shared broker adapter contract, and the no-broker/manual portfolio foundation.</p>
 <p>Read these together for Stage 2 work:</p>
 <ol>
 <li><code>docs/development-status.md</code></li>
@@ -2562,7 +2570,7 @@ Approver:</code></pre>
 <p>If a requirement maps to a future stage, earlier stages must still block behavior that would prematurely satisfy it unsafely.</p>
 </article>
 <article class="doc-card" id="doc-19" data-category="Stage Gates" data-path="docs/stages/stage-2-toss-readonly-connector.md">
-  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 10KB</div>
+  <div class="doc-kicker">Stage Gates · docs/stages/stage-2-toss-readonly-connector.md · 12KB</div>
   <h2>Stage 2 Gate: Broker Connection Foundation</h2>
   <h1 id="doc-19-stage-2-gate-broker-connection-foundation">Stage 2 Gate: Broker Connection Foundation</h1>
 <p>Generated: 2026-06-04 Updated: 2026-06-06</p>
@@ -2708,6 +2716,30 @@ Approver:</code></pre>
 <li>Manual live orders are Stage 6.</li>
 <li>Rule-based automated trading is Stage 7.</li>
 </ul>
+<h2 id="doc-19-third-implementation-slice">Third Implementation Slice</h2>
+<p>Implemented on 2026-06-06 as the Stage 2 broker adapter/manual foundation slice:</p>
+<ul>
+<li>Shared <code>BrokerAdapter</code> contract and capability model added in <code>packages/shared/src/broker-adapter.ts</code>.</li>
+<li>Common adapter status includes provider identity, display name, authority level, capabilities, connection status, freshness, and disabled order mutation capabilities.</li>
+<li>Toss read-only connector is wrapped as the first adapter implementation in <code>packages/core/src/broker-adapter.ts</code>.</li>
+<li>Toss adapter status distinguishes:</li>
+<li><code>not_configured</code> when credentials are absent</li>
+<li><code>mock_replay</code> when fixture replay is injected</li>
+<li>future <code>readonly_available</code> for a production read-only credential boundary</li>
+<li>Toss adapter maps Toss-specific account, holding, quote, orderbook, FX, calendar, and warning data into common broker types without exposing account sequence values.</li>
+<li>No-broker/manual portfolio foundation added with local watchlist, manual holding, and manual cash models.</li>
+<li>SQLite tables added for <code>manual_watchlist_items</code>, <code>manual_holdings</code>, and <code>manual_cash_balances</code>.</li>
+<li>Manual portfolio API endpoints added:</li>
+<li><code>GET /portfolio/manual</code></li>
+<li><code>PUT /portfolio/manual/watchlist</code></li>
+<li><code>PUT /portfolio/manual/holdings</code></li>
+<li><code>PUT /portfolio/manual/cash</code></li>
+<li>Manual mode uses the synthetic account reference <code>manual:default</code>; no raw broker account reference is accepted or stored.</li>
+<li>API <code>/health</code> includes a <code>broker_adapters</code> check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.</li>
+<li>Commander emits <code>BrokerAgent</code> broker-independent availability/freshness/capability metadata before Toss specialist metadata.</li>
+<li><code>BrokerTossAgent</code> remains the Toss adapter specialist and does not answer account facts from availability metadata alone.</li>
+<li>Tests prove raw secret/token/account/order sentinel values are not stored or exposed through DB/API/Commander/manual portfolio paths, and order mutation remains unavailable.</li>
+</ul>
 <h2 id="doc-19-out-of-scope">Out Of Scope</h2>
 <ul>
 <li><code>POST /api/v1/orders</code>.</li>
@@ -2722,8 +2754,10 @@ Approver:</code></pre>
 <h2 id="doc-19-data-contract">Data Contract</h2>
 <p>Store:</p>
 <ul>
-<li>broker adapter ID and capability metadata, when implemented</li>
+<li>broker adapter ID and capability metadata</li>
 <li>masked account reference</li>
+<li>synthetic manual account reference</li>
+<li>manual watchlist, holding, and cash inputs</li>
 <li>holdings snapshot</li>
 <li>quote snapshot</li>
 <li>orderbook snapshot summary</li>
@@ -2735,8 +2769,8 @@ Approver:</code></pre>
 <p>Deferred until the production credential/sync slice:</p>
 <ul>
 <li>connector account sequence mapping locally, kept behind the credential boundary</li>
-<li>broker adapter contract implementation if not included in a narrower credential slice</li>
-<li>no-broker/manual portfolio mode if not included in this stage&#39;s UI slice</li>
+<li>user-facing credential setup and disconnect flow</li>
+<li>real Toss sync jobs using production credentials</li>
 </ul>
 <p>Do not store:</p>
 <ul>
@@ -2789,8 +2823,6 @@ Approver:</code></pre>
 <ul>
 <li>Production secret storage using the OS credential store.</li>
 <li>User-facing credential setup and disconnect flow.</li>
-<li>Shared broker adapter contract and capability model.</li>
-<li>No-broker/manual portfolio first-run path, if kept in Stage 2.</li>
 <li>Real Toss sync jobs using the implemented snapshot repository.</li>
 <li>Production account sequence mapping behind the credential boundary.</li>
 <li>Rate-limit scheduler/backoff behavior beyond response metadata normalization.</li>
@@ -3310,7 +3342,7 @@ Approver:</code></pre>
 <li>Supporting surfaces: investment guard and small local investment terminal.</li>
 <li>Public short copy: &quot;거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다.&quot;</li>
 <li>Broker model: broker-independent adapter contract; Toss is first implemented adapter slice, KIS is a future candidate.</li>
-<li>No-broker mode: watchlist, thesis/rules, manual portfolio, CSV, research, scenarios, and sample data must work without broker login.</li>
+<li>No-broker mode: local manual watchlist, holdings, and cash inputs are now represented in DB/API/service contracts; thesis/rules, CSV, research, scenarios, and sample data remain later extensions.</li>
 <li>First screen: Today Guard dashboard.</li>
 <li>Right sidebar: Commander Agent chat panel.</li>
 <li>Runtime: local-first desktop app, no Docker required for normal startup.</li>
@@ -3468,10 +3500,10 @@ Approver:</code></pre>
 <td>Stage plan</td><td><code>docs/waterfall/00-master-plan.md</code>, <code>docs/stages/</code></td><td>repo-wide</td><td>stage gate evidence</td>
 </tr>
 <tr>
-<td>Agent runtime</td><td><code>docs/architecture/agent-runtime.md</code></td><td><code>packages/core/src/commander-runtime.ts</code>, <code>apps/api/src/app.ts</code></td><td><code>pnpm verify</code></td>
+<td>Agent runtime</td><td><code>docs/architecture/agent-runtime.md</code></td><td><code>packages/core/src/commander-runtime.ts</code>, <code>packages/core/src/broker-adapter.ts</code>, <code>apps/api/src/app.ts</code></td><td><code>pnpm verify</code></td>
 </tr>
 <tr>
-<td>Broker connection foundation and Toss read-only adapter</td><td><code>docs/product/broker-connection-and-trading.md</code>, <code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code>, <code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td><code>packages/shared/src/toss-readonly.ts</code>, <code>packages/core/src/toss-readonly-connector.ts</code>, <code>packages/core/src/toss-readonly-sync.ts</code>, <code>packages/db/src/schema.ts</code>, <code>packages/db/src/sqlite.ts</code>, <code>apps/api/src/app.ts</code></td><td>connector tests, DB snapshot tests, API health tests, mutation hard-block tests, <code>pnpm verify</code></td>
+<td>Broker connection foundation and Toss read-only adapter</td><td><code>docs/product/broker-connection-and-trading.md</code>, <code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code>, <code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td><code>packages/shared/src/broker-adapter.ts</code>, <code>packages/shared/src/toss-readonly.ts</code>, <code>packages/core/src/broker-adapter.ts</code>, <code>packages/core/src/toss-readonly-connector.ts</code>, <code>packages/core/src/toss-readonly-sync.ts</code>, <code>packages/db/src/schema.ts</code>, <code>packages/db/src/sqlite.ts</code>, <code>apps/api/src/app.ts</code></td><td>adapter contract tests, connector tests, DB snapshot/manual portfolio tests, API health tests, mutation hard-block tests, <code>pnpm verify</code></td>
 </tr>
 <tr>
 <td>Desktop smoke</td><td><code>docs/setup/playwright-smoke.md</code></td><td><code>apps/desktop/</code>, <code>scripts/smoke-desktop-ui.ps1</code></td><td><code>pnpm smoke:desktop</code></td>
@@ -3479,7 +3511,7 @@ Approver:</code></pre>
 </tbody></table></div>
 </article>
 <article class="doc-card" id="doc-28" data-category="Architecture" data-path="docs/architecture/agent-runtime.md">
-  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 5KB</div>
+  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 6KB</div>
   <h2>Agent Runtime Architecture</h2>
   <h1 id="doc-28-agent-runtime-architecture">Agent Runtime Architecture</h1>
 <p>Generated: 2026-06-04</p>
@@ -3538,12 +3570,15 @@ Approver:</code></pre>
 <li>Future live submission must pass broker capability checks, Order Guard, audit log, kill switch, user approval or explicit automation rule, and idempotency.</li>
 </ul>
 <h2 id="doc-28-stage-2-broker-connection-runtime">Stage 2 Broker Connection Runtime</h2>
-<p>Stage 2 is now interpreted as Broker Connection Foundation. The first implemented slice introduces the official Toss Invest OpenAPI read-only connector contract without enabling a production credential store.</p>
+<p>Stage 2 is now interpreted as Broker Connection Foundation. The current implementation introduces the shared broker adapter contract, wraps the official Toss Invest OpenAPI read-only connector as the first adapter, and adds a no-broker/manual portfolio foundation without enabling a production credential store.</p>
 <ul>
 <li><code>BrokerAgent</code> is the broker-independent runtime role.</li>
+<li><code>BrokerAgent</code> receives common adapter availability, freshness, authority, and capability metadata before any broker-specific specialist metadata.</li>
 <li><code>BrokerTossAgent</code> can advertise only read-only tool names: account list, holdings, current prices, orderbook summary, exchange rate, market calendar, and stock warnings.</li>
-<li>The API health check reports the connector mode and official OpenAPI version.</li>
+<li><code>BrokerTossAgent</code> remains the Toss adapter specialist. It must not answer holdings, balances, buying power, or account facts unless a source/freshness-grounded snapshot is available.</li>
+<li>The API health check reports both the common <code>broker_adapters</code> status and the Toss-specific connector mode plus official OpenAPI version.</li>
 <li>Default local runtime mode is <code>not_configured</code>; tests may inject a <code>mock_replay</code> connector.</li>
+<li>Manual no-broker runtime mode is available through the synthetic <code>manual:default</code> account reference and local watchlist, holding, and cash inputs.</li>
 <li>Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.</li>
 <li>Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.</li>
 <li>KIS is a future adapter candidate, not implemented in the current code.</li>
@@ -3556,7 +3591,7 @@ Approver:</code></pre>
 <li>SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.</li>
 <li>API <code>/health</code> can report <code>snapshotFreshness</code> for explicit mock replay syncs. It distinguishes <code>not_configured</code> from <code>mock_replay</code> and must not describe mock replay as a real Toss connection.</li>
 <li><code>BrokerTossAgent</code> can include snapshot availability/freshness in timeline metadata. It still must not answer with holdings, balances, or account facts as grounded facts until the real sync and source-link slice is complete.</li>
-<li>No-broker/manual portfolio mode is a product requirement but not implemented in the current runtime slice.</li>
+<li>No-broker/manual portfolio mode is represented in the DB/API/service contracts, but the desktop workflow has not been expanded into a full manual portfolio UI.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-29" data-category="Architecture" data-path="docs/architecture/stage-1-foundation.md">
@@ -3701,7 +3736,10 @@ Approver:</code></pre>
 <li>Toss read-only connector skeleton</li>
 <li>Mock replay based Toss snapshot persistence and sync shape</li>
 <li>Safe snapshot freshness status in health/Commander surfaces</li>
-<li>Broker adapter/trading authority direction documented, but not implemented yet</li>
+<li>Shared BrokerAdapter contract and capability metadata</li>
+<li>Toss read-only connector wrapped as the first broker adapter implementation</li>
+<li>No-broker/manual portfolio foundation with local watchlist, holding, and cash inputs</li>
+<li>API <code>/health</code> broker adapter status aggregation and manual portfolio endpoints</li>
 </ul>
 <p>Use <code>docs/development-status.md</code> for the complete current list.</p>
 <h2 id="doc-30-planning-the-next-work">Planning The Next Work</h2>
@@ -4020,8 +4058,8 @@ pnpm docs:html</code></pre>
 <p>Recommended order:</p>
 <ol>
 <li>Keep Stage 2 focused on the broker adapter contract, current Toss read-only adapter, credential setup, real sync, freshness, and redaction.</li>
-<li>Add no-broker/manual portfolio mode so first-run use does not require broker login.</li>
-<li>Add source-grounded Commander answers only after snapshots have source/freshness links.</li>
+<li>Build on the no-broker/manual portfolio foundation so first-run use does not require broker login.</li>
+<li>Add source-grounded Commander answers only after real snapshots have source/freshness links.</li>
 <li>Add thesis, rules, journals, and research memory in Stage 3.</li>
 <li>Add MiroFish scenario tasks in Stage 4.</li>
 <li>Add order drafts and paper trading in Stage 5.</li>
@@ -4065,7 +4103,7 @@ pnpm docs:html</code></pre>
 <li>PR #5-#7 established the waterfall plan, documentation hub, setup, and contribution documents.</li>
 <li>PR #8-#9 improved the Stage 1 home screen and Windows desktop smoke testing.</li>
 <li>PR #10-#11 started the Toss read-only connector and added mock replay based snapshot persistence/sync shape.</li>
-<li>PR #12-#14 added agent-facing docs, Korean README positioning, and the agent-first product direction.</li>
+<li>PR #12-#15 added agent-facing docs, Korean README positioning, agent-first product direction, and broker-agent product alignment.</li>
 </ol>
 <h2 id="doc-32-pull-request-history">Pull Request History</h2>
 <div class="table-wrap"><table><thead><tr>
@@ -4113,19 +4151,20 @@ pnpm docs:html</code></pre>
 <tr>
 <td><a href="https://github.com/Sungblab/GaemiGuard/pull/14">#14</a></td><td><code>aa12b4c</code></td><td>2026-06-06</td><td>Defined GaemiGuard as an agent-first local personal investment workspace and added product direction docs.</td><td>Re-centered the product on the personal investment agent rather than a broker clone or terminal clone.</td>
 </tr>
+<tr>
+<td><a href="https://github.com/Sungblab/GaemiGuard/pull/15">#15</a></td><td><code>543d12c</code></td><td>2026-06-06</td><td>Aligned the broker-agent product design with the Stage 2 Broker Connection Foundation direction.</td><td>Clarified that Toss is the first adapter slice, not the product center.</td>
+</tr>
 </tbody></table></div>
 <h2 id="doc-32-completed-major-blocks">Completed Major Blocks</h2>
 <h3 id="doc-32-stage-1-foundation">Stage 1 Foundation</h3>
 <p>Complete. The repo has the local desktop app, local API, SQLite, artifact persistence, Commander runtime, specialist stub, permission engine, Order Guard dry-run, and live-order blocking.</p>
 <h3 id="doc-32-stage-2-broker-connection-foundation">Stage 2 Broker Connection Foundation</h3>
-<p>In progress. The current implemented code is the Toss read-only adapter skeleton and mock replay based snapshot persistence/sync shape. The product direction now treats this as the first slice of a broker-independent adapter foundation.</p>
+<p>In progress. The current implemented code includes the Toss read-only adapter skeleton, mock replay based snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, broker health aggregation, and no-broker/manual portfolio DB/API/service foundation.</p>
 <p>Remaining work:</p>
 <ul>
 <li>Real secret storage boundary</li>
 <li>Toss credential setup/disconnect</li>
 <li>Real Toss read-only sync</li>
-<li>Shared broker adapter contract and capability model</li>
-<li>No-broker/manual portfolio mode</li>
 <li>KIS source note and capability map before any KIS implementation</li>
 <li>Rate-limit aware scheduling and retry policy</li>
 <li>Account/holding/data freshness UI</li>
@@ -5329,8 +5368,9 @@ Codex: logged in / not logged in</code></pre>
 <h2 id="doc-35-stage-implications">Stage Implications</h2>
 <p>Stage 2 is now interpreted as Broker Connection Foundation. The existing implementation is the Toss read-only adapter slice:</p>
 <ul>
-<li>Define and implement the shared broker adapter contract.</li>
-<li>Keep the current Toss read-only code as the first adapter implementation.</li>
+<li>The shared broker adapter contract is implemented.</li>
+<li>The current Toss read-only code is wrapped as the first adapter implementation.</li>
+<li>No-broker/manual portfolio mode has local watchlist, holding, and cash service/API foundations.</li>
 <li>Finish production credential setup through the OS credential boundary.</li>
 <li>Add real read-only Toss sync using the existing snapshot repository.</li>
 <li>Show data freshness without pretending mock or not-configured state is connected.</li>
@@ -5369,7 +5409,7 @@ Codex: logged in / not logged in</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-36" data-category="Product Context" data-path="docs/product/broker-connection-and-trading.md">
-  <div class="doc-kicker">Product Context · docs/product/broker-connection-and-trading.md · 7KB</div>
+  <div class="doc-kicker">Product Context · docs/product/broker-connection-and-trading.md · 8KB</div>
   <h2>Broker Connection And Trading Direction</h2>
   <h1 id="doc-36-broker-connection-and-trading-direction">Broker Connection And Trading Direction</h1>
 <p>Updated: 2026-06-06</p>
@@ -5484,6 +5524,13 @@ Codex: logged in / not logged in</code></pre>
 <p>The UI must never imply that real account data exists when no broker is connected.</p>
 <p>Required answer pattern:</p>
 <blockquote>No broker account is connected, so this answer cannot verify real holdings, cash, buying power, or order status. I can still review your watchlist, manual portfolio, thesis, rules, and research artifacts.</blockquote>
+<p>Current implementation note:</p>
+<ul>
+<li>The first no-broker/manual foundation exists in code.</li>
+<li>Local manual watchlist, holding, and cash inputs use the synthetic <code>manual:default</code> account reference.</li>
+<li>The API exposes manual portfolio read/upsert endpoints, but the desktop workflow has not yet been expanded into a full manual portfolio editor.</li>
+<li>Manual mode is local context only. It must not be displayed as a real broker connection.</li>
+</ul>
 <h2 id="doc-36-trading-authority">Trading Authority</h2>
 <p>Trading authority must be separate from ordinary agent permission.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -5564,13 +5611,20 @@ Codex: logged in / not logged in</code></pre>
 <li>no order mutation path is opened prematurely.</li>
 </ul>
 <p>KIS implementation should not be mixed into the same small code slice unless the goal explicitly asks for it. KIS should first get a source note, capability mapping, and fixture plan.</p>
+<p>Current code status:</p>
+<ul>
+<li><code>BrokerAdapter</code> and capability metadata are implemented in shared/core packages.</li>
+<li>Toss read-only is represented as the first adapter.</li>
+<li>API health distinguishes no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.</li>
+<li>Order create, modify, and cancel remain disabled/unavailable in Stage 2.</li>
+<li>Production credential setup, disconnect, and real Toss sync remain future Stage 2 work.</li>
+</ul>
 <h2 id="doc-36-future-work-order">Future Work Order</h2>
 <p>Recommended next direction:</p>
 <ol>
-<li>Define the shared broker adapter contract.</li>
-<li>Wrap the current Toss read-only code as the first adapter.</li>
-<li>Add no-broker/manual portfolio mode.</li>
 <li>Add credential setup/disconnect and real read-only Toss sync.</li>
+<li>Add production account sequence mapping behind the credential boundary.</li>
+<li>Add user-facing freshness and account/holdings surfaces that never imply connection before credentials and sync exist.</li>
 <li>Add KIS source note and capability mapping.</li>
 <li>Implement KIS read/account sync only after the contract is stable.</li>
 <li>Add order draft and paper trading.</li>

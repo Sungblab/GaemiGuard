@@ -33,7 +33,7 @@ This is the routing page for the repository documentation. Use it to decide what
 
 ## Active Stage
 
-Stage 2, Broker Connection Foundation, is in progress. The current implemented slice is the Toss read-only adapter and snapshot persistence.
+Stage 2, Broker Connection Foundation, is in progress. The current implemented slices are the Toss read-only adapter, snapshot persistence, the shared broker adapter contract, and the no-broker/manual portfolio foundation.
 
 Read these together for Stage 2 work:
 

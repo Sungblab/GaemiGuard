@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createInMemoryManualPortfolioRepository, createManualPortfolioBrokerAdapter, createTossBrokerAdapter } from "./broker-adapter";
 import { createCommanderRuntime, InMemoryAgentRunRepository, InMemoryArtifactStore } from "./commander-runtime";
 import { createMockTossReadonlyConnector } from "./toss-readonly-connector";
 
@@ -164,5 +165,98 @@ describe("createCommanderRuntime", () => {
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+  });
+
+  it("publishes broker-independent BrokerAgent availability before Toss specialist metadata", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const manualRepository = createInMemoryManualPortfolioRepository({
+      clock: () => new Date("2026-06-06T02:00:00.000Z")
+    });
+    await manualRepository.upsertWatchlistItem({
+      symbol: "005930",
+      market: "KR",
+      name: "Samsung Electronics",
+      note: "Manual watchlist item"
+    });
+
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      brokerAdapters: [
+        createManualPortfolioBrokerAdapter({ repository: manualRepository }),
+        createTossBrokerAdapter({
+          connector: createMockTossReadonlyConnector({
+            clientId: "mock_client_id",
+            clientSecret: "fixture-private-value-alpha",
+            accessToken: "fixture-private-value-beta"
+          }),
+          snapshotReader: {
+            async getFreshnessStatus() {
+              return {
+                mode: "mock_replay",
+                status: "fresh",
+                source: "mock_replay_snapshot",
+                lastSuccessfulSyncAt: "2026-06-05T01:00:00.000Z",
+                ageSeconds: 180,
+                staleAfterSeconds: 300,
+                accountCount: 1,
+                holdingCount: 1,
+                quoteCount: 1,
+                orderbookCount: 1,
+                exchangeRateCount: 1,
+                marketCalendarCount: 2,
+                stockWarningCount: 1,
+                rateLimitScopes: ["getAccounts", "getHoldings"],
+                message: "Mock replay Toss read-only snapshots are fresh."
+              };
+            }
+          }
+        })
+      ],
+      clock: () => new Date("2026-06-06T02:03:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "브로커 공통 상태와 토스 어댑터 상태를 같이 알려줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    const agents = response.timeline.map((event) => event.agent);
+    expect(agents.indexOf("BrokerAgent")).toBeLessThan(agents.indexOf("BrokerTossAgent"));
+
+    const brokerEvent = response.timeline.find((event) => event.agent === "BrokerAgent");
+    expect(brokerEvent?.metadata?.adapters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: {
+            id: "manual",
+            displayName: "Manual portfolio"
+          },
+          status: "no_broker",
+          authorityLevel: "no_broker"
+        }),
+        expect.objectContaining({
+          provider: {
+            id: "toss",
+            displayName: "Toss Invest"
+          },
+          status: "mock_replay",
+          authorityLevel: "read_only"
+        })
+      ])
+    );
+
+    expect(response.answer).toContain("broker adapter availability");
+    expect(response.answer).not.toContain("Samsung Electronics 10 shares");
+    expect(JSON.stringify(response)).not.toContain("fixture-private-value-alpha");
+    expect(JSON.stringify(response)).not.toContain("fixture-private-value-beta");
   });
 });

@@ -10,6 +10,16 @@ import type {
   AgentRunSummary,
   ArtifactKind,
   ArtifactRecord,
+  BrokerAccount,
+  BrokerFreshness,
+  ManualPortfolioCashBalance,
+  ManualPortfolioCashBalanceInput,
+  ManualPortfolioHolding,
+  ManualPortfolioHoldingInput,
+  ManualPortfolioRepository,
+  ManualPortfolioSnapshot,
+  ManualPortfolioWatchlistInput,
+  ManualPortfolioWatchlistItem,
   PermissionMode,
   TossExchangeRate,
   TossMarketCalendar,
@@ -42,6 +52,7 @@ export type GaemiGuardDatabase = {
     listRecent(limit: number): Promise<AgentRunSummary[]>;
   };
   tossReadonlySnapshots: TossReadonlySnapshotRepository;
+  manualPortfolio: ManualPortfolioRepository;
   close(): void;
 };
 
@@ -177,6 +188,73 @@ function mapTossRateLimit(row: Row): TossReadonlyStoredRateLimitMetadata {
 
 function pairKey(rate: TossExchangeRate): string {
   return `${rate.baseCurrency.value}-${rate.quoteCurrency.value}`;
+}
+
+const MANUAL_ACCOUNT: BrokerAccount = {
+  accountRef: "manual:default",
+  displayLabel: "Manual portfolio",
+  providerId: "manual",
+  source: "manual_input",
+  accountType: "MANUAL"
+};
+
+function optionalDbString(value: unknown): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const output = asString(value);
+  return output ? output : undefined;
+}
+
+function mapManualWatchlistItem(row: Row): ManualPortfolioWatchlistItem {
+  const name = optionalDbString(row.name);
+  return {
+    symbol: asString(row.symbol),
+    market: asString(row.market),
+    source: "manual_input",
+    updatedAt: asString(row.updated_at),
+    ...(name ? { name } : {})
+  };
+}
+
+function mapManualHolding(row: Row): ManualPortfolioHolding {
+  const name = optionalDbString(row.name);
+  const averageCost = optionalDbString(row.average_cost);
+  return {
+    accountRef: "manual:default",
+    symbol: asString(row.symbol),
+    market: asString(row.market),
+    currency: asString(row.currency),
+    quantity: asString(row.quantity),
+    source: "manual_input",
+    updatedAt: asString(row.updated_at),
+    ...(name ? { name } : {}),
+    ...(averageCost ? { averageCost } : {})
+  };
+}
+
+function mapManualCashBalance(row: Row): ManualPortfolioCashBalance {
+  return {
+    accountRef: "manual:default",
+    currency: asString(row.currency),
+    amount: asString(row.amount),
+    source: "manual_input",
+    updatedAt: asString(row.updated_at)
+  };
+}
+
+function manualFreshness(lastUpdatedAt?: string): BrokerFreshness {
+  return {
+    status: "local_manual",
+    source: "manual_input",
+    message:
+      "Manual portfolio mode is active. No broker account is connected, so real holdings, cash, buying power, and order status are unavailable.",
+    ...(lastUpdatedAt ? { lastUpdatedAt } : {})
+  };
+}
+
+function latestUpdatedAt(rows: Array<{ updatedAt: string }>): string | undefined {
+  return rows.map((row) => row.updatedAt).filter(Boolean).sort().at(-1);
 }
 
 export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiGuardDatabase {
@@ -409,6 +487,72 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
     }
   };
 
+  async function readManualPortfolioSnapshot(): Promise<ManualPortfolioSnapshot> {
+    const watchlistRows = database
+      .prepare("SELECT * FROM manual_watchlist_items ORDER BY symbol ASC")
+      .all() as Row[];
+    const holdingRows = database.prepare("SELECT * FROM manual_holdings ORDER BY symbol ASC").all() as Row[];
+    const cashRows = database.prepare("SELECT * FROM manual_cash_balances ORDER BY currency ASC").all() as Row[];
+    const watchlist = watchlistRows.map(mapManualWatchlistItem);
+    const holdings = holdingRows.map(mapManualHolding);
+    const cashBalances = cashRows.map(mapManualCashBalance);
+    const lastUpdatedAt = latestUpdatedAt([...watchlist, ...holdings, ...cashBalances]);
+
+    return {
+      account: MANUAL_ACCOUNT,
+      watchlist,
+      holdings,
+      cashBalances,
+      freshness: manualFreshness(lastUpdatedAt)
+    };
+  }
+
+  const manualPortfolio: ManualPortfolioRepository = {
+    async upsertWatchlistItem(input: ManualPortfolioWatchlistInput): Promise<ManualPortfolioSnapshot> {
+      database
+        .prepare(
+          `INSERT OR REPLACE INTO manual_watchlist_items
+            (symbol, market, name, note, updated_at)
+           VALUES (?, ?, ?, ?, ?)`
+        )
+        .run(input.symbol, input.market, input.name ?? null, null, new Date().toISOString());
+      return readManualPortfolioSnapshot();
+    },
+
+    async upsertHolding(input: ManualPortfolioHoldingInput): Promise<ManualPortfolioSnapshot> {
+      database
+        .prepare(
+          `INSERT OR REPLACE INTO manual_holdings
+            (symbol, market, currency, name, quantity, average_cost, note, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          input.symbol,
+          input.market,
+          input.currency,
+          input.name ?? null,
+          input.quantity,
+          input.averageCost ?? null,
+          null,
+          new Date().toISOString()
+        );
+      return readManualPortfolioSnapshot();
+    },
+
+    async upsertCashBalance(input: ManualPortfolioCashBalanceInput): Promise<ManualPortfolioSnapshot> {
+      database
+        .prepare(
+          `INSERT OR REPLACE INTO manual_cash_balances
+            (currency, amount, updated_at)
+           VALUES (?, ?, ?)`
+        )
+        .run(input.currency, input.amount, new Date().toISOString());
+      return readManualPortfolioSnapshot();
+    },
+
+    readSnapshot: readManualPortfolioSnapshot
+  };
+
   return {
     runs: {
       async save(bundle: AgentRunBundle): Promise<void> {
@@ -494,6 +638,7 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
       }
     },
     tossReadonlySnapshots,
+    manualPortfolio,
 
     close(): void {
       database.close();

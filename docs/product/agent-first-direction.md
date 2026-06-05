@@ -144,8 +144,9 @@ Because that reference has unclear source and license status, GaemiGuard must no
 
 Stage 2 is now interpreted as Broker Connection Foundation. The existing implementation is the Toss read-only adapter slice:
 
-- Define and implement the shared broker adapter contract.
-- Keep the current Toss read-only code as the first adapter implementation.
+- The shared broker adapter contract is implemented.
+- The current Toss read-only code is wrapped as the first adapter implementation.
+- No-broker/manual portfolio mode has local watchlist, holding, and cash service/API foundations.
 - Finish production credential setup through the OS credential boundary.
 - Add real read-only Toss sync using the existing snapshot repository.
 - Show data freshness without pretending mock or not-configured state is connected.

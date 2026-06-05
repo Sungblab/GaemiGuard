@@ -113,6 +113,13 @@ Required answer pattern:
 
 > No broker account is connected, so this answer cannot verify real holdings, cash, buying power, or order status. I can still review your watchlist, manual portfolio, thesis, rules, and research artifacts.
 
+Current implementation note:
+
+- The first no-broker/manual foundation exists in code.
+- Local manual watchlist, holding, and cash inputs use the synthetic `manual:default` account reference.
+- The API exposes manual portfolio read/upsert endpoints, but the desktop workflow has not yet been expanded into a full manual portfolio editor.
+- Manual mode is local context only. It must not be displayed as a real broker connection.
+
 ## Trading Authority
 
 Trading authority must be separate from ordinary agent permission.
@@ -198,16 +205,23 @@ Stage 2 should exit only after:
 
 KIS implementation should not be mixed into the same small code slice unless the goal explicitly asks for it. KIS should first get a source note, capability mapping, and fixture plan.
 
+Current code status:
+
+- `BrokerAdapter` and capability metadata are implemented in shared/core packages.
+- Toss read-only is represented as the first adapter.
+- API health distinguishes no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.
+- Order create, modify, and cancel remain disabled/unavailable in Stage 2.
+- Production credential setup, disconnect, and real Toss sync remain future Stage 2 work.
+
 ## Future Work Order
 
 Recommended next direction:
 
-1. Define the shared broker adapter contract.
-2. Wrap the current Toss read-only code as the first adapter.
-3. Add no-broker/manual portfolio mode.
-4. Add credential setup/disconnect and real read-only Toss sync.
-5. Add KIS source note and capability mapping.
-6. Implement KIS read/account sync only after the contract is stable.
-7. Add order draft and paper trading.
-8. Add user-approved live orders.
-9. Add rule-based automation.
+1. Add credential setup/disconnect and real read-only Toss sync.
+2. Add production account sequence mapping behind the credential boundary.
+3. Add user-facing freshness and account/holdings surfaces that never imply connection before credentials and sync exist.
+4. Add KIS source note and capability mapping.
+5. Implement KIS read/account sync only after the contract is stable.
+6. Add order draft and paper trading.
+7. Add user-approved live orders.
+8. Add rule-based automation.

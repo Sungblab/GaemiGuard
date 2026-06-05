@@ -4,6 +4,8 @@ import type {
   AgentRunEvent,
   AgentRunSummary,
   ArtifactRecord,
+  BrokerAdapter,
+  BrokerAdapterStatus,
   CommanderRequest,
   CommanderResponse,
   PermissionMode,
@@ -45,6 +47,7 @@ export class InMemoryAgentRunRepository implements AgentRunRepository {
 export type CommanderRuntimeOptions = {
   repository: AgentRunRepository;
   artifactStore: ArtifactStore;
+  brokerAdapters?: BrokerAdapter[];
   tossReadOnlyConnector?: TossReadonlyConnector;
   tossSnapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus">;
   clock?: () => Date;
@@ -110,6 +113,7 @@ function buildScenarioMarkdown(symbol: string, userMessage: string): string {
 function buildAnswer(
   symbol: string,
   permissionMode: PermissionMode,
+  brokerStatuses: BrokerAdapterStatus[],
   tossStatus?: TossReadonlyConnectorStatus,
   tossSnapshotFreshness?: TossReadonlySnapshotFreshness
 ): string {
@@ -126,6 +130,16 @@ function buildAnswer(
       2,
       0,
       `Toss 읽기 도구는 ${tossStatus.status} 상태이며, 계좌/시세 조회 계약만 열려 있고 주문 생성/정정/취소는 제외됩니다.`
+    );
+  }
+
+  if (brokerStatuses.length > 0) {
+    sentences.splice(
+      2,
+      0,
+      `broker adapter availability is published as metadata for ${brokerStatuses
+        .map((status) => `${status.provider.displayName}:${status.status}`)
+        .join(", ")}. Account facts still require source and freshness context.`
     );
   }
 
@@ -163,10 +177,30 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
         })
       );
 
+      const brokerStatuses = options.brokerAdapters
+        ? await Promise.all(options.brokerAdapters.map((adapter) => adapter.getStatus()))
+        : [];
+      if (brokerStatuses.length > 0) {
+        timeline.push(
+          event(
+            idFactory,
+            runId,
+            "BrokerAgent",
+            "specialist_called",
+            "Published broker-independent adapter availability and capability metadata.",
+            startedAt,
+            {
+              adapters: brokerStatuses
+            }
+          )
+        );
+      }
+
       const tossStatus = options.tossReadOnlyConnector ? await options.tossReadOnlyConnector.getStatus() : undefined;
       const tossSnapshotFreshness = options.tossSnapshotReader
         ? await options.tossSnapshotReader.getFreshnessStatus({ now: clock().toISOString() })
         : undefined;
+      const tossBrokerStatus = brokerStatuses.find((status) => status.provider.id === "toss");
       if (tossStatus && options.tossReadOnlyConnector) {
         const tossContract = options.tossReadOnlyConnector.getToolContract();
         timeline.push(
@@ -175,8 +209,23 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
             toolContract: tossContract.tools,
             includedOperations: tossContract.includedOperations,
             forbiddenOperations: tossContract.forbiddenOperations,
+            ...(tossBrokerStatus ? { brokerAdapterStatus: tossBrokerStatus } : {}),
             ...(tossSnapshotFreshness ? { snapshotFreshness: tossSnapshotFreshness } : {})
           })
+        );
+      } else if (tossBrokerStatus) {
+        timeline.push(
+          event(
+            idFactory,
+            runId,
+            "BrokerTossAgent",
+            "specialist_called",
+            "Published Toss adapter specialist status from the common broker adapter contract.",
+            startedAt,
+            {
+              brokerAdapterStatus: tossBrokerStatus
+            }
+          )
         );
       }
 
@@ -229,7 +278,7 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       });
 
       const finishedAt = clock().toISOString();
-      const answer = buildAnswer(symbol, request.permissionMode, tossStatus, tossSnapshotFreshness);
+      const answer = buildAnswer(symbol, request.permissionMode, brokerStatuses, tossStatus, tossSnapshotFreshness);
 
       timeline.push(
         event(idFactory, runId, "CommanderAgent", "run_completed", "Commander synthesized the Stage 1 answer.", finishedAt, {

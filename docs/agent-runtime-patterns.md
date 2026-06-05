@@ -270,8 +270,8 @@ The terminal-like panels are evidence surfaces. They should help the user inspec
 Recommended order:
 
 1. Keep Stage 2 focused on the broker adapter contract, current Toss read-only adapter, credential setup, real sync, freshness, and redaction.
-2. Add no-broker/manual portfolio mode so first-run use does not require broker login.
-3. Add source-grounded Commander answers only after snapshots have source/freshness links.
+2. Build on the no-broker/manual portfolio foundation so first-run use does not require broker login.
+3. Add source-grounded Commander answers only after real snapshots have source/freshness links.
 4. Add thesis, rules, journals, and research memory in Stage 3.
 5. Add MiroFish scenario tasks in Stage 4.
 6. Add order drafts and paper trading in Stage 5.

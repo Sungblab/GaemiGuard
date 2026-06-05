@@ -458,20 +458,23 @@ button {
 
 .thesis-stable,
 .severity.pass,
-.status-ok {
+.status-ok,
+.status-readonly_available {
   background: #ecfdf5;
   color: #047857;
 }
 
 .thesis-changed,
 .severity.warning,
-.status-warning {
+.status-warning,
+.status-mock_replay {
   background: #fffbeb;
   color: #b45309;
 }
 
 .thesis-missing,
 .severity.pending,
+.status-no_broker,
 .status-not_configured,
 .status-disabled {
   background: #f3f4f6;
