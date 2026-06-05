@@ -1,54 +1,60 @@
 # GaemiGuard
 
-GaemiGuard는 한국 개인투자자를 위한 로컬 우선 투자 가드이자 에이전트 오케스트레이터입니다.
+GaemiGuard는 한국 개인투자자가 주문 버튼을 누르기 전에 한 번 더 점검할 수 있게 돕는 로컬 앱입니다.
 
-토스증권처럼 빠르게 매매하는 화면을 그대로 복제하려는 프로젝트가 아닙니다. 핵심 약속은 **거래 전 한 번 더 생각하게 하는 투자 가드**입니다. 계좌, 리서치, 시나리오 분석, 주문 초안을 하나의 대화형 터미널로 연결하되, 실주문은 명시적인 안전 장치가 갖춰지기 전까지 차단합니다.
+토스증권 같은 매매 화면을 베끼려는 프로젝트가 아닙니다. 핵심은 더 빨리 사고팔게 만드는 것이 아니라, 지금 내 판단이 너무 급한지, 빠뜨린 정보는 없는지, 주문 전에 확인할 근거가 남아 있는지 점검하는 것입니다.
 
-> Toss는 거래를 쉽게, GaemiGuard는 판단을 안전하게.
+한 줄로 말하면 이렇습니다.
 
-## 현재 상태
+> 거래는 증권사에서 하고, 판단 점검은 GaemiGuard에서 합니다.
 
-현재 코드는 Stage 1 기반 구조 위에서 Stage 2 Toss 읽기 전용 커넥터 첫 slice까지 들어간 상태입니다.
+## 지금 어디까지 됐나요?
 
-- Electron + React 데스크톱 셸
-- Fastify 로컬 API
-- SQLite 영속성
-- Markdown/JSON 아티팩트 저장소
-- 오른쪽 사이드바 Commander Agent 채팅 패널
-- Portfolio, Research, Scenario, Order Guard specialist 스텁
-- 실주문을 차단하는 deterministic permission policy
-- Toss Invest OpenAPI read-only connector skeleton
-- Devflow Native repo-local scaffold와 Codex/Claude harness
+현재 main에는 Stage 1 기반 작업과 Stage 2 Toss 읽기 전용 연결의 초반 작업이 들어가 있습니다.
 
-아직 실계좌 주문, 자동매매, 수익 예측, Toss 실사용 인증 연동은 켜져 있지 않습니다. Stage 2도 아직 exit gate를 통과하지 않았습니다. 이 저장소는 단계별로 확장하는 프로젝트이며, 작은 MVP로 닫는 방향이 아닙니다.
+지금 되는 것:
 
-## 왜 필요한가
+- 데스크톱 앱을 로컬에서 실행할 수 있습니다.
+- 로컬 API 서버가 있습니다.
+- SQLite에 앱 상태와 결과물을 저장합니다.
+- 오른쪽 Commander 채팅 패널에서 작업을 요청하는 구조가 있습니다.
+- Portfolio, Research, Scenario, Order Guard 역할의 기본 뼈대가 있습니다.
+- 실주문은 기본 정책에서 막혀 있습니다.
+- Toss Invest OpenAPI를 기준으로 읽기 전용 연결 뼈대가 있습니다.
+- 실제 Toss 호출 대신 미리 준비한 가짜 응답을 재생해서 계좌/보유종목/현재가/환율/장 일정 같은 시점별 저장 구조를 검증합니다.
+- 문서와 검증 명령을 한 번에 확인하는 Devflow 작업 점검 도구가 있습니다.
 
-개인투자자가 매매 직전에 놓치는 것은 보통 버튼이 아니라 판단 기록입니다.
+아직 안 되는 것:
 
-- 지금 보는 가격과 내 계좌의 노출을 함께 봐야 합니다.
-- 과거 가격, 리서치, 뉴스, 시나리오를 같은 맥락에서 물어볼 수 있어야 합니다.
-- 에이전트가 분석 도구를 실행하더라도 권한, 감사 로그, 승인 흐름이 먼저 있어야 합니다.
-- 자동매매는 가능성으로 열어두되 기본값은 보수적이어야 합니다.
+- 실제 Toss 계정 연결
+- 실제 계좌 동기화
+- 실제 주문 생성, 수정, 취소
+- 자동매매
+- 수익률 보장이나 매수/매도 추천
 
-GaemiGuard는 이 흐름을 로컬 앱 안에서 묶습니다. Commander Agent가 전체 작업을 지휘하고, 전문 에이전트가 계좌 분석, 리서치 정리, 시나리오 분석, 주문 검토를 맡습니다.
+Stage 2는 아직 완료된 단계가 아닙니다. 지금은 실제 돈이 움직이는 기능이 아니라, 나중에 안전하게 읽기 전용 데이터를 붙이기 위한 저장 구조와 검증 틀을 만드는 중입니다.
 
-## 빠른 시작
+## 왜 만들고 있나요?
 
-권장 방식은 **에이전트 기반 딸각 설치**입니다.
+개인투자에서 위험한 순간은 보통 “기능이 없어서”가 아니라 “생각할 틈 없이 눌러서” 생깁니다.
 
-Codex, Cursor, Claude Code 같은 코딩 에이전트에게 아래 요청을 그대로 주세요.
+예를 들면 이런 상황입니다.
 
-```text
-이 레포를 내 로컬에 설치하고 실행 가능한 상태로 세팅해줘.
-README와 docs/setup/agent-assisted-setup.md를 기준으로 진행하고,
-필요한 런타임 확인, pnpm install, pnpm docs:html, pnpm verify까지 실행해줘.
-민감 정보는 만들거나 커밋하지 말고, 막히는 부분만 나한테 물어봐.
-```
+- 방금 본 뉴스 하나만 보고 급하게 주문하려고 할 때
+- 내 계좌가 이미 같은 업종에 많이 노출되어 있는지 모를 때
+- 손실을 만회하려고 평소 원칙보다 큰 금액을 넣으려 할 때
+- AI에게 물어봤지만 그 답이 어떤 자료를 근거로 했는지 남지 않을 때
 
-에이전트가 없는 경우에만 아래 수동 명령을 사용합니다.
+GaemiGuard는 이런 흐름을 로컬 앱 안에서 붙잡는 쪽을 목표로 합니다.
 
-필요한 런타임:
+- 내 계좌와 관심 종목을 한 화면에서 보고
+- 리서치와 시나리오를 함께 남기고
+- 에이전트가 도구를 실행하더라도 권한과 기록을 남기고
+- 주문은 충분한 안전 장치가 생기기 전까지 막습니다.
+
+## 빠르게 실행하기
+
+필요한 것:
 
 - Node.js 22 이상
 - pnpm 10 이상
@@ -68,7 +74,7 @@ pnpm dev
 기본 주소:
 
 - API: `http://127.0.0.1:4317`
-- Desktop UI dev server: `http://127.0.0.1:5173`
+- 데스크톱 화면 개발 서버: `http://127.0.0.1:5173`
 
 검증:
 
@@ -76,113 +82,119 @@ pnpm dev
 pnpm verify
 ```
 
-또는 단계별로 실행:
+문서를 바꿨다면 이것도 실행합니다.
 
 ```powershell
-pnpm test
-pnpm typecheck
-pnpm build
+pnpm docs:agent-check
+pnpm docs:html
+```
+
+화면 흐름을 바꿨다면 Windows에서는 아래 명령으로 확인합니다.
+
+```powershell
+pnpm smoke:desktop
+```
+
+## 에이전트에게 맡겨서 설치하기
+
+Codex, Cursor, Claude Code 같은 코딩 에이전트를 쓴다면 아래처럼 시키면 됩니다.
+
+```text
+이 저장소를 로컬에서 실행 가능한 상태로 세팅해줘.
+README.md와 docs/setup/agent-assisted-setup.md를 기준으로 진행하고,
+런타임 확인, pnpm install, pnpm docs:html, pnpm verify까지 실행해줘.
+실제 Toss 비밀값이나 계좌번호는 만들거나 저장하지 말고,
+막히는 부분만 나한테 물어봐.
 ```
 
 ## 저장소 구조
 
 ```text
 apps/
-  api/       Fastify 로컬 API
+  api/       로컬 API 서버
   desktop/   Electron + React 데스크톱 앱
+
 packages/
-  core/      Commander runtime, permission engine, order guard, artifacts
-  db/        SQLite schema/repository
-  shared/    API와 UI가 공유하는 타입
+  core/      Commander 실행 흐름, 권한 정책, 주문 차단, 결과물 저장
+  db/        SQLite 구조와 저장 코드
+  shared/    API와 UI가 함께 쓰는 타입
+
 docs/
-  architecture/  설계 인덱스와 런타임 설계
-  design/        설계 설문과 초기 화면 자료
+  architecture/  설계 문서와 코드 위치 지도
+  stages/        단계별 완료 기준
+  waterfall/     단계별 개발 계획
+  handoffs/      긴 다음 작업 명세
+
 vendor/
-  tossinvest/    Toss Invest Open API 로컬 사본
-prototypes/      초기 UI 프로토타입
+  tossinvest/    Toss Invest OpenAPI 로컬 사본
 ```
 
-`external/`은 의도적으로 Git에서 제외합니다. MiroFish, Hermes, OpenBB 같은 로컬 참고 구현이나 대형 sidecar는 이 폴더에 두고, GaemiGuard 저장소에는 경량 wrapper와 문서화된 경계만 남깁니다.
+`external/`은 Git에 올리지 않습니다. 큰 참고 구현이나 선택형 보조 도구는 그 안에 두고, 이 저장소에는 필요한 연결 지점과 문서만 남기는 방식입니다.
 
-## 주요 설계 문서
+## 중요한 문서
 
-| 문서 | 용도 |
+| 문서 | 언제 보나요? |
 | --- | --- |
-| `docs/README.md` | 문서 허브와 읽기 순서 |
-| `gaemiguard-design-spec.md` | 제품/아키텍처 설계 결정 원본 |
-| `docs/development-status.md` | 현재 개발 상태, 완료/진행/다음 작업을 보는 에이전트 handoff 문서 |
-| `docs/architecture/design-index.md` | 현재 설계 자료의 인덱스 |
-| `docs/architecture/maps/README.md` | 문서, 코드 소유 경로, 검증 gate 연결표 |
-| `docs/architecture/stage-1-foundation.md` | Stage 1 범위와 수용 기준 |
-| `docs/architecture/agent-runtime.md` | Commander/specialist 에이전트 런타임과 권한 모델 |
-| `docs/roadmap.md` | 단계별 개발 로드맵 |
-| `docs/waterfall/00-master-plan.md` | 회사식 Gate-Based Waterfall 마스터 플랜 |
-| `docs/gaemiguard-all-docs.html` | 주요 문서를 한 번에 읽는 단일 HTML 문서 |
-| `docs/contributing/workflow.md` | Devflow 기반 개발/마무리 workflow |
-| `docs/testing/strategy.md` | 검증 gate와 UI smoke 기준 |
-| `docs/setup/agent-assisted-setup.md` | 에이전트 기반 자동 설치/셋업 지침 |
-| `docs/setup/playwright-smoke.md` | Windows-safe Playwright UI smoke 지침 |
-| `AGENTS.md` | 코딩 에이전트가 따라야 할 설치/검증/안전 지침 |
-| `NOTICE`, `THIRD_PARTY_NOTICES.md` | AGPL 및 외부 도구 라이선스 경계 |
-| `docs/reviews/2026-06-04-ten-loop-planning-review.md` | 10회 기획/리뷰/리서치 루프 결과 |
-| `docs/research/2026-06-04-planning-research.md` | Toss/API/에이전트/금융 AI 리서치 근거 |
-| `docs/toss-invest-openapi.md` | Toss Invest Open API 요약 |
-| `vendor/tossinvest/openapi-1.0.3.json` | Toss Invest Open API 원본 사본 |
+| `AGENTS.md` | 코딩 에이전트가 지켜야 하는 첫 규칙 |
+| `docs/agent-index.md` | 에이전트가 어디부터 읽을지 보는 짧은 길잡이 |
+| `docs/development-status.md` | 지금 끝난 일, 진행 중인 일, 다음 작업 |
+| `docs/development-history.md` | PR #1부터 지금까지 무슨 일을 했는지 |
+| `docs/README.md` | 전체 문서 목차 |
+| `docs/stages/stage-2-toss-readonly-connector.md` | 현재 Stage 2 기준 |
+| `docs/gaemiguard-all-docs.html` | 여러 문서를 한 파일로 묶은 HTML 문서 |
+| `docs/testing/strategy.md` | 어떤 검증 명령을 언제 돌리는지 |
+| `docs/setup/agent-assisted-setup.md` | 에이전트에게 설치를 맡길 때 기준 |
 
 ## 개발 단계
 
-GaemiGuard는 다음 순서로 넓힙니다.
+GaemiGuard는 한 번에 모든 기능을 여는 방식이 아닙니다. 안전한 순서대로 단계를 닫아가며 넓힙니다.
 
-1. Stage 1: 로컬 앱, API, DB, 아티팩트, 에이전트 패널, 권한 엔진
-2. Stage 2: Toss Invest Open API 읽기 전용 커넥터
-3. Stage 3: 계좌/종목/리서치 메모리와 출처 기반 답변
-4. Stage 4: MiroFish sidecar를 통한 시나리오 분석
-5. Stage 5: 주문 초안, paper trading, 리스크 리포트
+1. Stage 1: 로컬 앱, API, DB, 결과물 저장, 채팅 패널, 권한 정책
+2. Stage 2: Toss Invest OpenAPI 읽기 전용 연결
+3. Stage 3: 계좌/종목/리서치 메모리와 근거 있는 답변
+4. Stage 4: 시나리오 분석 보조 도구 연결
+5. Stage 5: 주문 초안, 모의투자, 리스크 리포트
 6. Stage 6: 명시 승인 기반 제한적 실주문
 7. Stage 7: 사용자 원칙 기반 자동매매 오케스트레이션
 
-각 단계는 이전 단계의 감사 로그, 권한 모델, 실패 모드가 검증된 뒤에만 열립니다.
+각 단계는 문서에 적힌 완료 기준과 검증을 통과해야 다음 단계로 넘어갑니다.
 
-개발 방식은 Gate-Based Waterfall입니다. 각 Stage는 `docs/stages/`의 게이트 계약을 통과해야 다음 단계로 넘어갑니다.
-
-## 보안과 투자 고지
+## 보안과 투자 경계
 
 GaemiGuard는 투자 판단을 돕는 도구입니다. 특정 수익률, 미래 가격, 매매 성과를 약속하지 않습니다.
 
-현재 기본 정책은 실주문을 차단합니다. 향후 자동매매나 실주문 기능을 추가하더라도 다음 조건이 먼저 필요합니다.
+현재 기본 정책은 실주문 차단입니다. 나중에 실주문 기능을 열더라도 최소한 아래가 먼저 필요합니다.
 
-- 사용자 승인 흐름
-- 주문 idempotency key
+- 사용자의 명시 승인
+- 중복 주문 방지 키
 - 감사 로그
-- kill switch
+- 즉시 중단 스위치
 - 계좌/종목/금액별 제한
-- 실패 시 rollback 또는 명확한 중단 상태
-- 민감 정보 저장/마스킹 정책
+- 실패했을 때의 명확한 중단 상태
+- 비밀값 저장과 마스킹 정책
 
-API 키, OAuth client secret, 계좌 식별자, 토큰, 로그 원본 같은 민감 정보는 이슈나 PR에 올리지 마세요. 보안 문제는 `SECURITY.md`를 따라 비공개로 제보해 주세요.
+API 키, OAuth 비밀값, 계좌 식별자, 토큰, 원본 로그 같은 민감 정보는 이슈나 PR에 올리지 마세요. 보안 문제는 `SECURITY.md`를 따라 비공개로 제보해 주세요.
 
-## 기여하기
+## 기여 방향
 
-기여 방식은 `CONTRIBUTING.md`를 따릅니다.
+좋은 기여:
 
-좋은 기여 방향:
-
-- 권한 모델과 감사 로그를 더 명확하게 만드는 변경
-- Toss Invest Open API의 공식 문서 기반 커넥터
-- 투자 판단 근거를 저장하고 재현하기 쉬운 아티팩트
-- UI의 정보 밀도와 사용성을 높이는 변경
+- 권한 정책과 감사 로그를 더 명확하게 만드는 변경
+- Toss Invest OpenAPI 공식 문서 기반의 읽기 전용 연결
+- 투자 판단 근거를 저장하고 다시 확인하기 쉬운 결과물
+- 화면에서 중요한 정보를 더 잘 보이게 만드는 변경
 - 테스트 가능한 작은 런타임 개선
 
-피해야 할 방향:
+피해야 할 기여:
 
-- 비공식 웹 내부 API 의존
+- 비공식 Toss 웹 내부 API 의존
 - 승인 없는 실주문 실행
 - 수익 보장처럼 보이는 문구
-- 계좌/토큰/로그 원본이 포함된 테스트 fixture
-- 앱 전체를 Docker 실행에 묶는 구조
+- 계좌번호, 토큰, 원본 로그가 들어간 테스트 자료
+- 앱 전체를 무거운 Docker 실행에 묶는 구조
 
 ## 라이선스
 
 AGPL-3.0-only입니다. 자세한 내용은 `LICENSE`를 확인하세요.
 
-외부 도구와 vendored 문서는 각자의 라이선스를 유지합니다. 배포/통합 경계는 `NOTICE`와 `THIRD_PARTY_NOTICES.md`를 확인하세요.
+외부 도구와 vendored 문서는 각자의 라이선스를 유지합니다. 배포와 통합 경계는 `NOTICE`와 `THIRD_PARTY_NOTICES.md`를 확인하세요.
