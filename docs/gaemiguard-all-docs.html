@@ -387,7 +387,7 @@
 <a href="#doc-34"><span>Handoff Specs</span><small>docs/handoffs/README.md</small></a></div>
 <div class="nav-group"><button class="group-filter" data-filter="Research And Reviews">Research And Reviews <span>2</span></button><a href="#doc-35"><span>GaemiGuard Planning Research</span><small>docs/research/2026-06-04-planning-research.md</small></a>
 <a href="#doc-36"><span>Ten-Loop Planning Review</span><small>docs/reviews/2026-06-04-ten-loop-planning-review.md</small></a></div>
-<div class="nav-group"><button class="group-filter" data-filter="Open Source And Setup">Open Source And Setup <span>8</span></button><a href="#doc-37"><span>GaemiGuard Agent Instructions</span><small>AGENTS.md</small></a>
+<div class="nav-group"><button class="group-filter" data-filter="Open Source And Setup">Open Source And Setup <span>8</span></button><a href="#doc-37"><span>GaemiGuard 에이전트 작업 안내</span><small>AGENTS.md</small></a>
 <a href="#doc-38"><span>변경 기록</span><small>CHANGELOG.md</small></a>
 <a href="#doc-39"><span>행동 강령</span><small>CODE_OF_CONDUCT.md</small></a>
 <a href="#doc-40"><span>기여 가이드</span><small>CONTRIBUTING.md</small></a>
@@ -413,7 +413,7 @@
         <div class="stats">
           <span class="chip"><strong>50</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T15:16:19.395Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-05T15:20:39.937Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
@@ -5512,49 +5512,114 @@ Codex: logged in / not logged in</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-37" data-category="Open Source And Setup" data-path="AGENTS.md">
-  <div class="doc-kicker">Open Source And Setup · AGENTS.md · 2KB</div>
-  <h2>GaemiGuard Agent Instructions</h2>
-  <h1 id="doc-37-gaemiguard-agent-instructions">GaemiGuard Agent Instructions</h1>
-<h2 id="doc-37-read-first">Read First</h2>
-<p>For every development goal, read these before changing code:</p>
+  <div class="doc-kicker">Open Source And Setup · AGENTS.md · 5KB</div>
+  <h2>GaemiGuard 에이전트 작업 안내</h2>
+  <h1 id="doc-37-gaemiguard-에이전트-작업-안내">GaemiGuard 에이전트 작업 안내</h1>
+<p>이 문서는 Codex나 다른 에이전트가 GaemiGuard 저장소에서 작업을 시작할 때 가장 먼저 읽는 짧은 규칙이다.</p>
+<p>목표는 두 가지다.</p>
+<ul>
+<li>다음 작업자가 어디부터 읽고 무엇을 하면 되는지 바로 알게 한다.</li>
+<li>사용자가 읽어도 이해할 수 있게, 어렵고 짧은 말보다 쉬운 한국어 설명을 우선한다.</li>
+</ul>
+<h2 id="doc-37-말하는-방식">말하는 방식</h2>
+<ul>
+<li>사용자에게 답할 때는 기본적으로 한국어로 말한다.</li>
+<li>영어 용어나 개발 용어를 꼭 써야 하면, 처음에는 쉬운 말로 풀어서 설명한다.</li>
+<li>너무 짧게 줄이다가 뜻이 어려워지는 것보다, 조금 길어도 이해되는 설명을 우선한다.</li>
+<li>“하네스”처럼 프로젝트에서 이미 쓰는 말은 필요하면 함께 쓰되, 자동 검사 묶음이나 작업 보조 장치처럼 뜻을 같이 알려준다.</li>
+<li>완료했다고 말하기 전에는 실제로 어떤 검사를 돌렸고 결과가 어땠는지 함께 말한다.</li>
+</ul>
+<h2 id="doc-37-작업-전에-먼저-읽을-문서">작업 전에 먼저 읽을 문서</h2>
+<p>개발 작업을 시작하기 전에 아래 순서대로 읽는다.</p>
 <ol>
 <li><code>docs/agent-index.md</code></li>
-<li><code>docs/development-status.md</code></li>
-<li>The active stage gate under <code>docs/stages/</code></li>
-<li>Any source document named by the user or by the active status entry</li>
 </ol>
-<p><code>docs/agent-index.md</code> is the agent routing map. <code>docs/development-status.md</code> is the current truth for what is done, what is in progress, what is blocked, and what to do next.</p>
-<h2 id="doc-37-setup-contract">Setup Contract</h2>
-<p>When asked to set up or verify the repo:</p>
+<ul>
+<li>에이전트가 어디를 보면 되는지 알려주는 길잡이다.</li>
+</ul>
 <ol>
-<li>Inspect OS/shell, <code>package.json</code>, <code>pnpm-workspace.yaml</code>, and <code>.gitignore</code>.</li>
-<li>Verify Node.js 22+ and pnpm 10+.</li>
-<li>Run <code>pnpm install</code>.</li>
-<li>Run <code>pnpm docs:agent-check</code>.</li>
-<li>Run <code>pnpm docs:html</code>.</li>
-<li>Run <code>pnpm verify</code>.</li>
-<li>Report exact failures.</li>
+<li><code>docs/development-status.md</code></li>
 </ol>
-<h2 id="doc-37-safety">Safety</h2>
 <ul>
-<li>Do not create, request, print, store, or commit Toss secrets, OAuth tokens, account numbers, order IDs, or personal identifiers.</li>
-<li>Do not create <code>.env</code> files with real credentials.</li>
-<li>Do not enable live trading, automatic trading, or Toss order mutation endpoints unless a later approved stage explicitly allows it.</li>
-<li>Do not call unofficial Toss web/internal APIs.</li>
-<li>Do not install optional sidecars such as Hermes, MiroFish, OpenBB, or Graphiti unless explicitly asked.</li>
-<li>Keep generated app build output such as <code>apps/desktop/dist</code> out of commits.</li>
+<li>지금까지 끝난 일, 진행 중인 일, 막힌 일, 다음 작업이 정리된 현재 상태 문서다.</li>
 </ul>
-<h2 id="doc-37-verification">Verification</h2>
+<ol>
+<li>현재 작업 단계 문서</li>
+</ol>
 <ul>
-<li>Normal repo work: <code>pnpm verify</code></li>
-<li>Documentation updates: also run <code>pnpm docs:agent-check</code> and <code>pnpm docs:html</code></li>
-<li>User-visible desktop UI workflow changes: run <code>pnpm smoke:desktop</code></li>
+<li>예: Stage 2 작업이면 <code>docs/stages/stage-2-toss-readonly-connector.md</code></li>
 </ul>
-<p>Use <code>pnpm smoke:desktop</code> instead of ad-hoc Vite preview servers on Windows.</p>
-<h2 id="doc-37-handoff">Handoff</h2>
-<p>When writing a next-session prompt, use the <code>/goal</code> prompt format with <code>CWD</code>, <code>Goal</code>, context, constraints, verification, and completion criteria.</p>
-<h2 id="doc-37-product-boundary">Product Boundary</h2>
-<p>GaemiGuard is an investment guard and local-first agent orchestrator. It is not a profit bot, brokerage clone, unofficial broker wrapper, or live trading automation tool.</p>
+<ol>
+<li>사용자가 직접 말한 문서</li>
+</ol>
+<ul>
+<li>사용자가 특정 문서를 읽으라고 했으면 그 문서도 반드시 확인한다.</li>
+</ul>
+<p><code>docs/agent-index.md</code>는 문서 길잡이고, <code>docs/development-status.md</code>는 현재 사실 기준이다. 둘이 다르면 <code>docs/development-status.md</code>를 먼저 믿고, 필요한 문서를 함께 고친다.</p>
+<h2 id="doc-37-작업-환경-확인">작업 환경 확인</h2>
+<p>저장소를 새로 설정하거나 검증하라고 요청받으면 아래를 확인한다.</p>
+<ol>
+<li>운영체제와 셸을 확인한다.</li>
+<li><code>package.json</code>, <code>pnpm-workspace.yaml</code>, <code>.gitignore</code>를 확인한다.</li>
+<li>Node.js 22 이상인지 확인한다.</li>
+<li>pnpm 10 이상인지 확인한다.</li>
+<li><code>pnpm install</code>을 실행한다.</li>
+<li><code>pnpm docs:agent-check</code>를 실행한다.</li>
+<li><code>pnpm docs:html</code>을 실행한다.</li>
+<li><code>pnpm verify</code>를 실행한다.</li>
+<li>실패하면 어떤 명령이 어떤 이유로 실패했는지 그대로 보고한다.</li>
+</ol>
+<h2 id="doc-37-절대-하면-안-되는-일">절대 하면 안 되는 일</h2>
+<ul>
+<li>Toss 비밀값, 토큰, 실제 계좌번호, 주문번호, 개인 식별 정보를 만들거나, 요청하거나, 출력하거나, 저장하거나, 커밋하지 않는다.</li>
+<li>실제 자격 증명이 들어간 <code>.env</code> 파일을 만들지 않는다.</li>
+<li>승인된 나중 단계가 오기 전에는 Toss 주문 생성, 주문 수정, 주문 취소 기능을 만들지 않는다.</li>
+<li>자동매매나 실주문 기능을 만들지 않는다.</li>
+<li>비공식 Toss 웹 내부 API를 호출하지 않는다.</li>
+<li>사용자가 명시적으로 요청하지 않았는데 Hermes, MiroFish, OpenBB, Graphiti 같은 선택형 보조 도구를 설치하지 않는다.</li>
+<li><code>apps/desktop/dist</code> 같은 생성된 앱 빌드 결과물을 커밋하지 않는다.</li>
+</ul>
+<h2 id="doc-37-검증-명령">검증 명령</h2>
+<p>일반 코드 작업을 마치기 전:</p>
+<pre class="code-block"><code class="language-powershell">pnpm verify</code></pre>
+<p>문서를 바꿨다면 아래도 함께 실행한다.</p>
+<pre class="code-block"><code class="language-powershell">pnpm docs:agent-check
+pnpm docs:html</code></pre>
+<p>화면 흐름이나 데스크톱 앱 사용 방식을 바꿨다면 아래도 실행한다.</p>
+<pre class="code-block"><code class="language-powershell">pnpm smoke:desktop</code></pre>
+<p>Windows에서는 임시 Vite 미리보기 서버를 직접 띄우기보다 <code>pnpm smoke:desktop</code>을 우선 사용한다.</p>
+<h2 id="doc-37-문서-html을-만드는-이유">문서 HTML을 만드는 이유</h2>
+<p><code>pnpm docs:html</code>은 여러 문서를 <code>docs/gaemiguard-all-docs.html</code> 한 파일로 묶는다.</p>
+<p>이 HTML은 다음 목적이 있다.</p>
+<ul>
+<li>사용자가 브라우저에서 전체 문서를 한 번에 읽기 쉽게 한다.</li>
+<li>다음 에이전트가 문서를 빠르게 훑을 수 있게 한다.</li>
+<li>문서가 여기저기 흩어져도 현재 상태와 작업 기준을 놓치지 않게 한다.</li>
+</ul>
+<p>그래서 문서를 바꿨다면 HTML도 다시 만들어야 한다.</p>
+<h2 id="doc-37-다음-세션에-넘길-때">다음 세션에 넘길 때</h2>
+<p>다음 작업 프롬프트를 쓸 때는 <code>/goal</code> 형식을 쓴다.</p>
+<p>포함할 내용:</p>
+<ul>
+<li><code>CWD</code></li>
+<li>목표</li>
+<li>현재 상황</li>
+<li>먼저 읽을 문서</li>
+<li>하면 안 되는 일</li>
+<li>검증 명령</li>
+<li>완료 기준</li>
+</ul>
+<p>목표가 4천자를 넘을 만큼 길면 <code>/goal</code>에 전부 넣지 않는다. 긴 내용은 <code>docs/handoffs/</code> 아래 문서로 만들고, <code>/goal</code>에는 그 문서 경로만 넣는다.</p>
+<h2 id="doc-37-제품-경계">제품 경계</h2>
+<p>GaemiGuard는 투자 위험을 줄이기 위한 로컬 우선 에이전트 도구다.</p>
+<p>GaemiGuard는 아래 제품이 아니다.</p>
+<ul>
+<li>수익 보장 봇</li>
+<li>증권사 복제 앱</li>
+<li>비공식 증권사 API 래퍼</li>
+<li>실거래 자동매매 도구</li>
+</ul>
+<p>이 경계를 흐리는 기능이나 문구를 넣지 않는다.</p>
 </article>
 <article class="doc-card" id="doc-38" data-category="Open Source And Setup" data-path="CHANGELOG.md">
   <div class="doc-kicker">Open Source And Setup · CHANGELOG.md · 1KB</div>
