@@ -107,6 +107,7 @@ prototypes/      초기 UI 프로토타입
 | 문서 | 용도 |
 | --- | --- |
 | `gaemiguard-design-spec.md` | 제품/아키텍처 설계 결정 원본 |
+| `docs/development-status.md` | 현재 개발 상태, 완료/진행/다음 작업을 보는 에이전트 handoff 문서 |
 | `docs/architecture/design-index.md` | 현재 설계 자료의 인덱스 |
 | `docs/architecture/stage-1-foundation.md` | Stage 1 범위와 수용 기준 |
 | `docs/architecture/agent-runtime.md` | Commander/specialist 에이전트 런타임과 권한 모델 |

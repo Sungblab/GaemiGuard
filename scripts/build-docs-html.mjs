@@ -65,7 +65,12 @@ function relativePath(filePath) {
 }
 
 function categoryFor(docPath) {
-  if (docPath === "README.md" || docPath === "gaemiguard-design-spec.md" || docPath === "docs/roadmap.md") {
+  if (
+    docPath === "README.md" ||
+    docPath === "gaemiguard-design-spec.md" ||
+    docPath === "docs/development-status.md" ||
+    docPath === "docs/roadmap.md"
+  ) {
     return "Overview";
   }
   if (docPath.startsWith("docs/waterfall/")) return "Waterfall";

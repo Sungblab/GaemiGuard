@@ -6,6 +6,7 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 
 ## Product Decision Source
 
+- `docs/development-status.md`: current implementation status, active stage, next slice, and required read order for future agent goals.
 - `docs/gaemiguard-all-docs.html`: single-file readable bundle of project documents and raw appendices.
 - `gaemiguard-design-spec.md`: locked 65/65 design survey result. This is the highest-level product and architecture source.
 - `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
@@ -87,7 +88,7 @@ The Stage 1 implementation plan lives at `docs/superpowers/plans/2026-06-04-stag
 ## Open Source Operations
 
 - `README.md`: Korean public entry point.
-- `AGENTS.md`: coding-agent setup, verification, and safety instructions.
+- `AGENTS.md`: concise coding-agent read order, setup, verification, and safety instructions.
 - `CONTRIBUTING.md`: contribution workflow and safety expectations.
 - `SECURITY.md`: private vulnerability reporting policy.
 - `CODE_OF_CONDUCT.md`: community conduct policy.
