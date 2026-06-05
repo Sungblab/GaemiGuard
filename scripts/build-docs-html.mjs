@@ -8,11 +8,12 @@ const outputPath = path.join(repoRoot, "docs", "gaemiguard-all-docs.html");
 
 const categoryOrder = [
   "Overview",
+  "Workflow And Verification",
   "Waterfall",
   "Stage Gates",
-  "Research And Reviews",
   "Architecture",
   "Product Context",
+  "Research And Reviews",
   "Open Source And Setup",
   "External API And Sidecars",
   "Design",
@@ -75,6 +76,13 @@ function categoryFor(docPath) {
   }
   if (docPath.startsWith("docs/waterfall/")) return "Waterfall";
   if (docPath.startsWith("docs/stages/")) return "Stage Gates";
+  if (
+    docPath === "docs/README.md" ||
+    docPath.startsWith("docs/contributing/") ||
+    docPath.startsWith("docs/testing/")
+  ) {
+    return "Workflow And Verification";
+  }
   if (docPath.startsWith("docs/research/") || docPath.startsWith("docs/reviews/")) return "Research And Reviews";
   if (docPath.startsWith("docs/architecture/")) return "Architecture";
   if (docPath === "docs/gaemiguard-product-context.md") return "Product Context";
@@ -111,7 +119,26 @@ function stripInline(text) {
 function sortDocs(a, b) {
   const categoryDelta = categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
   if (categoryDelta !== 0) return categoryDelta;
+  const priorityDelta = priorityFor(a.path) - priorityFor(b.path);
+  if (priorityDelta !== 0) return priorityDelta;
   return a.path.localeCompare(b.path, "en");
+}
+
+function priorityFor(docPath) {
+  const priority = new Map([
+    ["docs/development-status.md", 0],
+    ["README.md", 1],
+    ["docs/README.md", 2],
+    ["docs/waterfall/00-master-plan.md", 0],
+    ["docs/stages/stage-2-toss-readonly-connector.md", 0],
+    ["docs/architecture/design-index.md", 0],
+    ["docs/architecture/maps/README.md", 1],
+    ["docs/architecture/agent-runtime.md", 2],
+    ["docs/contributing/workflow.md", 0],
+    ["docs/testing/strategy.md", 1],
+    ["AGENTS.md", 0],
+  ]);
+  return priority.get(docPath) ?? 100;
 }
 
 function escapeHtml(value) {

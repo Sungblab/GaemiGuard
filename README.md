@@ -8,7 +8,7 @@ GaemiGuard는 한국 개인투자자를 위한 로컬 우선 투자 가드이자
 
 ## 현재 상태
 
-현재 코드는 Stage 1 기반 구조입니다.
+현재 코드는 Stage 1 기반 구조 위에서 Stage 2 Toss 읽기 전용 커넥터 첫 slice까지 들어간 상태입니다.
 
 - Electron + React 데스크톱 셸
 - Fastify 로컬 API
@@ -17,8 +17,10 @@ GaemiGuard는 한국 개인투자자를 위한 로컬 우선 투자 가드이자
 - 오른쪽 사이드바 Commander Agent 채팅 패널
 - Portfolio, Research, Scenario, Order Guard specialist 스텁
 - 실주문을 차단하는 deterministic permission policy
+- Toss Invest OpenAPI read-only connector skeleton
+- Devflow Native repo-local scaffold와 Codex/Claude harness
 
-아직 실계좌 주문, 자동매매, 수익 예측, Toss 실사용 인증 연동은 켜져 있지 않습니다. 이 저장소는 단계별로 확장하는 프로젝트이며, 작은 MVP로 닫는 방향이 아닙니다.
+아직 실계좌 주문, 자동매매, 수익 예측, Toss 실사용 인증 연동은 켜져 있지 않습니다. Stage 2도 아직 exit gate를 통과하지 않았습니다. 이 저장소는 단계별로 확장하는 프로젝트이며, 작은 MVP로 닫는 방향이 아닙니다.
 
 ## 왜 필요한가
 
@@ -106,14 +108,18 @@ prototypes/      초기 UI 프로토타입
 
 | 문서 | 용도 |
 | --- | --- |
+| `docs/README.md` | 문서 허브와 읽기 순서 |
 | `gaemiguard-design-spec.md` | 제품/아키텍처 설계 결정 원본 |
 | `docs/development-status.md` | 현재 개발 상태, 완료/진행/다음 작업을 보는 에이전트 handoff 문서 |
 | `docs/architecture/design-index.md` | 현재 설계 자료의 인덱스 |
+| `docs/architecture/maps/README.md` | 문서, 코드 소유 경로, 검증 gate 연결표 |
 | `docs/architecture/stage-1-foundation.md` | Stage 1 범위와 수용 기준 |
 | `docs/architecture/agent-runtime.md` | Commander/specialist 에이전트 런타임과 권한 모델 |
 | `docs/roadmap.md` | 단계별 개발 로드맵 |
 | `docs/waterfall/00-master-plan.md` | 회사식 Gate-Based Waterfall 마스터 플랜 |
 | `docs/gaemiguard-all-docs.html` | 주요 문서를 한 번에 읽는 단일 HTML 문서 |
+| `docs/contributing/workflow.md` | Devflow 기반 개발/마무리 workflow |
+| `docs/testing/strategy.md` | 검증 gate와 UI smoke 기준 |
 | `docs/setup/agent-assisted-setup.md` | 에이전트 기반 자동 설치/셋업 지침 |
 | `docs/setup/playwright-smoke.md` | Windows-safe Playwright UI smoke 지침 |
 | `AGENTS.md` | 코딩 에이전트가 따라야 할 설치/검증/안전 지침 |

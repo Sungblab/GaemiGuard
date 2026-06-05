@@ -1,36 +1,32 @@
 # GaemiGuard Design Index
 
 Generated: 2026-06-04
+Last reorganized: 2026-06-05
 
-This is the canonical map of the GaemiGuard design material currently in the repository.
+This is the canonical index of GaemiGuard design and architecture material. It explains which document owns which truth so future agents do not have to infer project state from scattered files.
 
-## Product Decision Source
+## Canonical Read Order
 
-- `docs/development-status.md`: current implementation status, active stage, next slice, and required read order for future agent goals.
-- `docs/gaemiguard-all-docs.html`: single-file readable bundle of project documents and raw appendices.
-- `gaemiguard-design-spec.md`: locked 65/65 design survey result. This is the highest-level product and architecture source.
-- `docs/gaemiguard-product-context.md`: earlier product context and module direction, now aligned to staged build language.
-- `docs/agent-runtime-patterns.md`: generalized agent runtime patterns for Commander/specialist orchestration.
-- `docs/roadmap.md`: staged development roadmap from foundation runtime to guarded automation.
-- `docs/waterfall/00-master-plan.md`: gate-based waterfall operating plan.
-- `docs/reviews/2026-06-04-ten-loop-planning-review.md`: ten-cycle plan/review/research planning log.
-- `docs/research/2026-06-04-planning-research.md`: external research basis for the waterfall plan.
-- `docs/setup/agent-assisted-setup.md`: agent-assisted one-click style setup contract.
+| Order | Document | Why |
+| --- | --- | --- |
+| 1 | `AGENTS.md` | Short operational rules for agents. |
+| 2 | `docs/development-status.md` | Current implementation state, active stage, latest verification, and next slice. |
+| 3 | `docs/README.md` | Documentation hub and routing map. |
+| 4 | `docs/waterfall/00-master-plan.md` | Gate-Based Waterfall governance and stage sequence. |
+| 5 | Active `docs/stages/` gate | The contract for the current implementation work. |
+| 6 | `docs/architecture/maps/README.md` | Source docs to owning code paths and verification gates. |
 
-## External API and Sidecar Source
+## Truth Ownership
 
-- `docs/toss-invest-openapi.md`: agent-readable Toss Invest Open API summary.
-- `vendor/tossinvest/openapi-1.0.3.json`: exact vendored OpenAPI source.
-- `docs/mirofish-sidecar-porting.md`: Windows-native MiroFish sidecar decision and verification notes.
-- `external/mirofish-cli/`: local MiroFish CLI fork/wrapper.
-- `external/mirofish-original/`: original MiroFish source kept as a reference and process-boundary dependency.
-
-## Prototype Source
-
-- `prototypes/index.html`: static Toss-inspired prototype kept for visual reference.
-- `prototypes/prototype-screenshot.png`: screenshot of the prototype.
-- `docs/design/design-survey.html`: local survey UI used to collect design answers.
-- `docs/design/design-qa.md`: earlier design question/answer notes.
+| Question | Source of truth | Supporting docs |
+| --- | --- | --- |
+| What is implemented now? | `docs/development-status.md` | `CHANGELOG.md`, latest Git history |
+| What is the product promise? | `gaemiguard-design-spec.md` | `docs/gaemiguard-product-context.md`, `README.md` |
+| What is the build model? | `docs/waterfall/00-master-plan.md` | `docs/waterfall/07-testing-and-release-gates.md` |
+| What stage is active? | `docs/development-status.md` | `docs/roadmap.md`, active stage gate |
+| What is forbidden? | Active stage gate, `AGENTS.md` | `docs/waterfall/04-permission-and-safety.md` |
+| Which code owns a behavior? | `docs/architecture/maps/README.md` | package source and tests |
+| How should agents finish work? | `docs/contributing/workflow.md` | `plugins/devflow/skills/finish/SKILL.md` |
 
 ## Locked Product Shape
 
@@ -39,59 +35,60 @@ This is the canonical map of the GaemiGuard design material currently in the rep
 - Right sidebar: Commander Agent chat panel.
 - Runtime: local-first desktop app, no Docker required for normal startup.
 - Storage: SQLite plus Markdown/JSON artifacts.
-- Toss: official Toss Invest Open API first.
+- Toss: official Toss Invest OpenAPI first.
 - Agent model: internal Commander Agent plus specialists.
 - MiroFish: scenario/price-analysis sidecar, never an order executor.
-- Trading path: Order Guard, audit log, kill switch, approval/idempotency, and deterministic policy before any live order.
-
-## Stage 1 Definition
-
-Stage 1 is the foundation runtime:
-
-- Local app shell.
-- Local API.
-- SQLite schema.
-- Artifact writer.
-- Commander chat panel.
-- Deterministic specialist stubs.
-- Permission engine.
-- Order Guard dry-run.
-- No live order submit.
-
-The Stage 1 implementation plan lives at `docs/superpowers/plans/2026-06-04-stage-1-foundation.md`.
+- Trading path: Order Guard, audit log, kill switch, approval/idempotency, and deterministic policy before live orders.
 
 ## Stage Gate Contracts
 
-- `docs/stages/stage-1-foundation-gate.md`
-- `docs/stages/stage-2-toss-readonly-connector.md`
-- `docs/stages/stage-3-research-memory.md`
-- `docs/stages/stage-4-mirofish-scenario.md`
-- `docs/stages/stage-5-paper-trading-order-draft.md`
-- `docs/stages/stage-6-guarded-live-orders.md`
-- `docs/stages/stage-7-rule-based-automation.md`
+| Stage | Gate document | Current status |
+| --- | --- | --- |
+| Stage 1 Foundation Runtime | `docs/stages/stage-1-foundation-gate.md` | Complete |
+| Stage 2 Toss Readonly Connector | `docs/stages/stage-2-toss-readonly-connector.md` | In progress |
+| Stage 3 Research And Memory | `docs/stages/stage-3-research-memory.md` | Not started |
+| Stage 4 MiroFish Scenario | `docs/stages/stage-4-mirofish-scenario.md` | Not started |
+| Stage 5 Paper Trading And Order Draft | `docs/stages/stage-5-paper-trading-order-draft.md` | Not started |
+| Stage 6 Guarded Live Orders | `docs/stages/stage-6-guarded-live-orders.md` | Locked |
+| Stage 7 Rule-Based Automation | `docs/stages/stage-7-rule-based-automation.md` | Locked |
 
-## Waterfall Operating Documents
+## Product And Research Sources
 
-- `docs/waterfall/00-master-plan.md`
-- `docs/waterfall/01-product-requirements.md`
-- `docs/waterfall/02-system-architecture.md`
-- `docs/waterfall/03-agent-orchestration.md`
-- `docs/waterfall/04-permission-and-safety.md`
-- `docs/waterfall/05-data-and-artifacts.md`
-- `docs/waterfall/06-ui-and-workflows.md`
-- `docs/waterfall/07-testing-and-release-gates.md`
-- `docs/waterfall/08-change-control.md`
-- `docs/waterfall/09-operating-model.md`
-- `docs/waterfall/10-risk-register.md`
-- `docs/waterfall/11-requirements-traceability-matrix.md`
+| Document | Role |
+| --- | --- |
+| `gaemiguard-design-spec.md` | Original product and architecture decision source. |
+| `docs/gaemiguard-product-context.md` | Longer product context and module direction. |
+| `docs/agent-runtime-patterns.md` | Generalized Commander/specialist orchestration patterns. |
+| `docs/reviews/2026-06-04-ten-loop-planning-review.md` | Ten-cycle planning review log. |
+| `docs/research/2026-06-04-planning-research.md` | External research basis for the waterfall plan. |
 
-## Open Source Operations
+## External API And Sidecar Sources
 
-- `README.md`: Korean public entry point.
-- `AGENTS.md`: concise coding-agent read order, setup, verification, and safety instructions.
-- `CONTRIBUTING.md`: contribution workflow and safety expectations.
-- `SECURITY.md`: private vulnerability reporting policy.
-- `CODE_OF_CONDUCT.md`: community conduct policy.
-- `NOTICE`: project and license boundary notice.
-- `THIRD_PARTY_NOTICES.md`: external component license boundary notes.
-- `.github/workflows/ci.yml`: pull request and branch verification.
+| Document | Role |
+| --- | --- |
+| `docs/toss-invest-openapi.md` | Agent-readable Toss Invest OpenAPI summary. |
+| `vendor/tossinvest/openapi-1.0.3.json` | Exact vendored OpenAPI source. |
+| `vendor/tossinvest/README.md` | Vendored source notes. |
+| `docs/mirofish-sidecar-porting.md` | Windows-native MiroFish sidecar decision and boundary. |
+| `external/mirofish-cli/` | Local MiroFish CLI fork/wrapper, intentionally outside Git. |
+| `external/mirofish-original/` | Original MiroFish source reference, intentionally outside Git. |
+
+## Workflow And Operations Sources
+
+| Document | Role |
+| --- | --- |
+| `AGENTS.md` | Concise coding-agent rules. |
+| `docs/contributing/workflow.md` | Devflow workflow and finish contract. |
+| `docs/testing/strategy.md` | Verification gate policy. |
+| `docs/setup/agent-assisted-setup.md` | Agent-assisted setup contract. |
+| `docs/setup/playwright-smoke.md` | Windows-safe UI smoke workflow. |
+| `.devflow/config.json` | Devflow gates and required review evidence. |
+| `plugins/devflow/` | Repo-local Codex/Claude Devflow harness. |
+
+## Maintenance Rules
+
+- Do not add a new top-level planning document unless `docs/README.md` and this index are updated.
+- Do not move a stage boundary without updating the active stage gate and `docs/development-status.md`.
+- Do not claim a stage is exited unless the stage gate evidence exists.
+- Do not update docs without regenerating `docs/gaemiguard-all-docs.html`.
+- Keep agent-facing rules short in `AGENTS.md`; put detailed continuity and status in `docs/development-status.md`.

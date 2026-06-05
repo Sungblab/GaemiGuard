@@ -7,8 +7,10 @@ This is the first document coding agents should read before continuing GaemiGuar
 ## Current Baseline
 
 - Active branch after the latest completed goal: `main`
-- Latest completed implementation: `e41067e`, `chore: install Devflow Native harness`
-- Previous feature implementation: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
+- Latest completed baseline: current `main`; run `git log -1 --oneline` for the exact SHA.
+- Recent documentation baseline: `5b924a2`, `docs: use goal format for Devflow handoffs`
+- Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
+- Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
   - `devflow status --json`
@@ -30,14 +32,15 @@ This is the first document coding agents should read before continuing GaemiGuar
 
 1. `AGENTS.md`
 2. `docs/development-status.md`
-3. `docs/waterfall/00-master-plan.md`
-4. Active stage gate:
+3. `docs/README.md`
+4. `docs/waterfall/00-master-plan.md`
+5. Active stage gate:
    - currently `docs/stages/stage-2-toss-readonly-connector.md`
-5. Source references for the active work:
+6. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
    - Desktop smoke work: `docs/setup/playwright-smoke.md`
-6. Run `rg` against code/tests before assuming implementation status.
+7. Run `rg` against code/tests before assuming implementation status.
 
 ## Next-Session Prompt Format
 
@@ -137,6 +140,13 @@ Devflow Native:
 - Devflow gates are configured as `docs-html` (`pnpm docs:html`) and `verify` (`pnpm verify`).
 - Devflow review evidence is required by `.devflow/config.json`.
 - Agent host restart/new session is required for the repo-local hooks, skills, and MCP config to load.
+
+Documentation routing:
+
+- `docs/README.md` is the documentation hub.
+- `docs/architecture/design-index.md` owns the source-of-truth map.
+- `docs/architecture/maps/README.md` maps source docs to code owners and verification gates.
+- `scripts/build-docs-html.mjs` builds the searchable single-file bundle.
 
 ## Active Stage 2 Gaps
 
