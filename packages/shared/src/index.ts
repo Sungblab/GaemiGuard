@@ -1,3 +1,4 @@
+export * from "./broker-adapter";
 export * from "./toss-readonly";
 
 export type Stage = "stage_1_foundation" | "stage_2_toss_readonly_connector";
@@ -34,6 +35,7 @@ export type ToolPermissionResult = {
 export type AgentName =
   | "CommanderAgent"
   | "PortfolioAgent"
+  | "BrokerAgent"
   | "ResearchAgent"
   | "ScenarioAgent"
   | "OrderGuardAgent"
@@ -121,7 +123,15 @@ export type CommanderResponse = AgentRunBundle & {
 
 export type HealthCheck = {
   name: string;
-  status: "ok" | "disabled" | "not_configured" | "warning" | "error";
+  status:
+    | "ok"
+    | "disabled"
+    | "no_broker"
+    | "not_configured"
+    | "mock_replay"
+    | "readonly_available"
+    | "warning"
+    | "error";
   message: string;
   metadata?: Record<string, unknown>;
 };

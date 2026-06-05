@@ -49,7 +49,10 @@ Read these only when relevant:
 - Toss read-only connector skeleton
 - Mock replay based Toss snapshot persistence and sync shape
 - Safe snapshot freshness status in health/Commander surfaces
-- Broker adapter/trading authority direction documented, but not implemented yet
+- Shared BrokerAdapter contract and capability metadata
+- Toss read-only connector wrapped as the first broker adapter implementation
+- No-broker/manual portfolio foundation with local watchlist, holding, and cash inputs
+- API `/health` broker adapter status aggregation and manual portfolio endpoints
 
 Use `docs/development-status.md` for the complete current list.
 

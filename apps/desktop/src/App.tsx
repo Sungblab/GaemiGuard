@@ -119,7 +119,10 @@ const guardClass: Record<GuardLevel, string> = {
 
 function statusLabel(status: HealthCheck["status"]) {
   if (status === "ok") return "정상";
+  if (status === "no_broker") return "브로커 없음";
   if (status === "not_configured") return "미연결";
+  if (status === "mock_replay") return "목업";
+  if (status === "readonly_available") return "읽기 가능";
   if (status === "disabled") return "꺼짐";
   if (status === "warning") return "주의";
   return "오류";

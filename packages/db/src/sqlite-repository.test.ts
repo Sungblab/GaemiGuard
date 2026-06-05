@@ -163,4 +163,77 @@ describe("createGaemiGuardDatabase", () => {
 
     db.close();
   });
+
+  it("persists manual portfolio inputs with only synthetic account references", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-db-"));
+    tempDirs.push(dir);
+
+    const db = createGaemiGuardDatabase({ dataDir: dir });
+
+    await db.manualPortfolio.upsertWatchlistItem({
+      symbol: "005930",
+      market: "KR",
+      name: "Samsung Electronics",
+      note: "Manual watchlist item"
+    });
+    await db.manualPortfolio.upsertHolding({
+      symbol: "005930",
+      market: "KR",
+      currency: "KRW",
+      name: "Samsung Electronics",
+      quantity: "10",
+      averageCost: "65000",
+      note: "Manual local holding"
+    });
+    await db.manualPortfolio.upsertCashBalance({
+      currency: "KRW",
+      amount: "1000000"
+    });
+
+    const snapshot = await db.manualPortfolio.readSnapshot();
+    expect(snapshot.account).toEqual({
+      accountRef: "manual:default",
+      displayLabel: "Manual portfolio",
+      providerId: "manual",
+      source: "manual_input",
+      accountType: "MANUAL"
+    });
+    expect(snapshot.watchlist[0]).toMatchObject({
+      symbol: "005930",
+      source: "manual_input",
+      updatedAt: expect.any(String)
+    });
+    expect(snapshot.holdings[0]).toMatchObject({
+      accountRef: "manual:default",
+      symbol: "005930",
+      source: "manual_input"
+    });
+    expect(snapshot.cashBalances).toEqual([
+      {
+        accountRef: "manual:default",
+        currency: "KRW",
+        amount: "1000000",
+        source: "manual_input",
+        updatedAt: expect.any(String)
+      }
+    ]);
+    expect(snapshot.freshness).toMatchObject({
+      status: "local_manual",
+      source: "manual_input"
+    });
+
+    const serialized = JSON.stringify(snapshot);
+    const diskText = readDiskText(dir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear"
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    db.close();
+  });
 });

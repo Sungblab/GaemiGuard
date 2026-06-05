@@ -41,10 +41,34 @@ describe("buildApiApp", () => {
       "sqlite",
       "artifacts",
       "commander",
+      "broker_adapters",
       "toss_read_only",
       "sidecars",
       "kill_switch"
     ]);
+    const brokerAdaptersCheck = health.json().checks.find((check: { name: string }) => check.name === "broker_adapters");
+    expect(brokerAdaptersCheck).toMatchObject({
+      status: "not_configured",
+      metadata: {
+        adapters: [
+          {
+            provider: {
+              id: "manual",
+              displayName: "Manual portfolio"
+            },
+            status: "no_broker"
+          },
+          {
+            provider: {
+              id: "toss",
+              displayName: "Toss Invest"
+            },
+            status: "not_configured"
+          }
+        ]
+      }
+    });
+    expect(brokerAdaptersCheck.message).not.toContain("connected");
 
     const chat = await app.inject({
       method: "POST",
@@ -66,6 +90,94 @@ describe("buildApiApp", () => {
     const loaded = await app.inject({ method: "GET", url: `/agent-runs/${body.run.id}` });
     expect(loaded.statusCode).toBe(200);
     expect(loaded.json().run.id).toBe(body.run.id);
+
+    await app.close();
+  });
+
+  it("stores manual portfolio inputs through local API endpoints without broker identifiers", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({ dataDir });
+
+    const watchlist = await app.inject({
+      method: "PUT",
+      url: "/portfolio/manual/watchlist",
+      payload: {
+        symbol: "005930",
+        market: "KR",
+        name: "Samsung Electronics",
+        note: "Manual watchlist item"
+      }
+    });
+    expect(watchlist.statusCode).toBe(200);
+
+    const holding = await app.inject({
+      method: "PUT",
+      url: "/portfolio/manual/holdings",
+      payload: {
+        symbol: "005930",
+        market: "KR",
+        currency: "KRW",
+        name: "Samsung Electronics",
+        quantity: "10",
+        averageCost: "65000",
+        note: "Manual holding"
+      }
+    });
+    expect(holding.statusCode).toBe(200);
+
+    const cash = await app.inject({
+      method: "PUT",
+      url: "/portfolio/manual/cash",
+      payload: {
+        currency: "KRW",
+        amount: "1000000"
+      }
+    });
+    expect(cash.statusCode).toBe(200);
+
+    const snapshot = await app.inject({ method: "GET", url: "/portfolio/manual" });
+    expect(snapshot.statusCode).toBe(200);
+    expect(snapshot.json()).toMatchObject({
+      account: {
+        accountRef: "manual:default",
+        providerId: "manual"
+      },
+      watchlist: [
+        {
+          symbol: "005930",
+          source: "manual_input"
+        }
+      ],
+      holdings: [
+        {
+          accountRef: "manual:default",
+          symbol: "005930",
+          source: "manual_input"
+        }
+      ],
+      cashBalances: [
+        {
+          accountRef: "manual:default",
+          currency: "KRW",
+          amount: "1000000",
+          source: "manual_input"
+        }
+      ]
+    });
+
+    const serializedApiResponses = `${watchlist.body}\n${holding.body}\n${cash.body}\n${snapshot.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear"
+    ]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
 
     await app.close();
   });
@@ -153,6 +265,32 @@ describe("buildApiApp", () => {
     });
     expect(tossCheck.message).toContain("mock replay");
     expect(tossCheck.message).not.toContain("connected");
+    const brokerAdaptersCheck = health.json().checks.find((check: { name: string }) => check.name === "broker_adapters");
+    expect(brokerAdaptersCheck).toMatchObject({
+      status: "mock_replay",
+      metadata: {
+        adapters: [
+          {
+            provider: {
+              id: "manual"
+            },
+            status: "no_broker"
+          },
+          {
+            provider: {
+              id: "toss"
+            },
+            status: "mock_replay",
+            freshness: {
+              status: "fresh",
+              source: "mock_replay_snapshot"
+            }
+          }
+        ]
+      }
+    });
+    expect(brokerAdaptersCheck.message).toContain("mock replay");
+    expect(brokerAdaptersCheck.message).not.toContain("connected");
 
     const chat = await app.inject({
       method: "POST",

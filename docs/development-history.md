@@ -13,7 +13,7 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 3. PR #5-#7 established the waterfall plan, documentation hub, setup, and contribution documents.
 4. PR #8-#9 improved the Stage 1 home screen and Windows desktop smoke testing.
 5. PR #10-#11 started the Toss read-only connector and added mock replay based snapshot persistence/sync shape.
-6. PR #12-#14 added agent-facing docs, Korean README positioning, and the agent-first product direction.
+6. PR #12-#15 added agent-facing docs, Korean README positioning, agent-first product direction, and broker-agent product alignment.
 
 ## Pull Request History
 
@@ -33,6 +33,7 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 | [#12](https://github.com/Sungblab/GaemiGuard/pull/12) | `2aae76f` | 2026-06-06 | Added agent documentation index, handoff routing, Devflow gates, and documentation integrity checks. | Made future agent sessions easier to start and finish consistently. |
 | [#13](https://github.com/Sungblab/GaemiGuard/pull/13) | `5eccb43` | 2026-06-06 | Refreshed the public Korean README and onboarding copy. | Made the public repo easier for Korean users to understand. |
 | [#14](https://github.com/Sungblab/GaemiGuard/pull/14) | `aa12b4c` | 2026-06-06 | Defined GaemiGuard as an agent-first local personal investment workspace and added product direction docs. | Re-centered the product on the personal investment agent rather than a broker clone or terminal clone. |
+| [#15](https://github.com/Sungblab/GaemiGuard/pull/15) | `543d12c` | 2026-06-06 | Aligned the broker-agent product design with the Stage 2 Broker Connection Foundation direction. | Clarified that Toss is the first adapter slice, not the product center. |
 
 ## Completed Major Blocks
 
@@ -42,15 +43,13 @@ Complete. The repo has the local desktop app, local API, SQLite, artifact persis
 
 ### Stage 2 Broker Connection Foundation
 
-In progress. The current implemented code is the Toss read-only adapter skeleton and mock replay based snapshot persistence/sync shape. The product direction now treats this as the first slice of a broker-independent adapter foundation.
+In progress. The current implemented code includes the Toss read-only adapter skeleton, mock replay based snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, broker health aggregation, and no-broker/manual portfolio DB/API/service foundation.
 
 Remaining work:
 
 - Real secret storage boundary
 - Toss credential setup/disconnect
 - Real Toss read-only sync
-- Shared broker adapter contract and capability model
-- No-broker/manual portfolio mode
 - KIS source note and capability map before any KIS implementation
 - Rate-limit aware scheduling and retry policy
 - Account/holding/data freshness UI

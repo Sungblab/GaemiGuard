@@ -12,7 +12,7 @@ This is the current-state document coding agents should read before continuing G
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes mock replay Toss snapshot persistence/sync shape with safe freshness status.
-- Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code remains the Toss read-only adapter slice.
+- Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, and a no-broker/manual portfolio foundation.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
@@ -103,7 +103,7 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | Stage | Status | Notes |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
-| Stage 2 Broker Connection Foundation | In progress | First Toss read-only adapter slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Broker adapter contract, real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
+| Stage 2 Broker Connection Foundation | In progress | First Toss read-only adapter slice, mock replay SQLite snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, manual portfolio foundation, broker health aggregation, and BrokerAgent metadata are implemented. Real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
 | Stage 3 Research And Memory | Not started | Should build on accepted broker/no-broker data context and redaction boundaries. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
@@ -167,6 +167,18 @@ Stage 2 persistence/sync slice:
 - Commander/BrokerTossAgent can include snapshot availability/freshness metadata only. It does not answer with holdings or account facts from the snapshot in this slice.
 - Tests prove raw mock client secrets, access tokens, raw account numbers, and order identifier sentinels are not stored in SQLite, artifacts, API responses, or Commander/external-agent context.
 
+Stage 2 broker adapter/manual foundation slice:
+
+- Shared `BrokerAdapter` TypeScript contract and capability metadata live in `packages/shared/src/broker-adapter.ts`.
+- Toss read-only is wrapped as the first broker adapter in `packages/core/src/broker-adapter.ts`.
+- Toss adapter status distinguishes `not_configured`, `mock_replay`, and future `readonly_available`; order create/modify/cancel capabilities are disabled.
+- Manual no-broker mode has a local service/DB/API foundation for watchlist items, manual holdings, and manual cash balances using the synthetic `manual:default` account reference.
+- API `/health` now includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability without calling any real broker API.
+- API manual portfolio endpoints are available at `GET /portfolio/manual`, `PUT /portfolio/manual/watchlist`, `PUT /portfolio/manual/holdings`, and `PUT /portfolio/manual/cash`.
+- Commander emits broker-independent `BrokerAgent` availability/freshness/capability metadata before Toss specialist metadata.
+- `BrokerTossAgent` remains the Toss adapter specialist and still does not create holdings, balances, or account facts without source/freshness grounding.
+- Tests cover adapter status mapping, manual portfolio persistence/API behavior, redaction of secret/account/order sentinels, and order mutation unavailability.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -193,7 +205,6 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 
 - Production secret storage using the OS credential store.
 - Credential setup/disconnect flow.
-- Shared broker adapter contract that can represent Toss now and KIS later without making Toss the product center.
 - Real Toss sync jobs using production credentials.
 - Production account sequence mapping and scheduling around the OS credential boundary.
 - Rate-limit scheduling/backoff behavior beyond response metadata normalization.
@@ -213,17 +224,14 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 
 ## Recommended Next Slice
 
-After the mock replay persistence/sync slice and product-direction reset, the next practical Stage 2 slice is broker connection foundation in code:
+After the broker adapter/manual foundation slice, the next practical Stage 2 slice is production-safe credential and real read-only sync setup:
 
-1. Define the shared `BrokerAdapter` contract and capability flags.
-2. Wrap the current Toss read-only connector as the first adapter implementation.
-3. Preserve all Stage 2 mutation hard blocks.
-4. Add no-broker/manual portfolio mode as a first-run path if the slice includes UI or user workflow.
-5. Add production credential setup/disconnect flow backed by the OS credential store.
-6. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
-7. Add rate-limit scheduling/backoff around real sync execution.
-8. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
-9. Ground Commander account-aware answers in real read-only snapshots with source links.
-10. Complete the Stage 2 security review and gate review record.
+1. Add production credential setup/disconnect flow backed by the OS credential store.
+2. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
+3. Add production account sequence mapping behind the credential boundary.
+4. Add rate-limit scheduling/backoff around real sync execution.
+5. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
+6. Ground Commander account-aware answers in real read-only snapshots with source links.
+7. Complete the Stage 2 security review and gate review record.
 
 Do not add KIS implementation, production credential storage, UI claims of real Toss connection, manual live orders, or automation in the same slice unless the goal explicitly asks for that broader scope.

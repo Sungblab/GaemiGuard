@@ -98,5 +98,27 @@ export const migrations = [
     scope TEXT PRIMARY KEY,
     captured_at TEXT NOT NULL,
     metadata_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS manual_watchlist_items (
+    symbol TEXT PRIMARY KEY,
+    market TEXT NOT NULL,
+    name TEXT,
+    note TEXT,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS manual_holdings (
+    symbol TEXT PRIMARY KEY,
+    market TEXT NOT NULL,
+    currency TEXT NOT NULL,
+    name TEXT,
+    quantity TEXT NOT NULL,
+    average_cost TEXT,
+    note TEXT,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS manual_cash_balances (
+    currency TEXT PRIMARY KEY,
+    amount TEXT NOT NULL,
+    updated_at TEXT NOT NULL
   )`
 ];

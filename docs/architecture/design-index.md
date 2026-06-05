@@ -38,7 +38,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 - Supporting surfaces: investment guard and small local investment terminal.
 - Public short copy: "거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다."
 - Broker model: broker-independent adapter contract; Toss is first implemented adapter slice, KIS is a future candidate.
-- No-broker mode: watchlist, thesis/rules, manual portfolio, CSV, research, scenarios, and sample data must work without broker login.
+- No-broker mode: local manual watchlist, holdings, and cash inputs are now represented in DB/API/service contracts; thesis/rules, CSV, research, scenarios, and sample data remain later extensions.
 - First screen: Today Guard dashboard.
 - Right sidebar: Commander Agent chat panel.
 - Runtime: local-first desktop app, no Docker required for normal startup.
