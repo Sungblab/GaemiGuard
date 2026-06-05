@@ -8,7 +8,9 @@ import type {
   CommanderResponse,
   PermissionMode,
   TossReadonlyConnector,
-  TossReadonlyConnectorStatus
+  TossReadonlyConnectorStatus,
+  TossReadonlySnapshotFreshness,
+  TossReadonlySnapshotRepository
 } from "@gaemiguard/shared";
 import { InMemoryArtifactStore, type ArtifactStore } from "./artifact-store";
 import { reviewOrderIntent } from "./order-guard";
@@ -44,6 +46,7 @@ export type CommanderRuntimeOptions = {
   repository: AgentRunRepository;
   artifactStore: ArtifactStore;
   tossReadOnlyConnector?: TossReadonlyConnector;
+  tossSnapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus">;
   clock?: () => Date;
   idFactory?: (prefix: string) => string;
 };
@@ -104,7 +107,12 @@ function buildScenarioMarkdown(symbol: string, userMessage: string): string {
   ].join("\n");
 }
 
-function buildAnswer(symbol: string, permissionMode: PermissionMode, tossStatus?: TossReadonlyConnectorStatus): string {
+function buildAnswer(
+  symbol: string,
+  permissionMode: PermissionMode,
+  tossStatus?: TossReadonlyConnectorStatus,
+  tossSnapshotFreshness?: TossReadonlySnapshotFreshness
+): string {
   const sentences = [
     `${symbol} 기준으로 Portfolio, Research, Scenario, Order Guard를 순서대로 확인했습니다.`,
     "현재 Stage 1은 실제 Toss 계좌/주문 연결 전 foundation 단계라 샘플 포트폴리오와 제한된 리서치 컨텍스트만 사용합니다.",
@@ -118,6 +126,14 @@ function buildAnswer(symbol: string, permissionMode: PermissionMode, tossStatus?
       2,
       0,
       `Toss 읽기 도구는 ${tossStatus.status} 상태이며, 계좌/시세 조회 계약만 열려 있고 주문 생성/정정/취소는 제외됩니다.`
+    );
+  }
+
+  if (tossSnapshotFreshness) {
+    sentences.splice(
+      3,
+      0,
+      `Toss 스냅샷 freshness는 ${tossSnapshotFreshness.status}이며, 이 응답에는 snapshot availability만 반영하고 보유 수량이나 계좌 사실은 생성하지 않습니다.`
     );
   }
 
@@ -148,6 +164,9 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       );
 
       const tossStatus = options.tossReadOnlyConnector ? await options.tossReadOnlyConnector.getStatus() : undefined;
+      const tossSnapshotFreshness = options.tossSnapshotReader
+        ? await options.tossSnapshotReader.getFreshnessStatus({ now: clock().toISOString() })
+        : undefined;
       if (tossStatus && options.tossReadOnlyConnector) {
         const tossContract = options.tossReadOnlyConnector.getToolContract();
         timeline.push(
@@ -155,7 +174,8 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
             connectorStatus: tossStatus.status,
             toolContract: tossContract.tools,
             includedOperations: tossContract.includedOperations,
-            forbiddenOperations: tossContract.forbiddenOperations
+            forbiddenOperations: tossContract.forbiddenOperations,
+            ...(tossSnapshotFreshness ? { snapshotFreshness: tossSnapshotFreshness } : {})
           })
         );
       }
@@ -209,7 +229,7 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       });
 
       const finishedAt = clock().toISOString();
-      const answer = buildAnswer(symbol, request.permissionMode, tossStatus);
+      const answer = buildAnswer(symbol, request.permissionMode, tossStatus, tossSnapshotFreshness);
 
       timeline.push(
         event(idFactory, runId, "CommanderAgent", "run_completed", "Commander synthesized the Stage 1 answer.", finishedAt, {

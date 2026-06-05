@@ -11,6 +11,7 @@ This is the first document coding agents should read before continuing GaemiGuar
 - Recent documentation baseline: `5b924a2`, `docs: use goal format for Devflow handoffs`
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
+- Current Stage 2 baseline includes mock replay snapshot persistence/sync shape with safe freshness status.
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
   - `devflow status --json`
@@ -24,6 +25,12 @@ This is the first document coding agents should read before continuing GaemiGuar
   - `pnpm verify`
   - PR CI `verify`
   - main push CI
+- Latest local verification for the current persistence/sync slice:
+  - `pnpm docs:html`
+  - `pnpm verify`
+- Earlier focused checks for the persistence/sync slice:
+  - `pnpm test`
+  - `pnpm typecheck`
 - Current development model: Gate-Based Waterfall, not MVP iteration.
 - Active stage: Stage 2, Toss Readonly Connector.
 - Stage 2 status: first implementation slice is complete; Stage 2 exit gate is not complete.
@@ -87,7 +94,7 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | Stage | Status | Notes |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
-| Stage 2 Toss Readonly Connector | In progress | First read-only connector slice is merged. Real secret store, sync persistence, UI data flow, and account-grounded Commander answers remain. |
+| Stage 2 Toss Readonly Connector | In progress | First connector slice is merged; mock replay SQLite snapshot persistence/sync shape is implemented. Real secret store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
 | Stage 3 Research And Memory | Not started | Must wait for accepted Stage 2 read-only Toss data. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
@@ -133,6 +140,24 @@ Stage 2 first slice:
 - Commander/BrokerTossAgent exposes only read-only tool contract metadata.
 - Tests cover 200, 401, 403, 429, unknown enum, mutation exclusion, health wiring, and non-persistence of mock private boundary values.
 
+Stage 2 persistence/sync slice:
+
+- SQLite tables and repository APIs for mock replay read-only Toss snapshots:
+  - masked account references
+  - holdings snapshots
+  - quote/current price snapshots
+  - orderbook summary snapshots
+  - exchange rate snapshots
+  - KR/US market calendar snapshots
+  - stock warning snapshots
+  - sync logs
+  - rate-limit metadata
+- `syncMockTossReadonlySnapshots` orchestrates only the Stage 2 read-only connector methods and writes snapshot families to SQLite.
+- Mock replay connector now returns fixture data for every included read-only operation.
+- API `/health` can include safe `snapshotFreshness` metadata after an explicit mock replay sync; it still distinguishes `not_configured` and `mock_replay`.
+- Commander/BrokerTossAgent can include snapshot availability/freshness metadata only. It does not answer with holdings or account facts from the snapshot in this slice.
+- Tests prove raw mock client secrets, access tokens, raw account numbers, and order identifier sentinels are not stored in SQLite, artifacts, API responses, or Commander/external-agent context.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -154,8 +179,8 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 
 - Production secret storage using the OS credential store.
 - Credential setup/disconnect flow.
-- Real Toss sync jobs.
-- SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.
+- Real Toss sync jobs using production credentials.
+- Production account sequence mapping and scheduling around the OS credential boundary.
 - Rate-limit scheduling/backoff behavior beyond response metadata normalization.
 - Account/holdings/data freshness UI.
 - Commander answers grounded in real read-only snapshots with source links.
@@ -173,13 +198,13 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 
 ## Recommended Next Slice
 
-The next practical Stage 2 slice is persistence and sync shape, still using mock replay:
+After the mock replay persistence/sync slice, the next practical Stage 2 slice is production credential setup and real read-only sync:
 
-1. Add SQLite tables/repository APIs for read-only Toss snapshots and sync logs.
-2. Add fixture-backed sync service that writes masked account and market snapshots.
-3. Prove secret/token values are not stored in those tables.
-4. Expose last sync/freshness status through API health or a narrow read-only endpoint.
-5. Update this file and `docs/stages/stage-2-toss-readonly-connector.md`.
-6. Run `pnpm docs:html` and `pnpm verify`.
+1. Add production credential setup/disconnect flow backed by the OS credential store.
+2. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
+3. Add rate-limit scheduling/backoff around real sync execution.
+4. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
+5. Ground Commander account-aware answers in real read-only snapshots with source links.
+6. Complete the Stage 2 security review and gate review record.
 
 Do not add production credential storage or UI claims of real Toss connection in the same slice unless the goal explicitly asks for that broader scope.

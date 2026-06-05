@@ -71,3 +71,13 @@ The first Stage 2 slice introduces the official Toss Invest OpenAPI read-only co
 - Default local runtime mode is `not_configured`; tests may inject a `mock_replay` connector.
 - Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.
 - Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.
+
+## Stage 2 Persistence/Sync Slice Runtime
+
+The second Stage 2 slice adds mock replay snapshot persistence without enabling production credentials or real Toss sync.
+
+- `syncMockTossReadonlySnapshots` calls only the Stage 2 read-only connector operations and writes snapshot data to SQLite.
+- Stored account data is limited to masked account references. Raw account numbers, client secrets, access tokens, and order identifiers are not stored or forwarded.
+- SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.
+- API `/health` can report `snapshotFreshness` for explicit mock replay syncs. It distinguishes `not_configured` from `mock_replay` and must not describe mock replay as a real Toss connection.
+- `BrokerTossAgent` can include snapshot availability/freshness in timeline metadata. It still must not answer with holdings, balances, or account facts as grounded facts until the real sync and source-link slice is complete.

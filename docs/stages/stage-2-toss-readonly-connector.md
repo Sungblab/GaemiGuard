@@ -79,6 +79,36 @@ Explicitly excluded from this first slice:
 - `getCandles`
 - `getStocks`
 
+## Second Implementation Slice
+
+Implemented on 2026-06-05 as the Stage 2 persistence/sync shape slice:
+
+- SQLite snapshot tables and repository APIs for read-only Toss mock replay data:
+  - `toss_readonly_accounts`
+  - `toss_holdings_snapshots`
+  - `toss_quote_snapshots`
+  - `toss_orderbook_summary_snapshots`
+  - `toss_exchange_rate_snapshots`
+  - `toss_market_calendar_snapshots`
+  - `toss_stock_warning_snapshots`
+  - `toss_sync_logs`
+  - `toss_rate_limit_metadata`
+- `syncMockTossReadonlySnapshots` calls only the included Stage 2 read-only operations and persists a bounded snapshot bundle.
+- Mock replay connector fixture coverage now includes accounts, holdings, prices, orderbook summary, FX, KR/US market calendars, and stock warnings.
+- Account persistence uses masked account references only. Connector account sequence is used only during the in-memory sync call and is not stored by this slice.
+- API `/health` can expose `snapshotFreshness` after an explicit mock replay sync. The metadata identifies `mock_replay_snapshot`, freshness, last successful sync time, snapshot counts, and rate-limit scopes.
+- Commander/BrokerTossAgent can receive snapshot availability/freshness metadata only; it still cannot state holdings, balances, or account facts as true connector-grounded answers.
+- Tests cover snapshot persistence, sync logs, rate-limit metadata, raw secret/token/account/order-id non-storage, health freshness wiring, Commander redaction, and mutation hard-block preservation.
+
+Explicitly excluded from this second slice:
+
+- Production OS credential store.
+- User credential setup or disconnect UI.
+- Real Toss API sync jobs.
+- Production account sequence mapping.
+- UI account/holdings/data freshness views.
+- Commander account answers grounded in real read-only snapshots with source links.
+
 ## Out Of Scope
 
 - `POST /api/v1/orders`.
@@ -93,7 +123,6 @@ Explicitly excluded from this first slice:
 Store:
 
 - masked account reference
-- connector account sequence mapping locally
 - holdings snapshot
 - quote snapshot
 - orderbook snapshot summary
@@ -102,11 +131,17 @@ Store:
 - stock warning snapshot
 - sync log and rate-limit metadata
 
+Deferred until the production credential/sync slice:
+
+- connector account sequence mapping locally, kept behind the credential boundary
+
 Do not store:
 
 - raw client secret in SQLite
 - raw access token in artifact
 - unmasked account number in external artifacts
+- raw account number in SQLite
+- order identifiers in Stage 2 read-only snapshot persistence
 
 ## UI Contract
 
@@ -140,6 +175,7 @@ Stage 2 exits when:
 - OpenAPI contract tests pass for included endpoints.
 - Mock replay tests cover 200, 401, 403, 429, and unknown enum cases.
 - Token storage does not write secrets to DB/artifacts.
+- Mock replay snapshot persistence does not write raw secrets, tokens, raw account numbers, or order identifiers to DB/artifacts/API/Commander context.
 - UI read-only data flow works.
 - Commander read-only account question works with source links.
 - Mutation endpoints remain unavailable or hard-blocked.
@@ -148,7 +184,8 @@ Stage 2 exits when:
 
 - Production secret storage using the OS credential store.
 - User-facing credential setup and disconnect flow.
-- Real Toss sync jobs and SQLite snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, calendars, warnings, sync logs, and rate-limit metadata.
+- Real Toss sync jobs using the implemented snapshot repository.
+- Production account sequence mapping behind the credential boundary.
 - Rate-limit scheduler/backoff behavior beyond response metadata normalization.
 - UI account/holdings/data freshness views.
 - Commander account-aware answers grounded in real connector snapshots with source links.

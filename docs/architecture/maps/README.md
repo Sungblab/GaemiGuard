@@ -8,5 +8,5 @@ Current routing:
 | Documentation routing | `docs/README.md`, `docs/architecture/design-index.md` | `scripts/build-docs-html.mjs`, `docs/gaemiguard-all-docs.html` | `pnpm docs:html`, `pnpm verify` |
 | Stage plan | `docs/waterfall/00-master-plan.md`, `docs/stages/` | repo-wide | stage gate evidence |
 | Agent runtime | `docs/architecture/agent-runtime.md` | `packages/core/src/commander-runtime.ts`, `apps/api/src/app.ts` | `pnpm verify` |
-| Toss read-only connector | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` | `packages/shared/src/toss-readonly.ts`, `packages/core/src/toss-readonly-connector.ts` | connector tests, `pnpm verify` |
+| Toss read-only connector | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json`, `docs/stages/stage-2-toss-readonly-connector.md` | `packages/shared/src/toss-readonly.ts`, `packages/core/src/toss-readonly-connector.ts`, `packages/core/src/toss-readonly-sync.ts`, `packages/db/src/schema.ts`, `packages/db/src/sqlite.ts`, `apps/api/src/app.ts` | connector tests, DB snapshot tests, API health tests, `pnpm verify` |
 | Desktop smoke | `docs/setup/playwright-smoke.md` | `apps/desktop/`, `scripts/smoke-desktop-ui.ps1` | `pnpm smoke:desktop` |

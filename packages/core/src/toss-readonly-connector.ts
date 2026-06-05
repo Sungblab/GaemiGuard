@@ -727,6 +727,12 @@ export type MockTossReadonlyConnectorOptions = {
   accessToken: string;
 };
 
+const MOCK_RATE_LIMIT: TossRateLimitSnapshot = {
+  limit: "10",
+  remaining: "9",
+  reset: "1"
+};
+
 export function createMockTossReadonlyConnector(_options: MockTossReadonlyConnectorOptions): TossReadonlyConnector {
   return {
     async getStatus(): Promise<TossReadonlyConnectorStatus> {
@@ -746,26 +752,128 @@ export function createMockTossReadonlyConnector(_options: MockTossReadonlyConnec
             accountType: { value: "BROKERAGE", known: true }
           }
         ],
-        rateLimit: {}
+        rateLimit: MOCK_RATE_LIMIT
       };
     },
     async getHoldings(): Promise<TossConnectorResult<TossHoldingsOverview>> {
-      return unavailableResult();
+      return {
+        data: {
+          totalPurchaseAmount: { krw: "1000000", usd: null },
+          marketValue: {
+            amount: { krw: "1050000", usd: null },
+            amountAfterCost: { krw: "1047000", usd: null }
+          },
+          profitLoss: {
+            amount: { krw: "50000", usd: null },
+            amountAfterCost: { krw: "47000", usd: null },
+            rate: "5.00",
+            rateAfterCost: "4.70"
+          },
+          dailyProfitLoss: {
+            amount: { krw: "-10000", usd: null },
+            rate: "-0.95"
+          },
+          items: [
+            {
+              symbol: "005930",
+              name: "삼성전자",
+              marketCountry: { value: "KR", known: true },
+              currency: { value: "KRW", known: true },
+              quantity: "10",
+              lastPrice: "70000",
+              averagePurchasePrice: "65000",
+              marketValue: {
+                purchaseAmount: "650000",
+                amount: "700000",
+                amountAfterCost: "698000"
+              },
+              profitLoss: {
+                amount: "50000",
+                amountAfterCost: "48000",
+                rate: "7.69",
+                rateAfterCost: "7.38"
+              },
+              dailyProfitLoss: {
+                amount: "-5000",
+                rate: "-0.71"
+              },
+              cost: {
+                commission: "1500",
+                tax: "500"
+              }
+            }
+          ]
+        },
+        rateLimit: MOCK_RATE_LIMIT
+      };
     },
-    async getCurrentPrices(): Promise<TossConnectorResult<TossQuote[]>> {
-      return unavailableResult();
+    async getCurrentPrices(request): Promise<TossConnectorResult<TossQuote[]>> {
+      return {
+        data: request.symbols.map((symbol) => ({
+          symbol,
+          timestamp: "2026-06-05T01:00:00Z",
+          lastPrice: symbol === "005930" ? "70000" : "0",
+          currency: { value: "KRW", known: true }
+        })),
+        rateLimit: MOCK_RATE_LIMIT
+      };
     },
-    async getOrderbookSummary(): Promise<TossConnectorResult<TossOrderbookSummary>> {
-      return unavailableResult();
+    async getOrderbookSummary(request): Promise<TossConnectorResult<TossOrderbookSummary>> {
+      return {
+        data: {
+          symbol: request.symbol,
+          timestamp: "2026-06-05T01:00:00Z",
+          currency: { value: "KRW", known: true },
+          bestAsk: { price: "70100", volume: "100" },
+          bestBid: { price: "70000", volume: "120" },
+          asks: [{ price: "70100", volume: "100" }],
+          bids: [{ price: "70000", volume: "120" }]
+        },
+        rateLimit: MOCK_RATE_LIMIT
+      };
     },
-    async getExchangeRate(): Promise<TossConnectorResult<TossExchangeRate>> {
-      return unavailableResult();
+    async getExchangeRate(request): Promise<TossConnectorResult<TossExchangeRate>> {
+      return {
+        data: {
+          baseCurrency: { value: request.baseCurrency, known: true },
+          quoteCurrency: { value: request.quoteCurrency, known: true },
+          rate: "1380.10",
+          midRate: "1379.80",
+          basisPoint: "0.30",
+          rateChangeType: { value: "UP", known: true },
+          validFrom: "2026-06-05T00:00:00Z",
+          validUntil: "2026-06-05T01:00:00Z"
+        },
+        rateLimit: MOCK_RATE_LIMIT
+      };
     },
-    async getMarketCalendar(): Promise<TossConnectorResult<TossMarketCalendar>> {
-      return unavailableResult();
+    async getMarketCalendar(request): Promise<TossConnectorResult<TossMarketCalendar>> {
+      const sessions =
+        request.market === "KR"
+          ? { integrated: null }
+          : { dayMarket: null, preMarket: null, regularMarket: null, afterMarket: null };
+      return {
+        data: {
+          market: request.market,
+          today: { date: "2026-06-05", sessions },
+          previousBusinessDay: { date: "2026-06-04", sessions },
+          nextBusinessDay: { date: "2026-06-08", sessions }
+        },
+        rateLimit: MOCK_RATE_LIMIT
+      };
     },
     async getStockWarnings(): Promise<TossConnectorResult<TossStockWarning[]>> {
-      return unavailableResult();
+      return {
+        data: [
+          {
+            warningType: { value: "NEW_WARNING_KIND", known: false },
+            exchange: "KRX",
+            startDate: "2026-06-01",
+            endDate: null
+          }
+        ],
+        rateLimit: MOCK_RATE_LIMIT
+      };
     }
   };
 }

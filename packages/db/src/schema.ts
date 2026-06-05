@@ -38,6 +38,65 @@ export const migrations = [
     key TEXT PRIMARY KEY,
     value_json TEXT NOT NULL,
     updated_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_readonly_accounts (
+    account_ref TEXT PRIMARY KEY,
+    masked_account_no TEXT NOT NULL,
+    account_type_json TEXT NOT NULL,
+    last_synced_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_holdings_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    account_ref TEXT NOT NULL,
+    synced_at TEXT NOT NULL,
+    overview_json TEXT NOT NULL,
+    FOREIGN KEY(account_ref) REFERENCES toss_readonly_accounts(account_ref) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_quote_snapshots (
+    symbol TEXT PRIMARY KEY,
+    synced_at TEXT NOT NULL,
+    quote_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_orderbook_summary_snapshots (
+    symbol TEXT PRIMARY KEY,
+    synced_at TEXT NOT NULL,
+    summary_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_exchange_rate_snapshots (
+    pair TEXT PRIMARY KEY,
+    synced_at TEXT NOT NULL,
+    rate_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_market_calendar_snapshots (
+    market TEXT PRIMARY KEY,
+    calendar_date TEXT NOT NULL,
+    synced_at TEXT NOT NULL,
+    calendar_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_stock_warning_snapshots (
+    symbol TEXT PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    synced_at TEXT NOT NULL,
+    warnings_json TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_sync_logs (
+    id TEXT PRIMARY KEY,
+    mode TEXT NOT NULL,
+    status TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    message TEXT NOT NULL,
+    account_count INTEGER NOT NULL,
+    holding_count INTEGER NOT NULL,
+    quote_count INTEGER NOT NULL,
+    orderbook_count INTEGER NOT NULL,
+    exchange_rate_count INTEGER NOT NULL,
+    market_calendar_count INTEGER NOT NULL,
+    stock_warning_count INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS toss_rate_limit_metadata (
+    scope TEXT PRIMARY KEY,
+    captured_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL
   )`
 ];
-
