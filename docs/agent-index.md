@@ -60,6 +60,7 @@ Read these only when relevant:
 - Local-only thesis/rule/journal memory persistence and API recall
 - Source-backed local research artifact persistence and API recall
 - Commander MemoryAgent context that uses thesis/rule/journal/research memory only when source/freshness metadata is usable
+- Desktop memory/research review surface with source, freshness, and skipped-source visibility
 
 Use `docs/development-status.md` for the complete current list.
 

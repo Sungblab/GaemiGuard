@@ -77,9 +77,18 @@ Implemented:
 - Commander `MemoryAgent` can recall research artifacts for research/thesis questions only when source/freshness metadata is usable.
 - Tests cover missing source metadata rejection, stale research exclusion, and redaction of secret/account/order sentinels in research artifact text, source labels, and user-question links.
 
+## Third Slice Status
+
+Implemented:
+
+- Desktop Stage 3 memory/research review panel for the selected holding.
+- User-visible source, freshness, research links, and skipped stale/missing-source recall metadata.
+- Commander review-card grounding summary for MemoryAgent used/skipped memory when a run includes memory context.
+- Desktop smoke coverage for the memory/research review surface.
+
 Remaining:
 
-- Desktop thesis/rules/journal/recall UI.
+- Desktop thesis/rules/journal/research authoring UI.
 - Research report artifacts beyond the minimal local research memory record.
 - Local Markdown/PDF/CSV ingestion.
 - Hermes/OpenBB adapter contracts.

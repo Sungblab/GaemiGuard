@@ -192,6 +192,11 @@ try {
     throw "Home screen does not show the blocked live-order badge."
   }
 
+  $memorySurface = Invoke-PlaywrightCli @("eval", "document.querySelector('.memory-research-panel') !== null && document.body.innerText.includes('Source / freshness review')")
+  if (($memorySurface -join "`n") -notmatch "true") {
+    throw "Home screen does not show the Stage 3 memory/research review surface."
+  }
+
   $inputRef = Get-Ref $before "- textbox .*?\[ref=(?<ref>e\d+)\]" "Commander textbox"
   $sendRef = Get-Ref $before "- button `"send`" \[ref=(?<ref>e\d+)\]" "send button"
 

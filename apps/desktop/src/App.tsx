@@ -19,7 +19,15 @@ import {
   Wallet
 } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import type { AgentRunEvent, ArtifactRecord, CommanderResponse, HealthCheck } from "@gaemiguard/shared";
+import type {
+  AgentRunEvent,
+  ArtifactRecord,
+  CommanderResponse,
+  HealthCheck,
+  InvestmentMemoryRecallResult,
+  InvestmentMemoryRecord,
+  InvestmentMemorySkippedItem
+} from "@gaemiguard/shared";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:4317";
 
@@ -31,6 +39,13 @@ type HealthResponse = {
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+};
+
+type MemorySummaryItem = {
+  id: string;
+  kind: string;
+  source: string;
+  freshnessStatus: string;
 };
 
 type GuardLevel = "blocked" | "warning" | "watch" | "pass" | "pending";
@@ -117,7 +132,7 @@ const guardClass: Record<GuardLevel, string> = {
   pending: "severity pending"
 };
 
-function statusLabel(status: HealthCheck["status"]) {
+function statusLabel(status: HealthCheck["status"] | string) {
   if (status === "ok") return "정상";
   if (status === "no_broker") return "브로커 없음";
   if (status === "not_configured") return "미연결";
@@ -185,6 +200,42 @@ function artifactKindLabel(kind: ArtifactRecord["kind"]) {
   return "실행 기록";
 }
 
+function memoryKindLabel(kind: InvestmentMemoryRecord["kind"] | string) {
+  if (kind === "thesis") return "Thesis";
+  if (kind === "rule") return "Rule";
+  if (kind === "journal") return "Journal";
+  if (kind === "research") return "Research";
+  return "Memory";
+}
+
+function memorySourceText(item: InvestmentMemoryRecord) {
+  const freshness = item.source.freshness;
+  const label = item.source.label;
+  return `${freshness.source} · ${freshness.status} · ${label}`;
+}
+
+function memoryLinksText(item: InvestmentMemoryRecord) {
+  const links = item.research?.links;
+  if (!links) {
+    return item.symbol ? `symbol ${item.symbol}` : "global rule";
+  }
+  const linked = [
+    ...(links.symbols ?? []),
+    ...(links.holdingSymbols ?? []),
+    ...(links.watchlistSymbols ?? [])
+  ];
+  if (linked.length > 0) {
+    return `linked ${Array.from(new Set(linked)).join(", ")}`;
+  }
+  return links.userQuestion ? "linked user question" : "no link";
+}
+
+function memoryEventItems(run: CommanderResponse, key: "usedMemory" | "skippedMemory") {
+  const memoryEvent = run.timeline.find((event) => event.agent === "MemoryAgent");
+  const value = asRecord(memoryEvent?.metadata)[key];
+  return Array.isArray(value) ? value : [];
+}
+
 function Timeline({ events }: { events: AgentRunEvent[] }) {
   return (
     <div className="timeline">
@@ -212,6 +263,96 @@ function EvidenceList({ artifacts }: { artifacts: ArtifactRecord[] }) {
             <div className="artifact-kind">{artifactKindLabel(artifact.kind)}</div>
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function MemoryResearchPanel({
+  recall,
+  selectedHolding,
+  isLoading,
+  error
+}: {
+  recall: InvestmentMemoryRecallResult | null;
+  selectedHolding: Holding;
+  isLoading: boolean;
+  error: string | null;
+}) {
+  const items = recall?.items ?? [];
+  const skipped = recall?.skipped ?? [];
+
+  return (
+    <section className="panel memory-research-panel">
+      <div className="panel-head">
+        <div>
+          <span className="eyebrow">Stage 3 Memory</span>
+          <h2>Source / freshness review</h2>
+        </div>
+        <FileText size={18} />
+      </div>
+      <div className="memory-gate-banner">
+        <ShieldCheck size={15} />
+        <span>Commander는 source와 freshness가 usable인 memory/research만 근거로 씁니다.</span>
+      </div>
+      <div className="memory-context-line">
+        <strong>{selectedHolding.symbol}</strong>
+        <span>{selectedHolding.name} 관련 thesis, rule, journal, research recall</span>
+      </div>
+      {isLoading ? <div className="empty-state">Memory recall 확인 중</div> : null}
+      {error ? <div className="api-error">{error}</div> : null}
+      {!isLoading && !error && items.length === 0 ? (
+        <div className="empty-state">아직 usable source-backed memory가 없습니다.</div>
+      ) : null}
+      <div className="memory-list">
+        {items.map((item) => (
+          <div className="memory-row" key={item.id}>
+            <div>
+              <div className="memory-row-title">
+                <span className={`memory-kind kind-${item.kind}`}>{memoryKindLabel(item.kind)}</span>
+                <strong>{item.title}</strong>
+              </div>
+              <small>{memorySourceText(item)}</small>
+              <small>{memoryLinksText(item)}</small>
+            </div>
+            <span className={`status status-${item.source.freshness.status}`}>{statusLabel(item.source.freshness.status)}</span>
+          </div>
+        ))}
+      </div>
+      {skipped.length > 0 ? (
+        <div className="skipped-memory">
+          <strong>Skipped stale/missing source</strong>
+          {skipped.map((item) => (
+            <span key={item.id}>
+              {item.id} · {item.reason}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function MemoryGroundingReview({ run }: { run: CommanderResponse }) {
+  const used = memoryEventItems(run, "usedMemory") as MemorySummaryItem[];
+  const skipped = memoryEventItems(run, "skippedMemory") as InvestmentMemorySkippedItem[];
+
+  if (used.length === 0 && skipped.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="memory-run-review">
+      <strong>Memory / research grounding</strong>
+      {used.map((item) => (
+        <span key={item.id}>
+          used {item.kind} · {item.source} · {item.freshnessStatus}
+        </span>
+      ))}
+      {skipped.map((item) => (
+        <span key={item.id}>
+          skipped {item.id} · {item.reason}
+        </span>
       ))}
     </div>
   );
@@ -253,6 +394,7 @@ function ReviewCard({ run, selectedHolding }: { run: CommanderResponse; selected
         <button type="button">리서치 실행</button>
         <button type="button">주문 초안 저장</button>
       </div>
+      <MemoryGroundingReview run={run} />
       <details className="run-details">
         <summary>
           <ChevronDown size={14} />
@@ -281,6 +423,9 @@ export function App() {
   const [selectedRange, setSelectedRange] = useState({ from: "2026-05-13", to: "2026-06-04" });
   const [input, setInput] = useState("AMD 2주 더 사도 됨?");
   const [currentRun, setCurrentRun] = useState<CommanderResponse | null>(null);
+  const [memoryRecall, setMemoryRecall] = useState<InvestmentMemoryRecallResult | null>(null);
+  const [isMemoryLoading, setIsMemoryLoading] = useState(false);
+  const [memoryError, setMemoryError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -315,6 +460,40 @@ export function App() {
       window.clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMemoryRecall() {
+      setIsMemoryLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/memory/recall?symbol=${encodeURIComponent(selectedHolding.symbol)}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const body = (await response.json()) as InvestmentMemoryRecallResult;
+        if (!cancelled) {
+          setMemoryRecall(body);
+          setMemoryError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setMemoryRecall(null);
+          setMemoryError("Memory recall API 확인이 필요합니다.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsMemoryLoading(false);
+        }
+      }
+    }
+
+    loadMemoryRecall();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedHolding.symbol]);
 
   const healthSummary = useMemo(() => {
     const ok = health.filter((check) => check.status === "ok").length;
@@ -363,6 +542,14 @@ export function App() {
 
       const body = (await response.json()) as CommanderResponse;
       setCurrentRun(body);
+      try {
+        const recallResponse = await fetch(`${API_BASE}/memory/recall?symbol=${encodeURIComponent(selectedHolding.symbol)}`);
+        if (recallResponse.ok) {
+          setMemoryRecall((await recallResponse.json()) as InvestmentMemoryRecallResult);
+        }
+      } catch {
+        setMemoryError("Memory recall API 확인이 필요합니다.");
+      }
       setMessages((items) => [
         ...items,
         {
@@ -604,6 +791,13 @@ export function App() {
                 </div>
               </div>
             </section>
+
+            <MemoryResearchPanel
+              recall={memoryRecall}
+              selectedHolding={selectedHolding}
+              isLoading={isMemoryLoading}
+              error={memoryError}
+            />
 
             <section className="panel diagnostics-panel">
               <details>

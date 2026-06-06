@@ -105,4 +105,6 @@ The first Stage 3 slices add local investment memory and source-backed local res
 - SQLite stores thesis/rule version records and journal entries under the local memory contract.
 - SQLite also stores local research artifacts under the same memory contract with research links metadata.
 - API endpoints expose local memory writes and recall at `/memory/theses`, `/memory/rules`, `/memory/journal`, `/memory/research`, and `/memory/recall`.
+- Desktop reads `/memory/recall` for the selected holding and shows source, freshness, links, and skipped stale/missing-source memory in a review panel.
+- Commander review cards surface MemoryAgent used/skipped grounding metadata when a run includes memory context.
 - Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.
