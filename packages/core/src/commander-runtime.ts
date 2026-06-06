@@ -11,6 +11,7 @@ import type {
   PermissionMode,
   TossReadonlyConnector,
   TossReadonlyConnectorStatus,
+  TossReadonlySnapshotBundle,
   TossReadonlySnapshotFreshness,
   TossReadonlySnapshotRepository
 } from "@gaemiguard/shared";
@@ -49,7 +50,8 @@ export type CommanderRuntimeOptions = {
   artifactStore: ArtifactStore;
   brokerAdapters?: BrokerAdapter[];
   tossReadOnlyConnector?: TossReadonlyConnector;
-  tossSnapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus">;
+  tossSnapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus"> &
+    Partial<Pick<TossReadonlySnapshotRepository, "readLatest">>;
   clock?: () => Date;
   idFactory?: (prefix: string) => string;
 };
@@ -115,7 +117,8 @@ function buildAnswer(
   permissionMode: PermissionMode,
   brokerStatuses: BrokerAdapterStatus[],
   tossStatus?: TossReadonlyConnectorStatus,
-  tossSnapshotFreshness?: TossReadonlySnapshotFreshness
+  tossSnapshotFreshness?: TossReadonlySnapshotFreshness,
+  accountGrounding?: string
 ): string {
   const sentences = [
     `${symbol} 기준으로 Portfolio, Research, Scenario, Order Guard를 순서대로 확인했습니다.`,
@@ -147,11 +150,62 @@ function buildAnswer(
     sentences.splice(
       3,
       0,
-      `Toss 스냅샷 freshness는 ${tossSnapshotFreshness.status}이며, 이 응답에는 snapshot availability만 반영하고 보유 수량이나 계좌 사실은 생성하지 않습니다.`
+      tossSnapshotFreshness.source === "production_snapshot"
+        ? `Toss 스냅샷 freshness는 ${tossSnapshotFreshness.status}이며 source는 ${tossSnapshotFreshness.source}입니다.`
+        : `Toss 스냅샷 freshness는 ${tossSnapshotFreshness.status}이며, 이 응답에는 snapshot availability만 반영하고 보유 수량이나 계좌 사실은 생성하지 않습니다.`
     );
   }
 
+  if (accountGrounding) {
+    sentences.splice(4, 0, accountGrounding);
+  }
+
   return sentences.join(" ");
+}
+
+function asksAccountFacts(message: string): boolean {
+  return /계좌|보유|수량|비중|잔고|portfolio|holding|account/i.test(message);
+}
+
+function canUseProductionSnapshot(freshness?: TossReadonlySnapshotFreshness): boolean {
+  return (
+    freshness?.mode === "production_secret_store" &&
+    freshness.source === "production_snapshot" &&
+    (freshness.status === "fresh" || freshness.status === "stale") &&
+    Boolean(freshness.lastSuccessfulSyncAt)
+  );
+}
+
+function buildAccountGrounding(
+  symbol: string,
+  userMessage: string,
+  freshness?: TossReadonlySnapshotFreshness,
+  snapshot?: TossReadonlySnapshotBundle,
+  productionFactsAllowed = true
+): string | undefined {
+  if (!asksAccountFacts(userMessage)) {
+    return undefined;
+  }
+
+  if (!productionFactsAllowed || !freshness || !canUseProductionSnapshot(freshness) || !snapshot) {
+    return `실제 계좌/보유 사실은 production_snapshot source/freshness가 없어서 모릅니다.`;
+  }
+
+  const matchingHolding = snapshot.holdings
+    .flatMap((holdingSnapshot) =>
+      holdingSnapshot.overview.items.map((item) => ({
+        accountRef: holdingSnapshot.accountRef,
+        syncedAt: holdingSnapshot.syncedAt,
+        item
+      }))
+    )
+    .find((holding) => holding.item.symbol === symbol);
+
+  if (!matchingHolding) {
+    return `production_snapshot source와 last sync ${freshness.lastSuccessfulSyncAt} 기준으로 ${symbol} 보유 항목은 확인되지 않았습니다.`;
+  }
+
+  return `production_snapshot source, last sync ${freshness.lastSuccessfulSyncAt} 기준으로 ${matchingHolding.accountRef} 계좌의 ${symbol} 보유 수량은 ${matchingHolding.item.quantity}입니다.`;
 }
 
 export function createCommanderRuntime(options: CommanderRuntimeOptions): CommanderRuntime {
@@ -200,7 +254,22 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       const tossSnapshotFreshness = options.tossSnapshotReader
         ? await options.tossSnapshotReader.getFreshnessStatus({ now: clock().toISOString() })
         : undefined;
+      const tossSnapshot =
+        tossSnapshotFreshness && canUseProductionSnapshot(tossSnapshotFreshness) && options.tossSnapshotReader?.readLatest
+          ? await options.tossSnapshotReader.readLatest()
+          : undefined;
       const tossBrokerStatus = brokerStatuses.find((status) => status.provider.id === "toss");
+      const productionFactsAllowed =
+        brokerStatuses.length === 0 ||
+        tossBrokerStatus?.status === "readonly_available" ||
+        tossBrokerStatus?.status === "stale";
+      const accountGrounding = buildAccountGrounding(
+        symbol,
+        request.message,
+        tossSnapshotFreshness,
+        tossSnapshot,
+        productionFactsAllowed
+      );
       if (tossStatus && options.tossReadOnlyConnector) {
         const tossContract = options.tossReadOnlyConnector.getToolContract();
         timeline.push(
@@ -210,7 +279,8 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
             includedOperations: tossContract.includedOperations,
             forbiddenOperations: tossContract.forbiddenOperations,
             ...(tossBrokerStatus ? { brokerAdapterStatus: tossBrokerStatus } : {}),
-            ...(tossSnapshotFreshness ? { snapshotFreshness: tossSnapshotFreshness } : {})
+            ...(tossSnapshotFreshness ? { snapshotFreshness: tossSnapshotFreshness } : {}),
+            ...(accountGrounding ? { accountGrounding } : {})
           })
         );
       } else if (tossBrokerStatus) {
@@ -278,7 +348,14 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       });
 
       const finishedAt = clock().toISOString();
-      const answer = buildAnswer(symbol, request.permissionMode, brokerStatuses, tossStatus, tossSnapshotFreshness);
+      const answer = buildAnswer(
+        symbol,
+        request.permissionMode,
+        brokerStatuses,
+        tossStatus,
+        tossSnapshotFreshness,
+        accountGrounding
+      );
 
       timeline.push(
         event(idFactory, runId, "CommanderAgent", "run_completed", "Commander synthesized the Stage 1 answer.", finishedAt, {

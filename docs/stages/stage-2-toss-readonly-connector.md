@@ -65,8 +65,8 @@ First-slice official data operations:
 Auth boundary:
 
 - `issueOAuth2Token` is modeled for OAuth2 client credentials token issuance.
-- This slice supports static/mock credential providers and an in-memory token cache only.
-- Production OS credential-store integration is not implemented yet.
+- Early slices supported static/mock credential providers and an in-memory token cache only.
+- The final Stage 2 slice adds a production OS credential-store boundary for credential setup/disconnect.
 - Raw client secrets and access tokens must not be written to SQLite, artifacts, Commander responses, external agent context, or docs.
 
 Explicitly forbidden mutation operations:
@@ -141,7 +141,11 @@ Implemented on 2026-06-06 as the Stage 2 broker adapter/manual foundation slice:
 - Toss adapter status distinguishes:
   - `not_configured` when credentials are absent
   - `mock_replay` when fixture replay is injected
-  - future `readonly_available` for a production read-only credential boundary
+  - `credential_configured` when credentials exist but production sync has not completed
+  - `syncing` while a read-only sync is running
+  - `readonly_available` when a production snapshot is fresh
+  - `stale` when a production snapshot is older than the freshness window
+  - `failed` when the latest production sync failed
 - Toss adapter maps Toss-specific account, holding, quote, orderbook, FX, calendar, and warning data into common broker types without exposing account sequence values.
 - No-broker/manual portfolio foundation added with local watchlist, manual holding, and manual cash models.
 - SQLite tables added for `manual_watchlist_items`, `manual_holdings`, and `manual_cash_balances`.
@@ -151,10 +155,30 @@ Implemented on 2026-06-06 as the Stage 2 broker adapter/manual foundation slice:
   - `PUT /portfolio/manual/holdings`
   - `PUT /portfolio/manual/cash`
 - Manual mode uses the synthetic account reference `manual:default`; no raw broker account reference is accepted or stored.
-- API `/health` includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.
+- API `/health` includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss credential-configured, syncing, read-only available, stale, failed, and mock replay states.
 - Commander emits `BrokerAgent` broker-independent availability/freshness/capability metadata before Toss specialist metadata.
 - `BrokerTossAgent` remains the Toss adapter specialist and does not answer account facts from availability metadata alone.
 - Tests prove raw secret/token/account/order sentinel values are not stored or exposed through DB/API/Commander/manual portfolio paths, and order mutation remains unavailable.
+
+## Fourth Implementation Slice And Gate Review
+
+Implemented on 2026-06-06 as the Stage 2 production credential/sync and exit slice:
+
+- `packages/core/src/toss-credential-store.ts` adds a Toss credential-store boundary.
+- The production credential-store implementation uses Windows Credential Manager; tests use only `createInMemoryTossCredentialStore`.
+- Credential setup/disconnect API endpoints added:
+  - `GET /settings/brokers/toss/credentials`
+  - `PUT /settings/brokers/toss/credentials`
+  - `DELETE /settings/brokers/toss/credentials`
+- `POST /sync/toss/read-only` runs production Toss read-only sync through `runTossReadonlySyncJob`.
+- Real sync reuses the SQLite snapshot repository and calls only the Stage 2 read-only Toss operations.
+- Raw Toss `accountSeq` values stay inside the credential/sync boundary and are never stored or returned.
+- Sync logs now include status, mode, failure category, safe error/request code, retry-after seconds, and next retry time.
+- API `/health` distinguishes no-broker/manual, Toss `not_configured`, `credential_configured`, `syncing`, `readonly_available`, `stale`, `failed`, and `mock_replay`.
+- Desktop UI displays Toss freshness/source status from health without presenting mock or credential-only states as a real connection.
+- Commander answers account/holding facts only from `production_snapshot` source and freshness metadata plus stored snapshots.
+- Security tests prove raw secret/token/account sequence/raw account/order sentinels are not stored or exposed through DB, API, Commander, artifacts, or external-agent context.
+- Gate review accepted in `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md`.
 
 ## Out Of Scope
 
@@ -181,13 +205,8 @@ Store:
 - exchange-rate snapshot
 - market calendar snapshot
 - stock warning snapshot
-- sync log and rate-limit metadata
-
-Deferred until the production credential/sync slice:
-
-- connector account sequence mapping locally, kept behind the credential boundary
-- user-facing credential setup and disconnect flow
-- real Toss sync jobs using production credentials
+- sync log, rate-limit metadata, failure category, safe error/request code, retry-after seconds, and next retry time
+- safe credential status only, never the credential values
 
 Do not store:
 
@@ -195,6 +214,7 @@ Do not store:
 - raw access token in artifact
 - unmasked account number in external artifacts
 - raw account number in SQLite
+- raw account sequence values in SQLite
 - order identifiers in Stage 2 read-only snapshot persistence
 
 ## UI Contract
@@ -223,31 +243,35 @@ Commander cannot:
 - create order drafts unless Stage 5 API exists
 - submit/modify/cancel orders
 - infer missing account data as fact
-- present Toss, KIS, or any broker as connected when the adapter is not configured and freshly synced
+- present Toss, KIS, or any broker as connected when the adapter is not configured, not synced, stale, failed, or mock-only
 
 ## Exit Gate
 
-Stage 2 exits when:
+Stage 2 exit accepted on 2026-06-06.
 
-- Broker adapter contract and capability metadata are represented in docs and code, or a narrower gate review explicitly defers the code contract while preserving existing Toss behavior.
+Accepted evidence:
+
+- Broker adapter contract and capability metadata are represented in docs and code.
 - OpenAPI contract tests pass for included endpoints.
 - Mock replay tests cover 200, 401, 403, 429, and unknown enum cases.
 - Token storage does not write secrets to DB/artifacts.
-- Mock replay snapshot persistence does not write raw secrets, tokens, raw account numbers, or order identifiers to DB/artifacts/API/Commander context.
-- UI read-only data flow works.
-- Commander read-only account question works with source links.
+- Production credential setup/disconnect uses the OS credential-store boundary and returns only safe status metadata.
+- Production read-only sync stores only sanitized snapshots and safe sync metadata.
+- Mock replay and production snapshot persistence do not write raw secrets, tokens, raw account numbers, account sequence values, or order identifiers to DB/artifacts/API/Commander context.
+- UI read-only freshness/status flow works without implying mock or credential-only mode is connected.
+- Commander read-only account questions work only with production snapshot source and freshness metadata.
 - Mutation endpoints remain unavailable or hard-blocked.
 - Stage 2 status is shown as broker connection/read authority only, not manual trading or automation.
+- Security review is recorded in `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md`.
 
 ## Remaining Gaps Before Stage 2 Exit
 
-- Production secret storage using the OS credential store.
-- User-facing credential setup and disconnect flow.
-- Real Toss sync jobs using the implemented snapshot repository.
-- Production account sequence mapping behind the credential boundary.
-- Rate-limit scheduler/backoff behavior beyond response metadata normalization.
-- UI account/holdings/data freshness views.
-- Commander account-aware answers grounded in real connector snapshots with source links.
-- Security review for production credential lifecycle and external-agent redaction.
-- Gate review record after full read-only workflow verification.
+None. Stage 2 is exited.
+
+Deferred to later stages:
+
 - KIS source note and capability map before any KIS implementation goal.
+- Research/memory source grounding in Stage 3.
+- Order drafts and paper trading in Stage 5.
+- User-approved manual live orders in Stage 6.
+- Rule-based automation in Stage 7.

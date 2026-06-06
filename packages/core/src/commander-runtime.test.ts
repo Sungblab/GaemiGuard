@@ -167,6 +167,186 @@ describe("createCommanderRuntime", () => {
     }
   });
 
+  it("says account facts are unknown when source and freshness are not production grounded", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      brokerAdapters: [
+        createTossBrokerAdapter({
+          connector: createMockTossReadonlyConnector({
+            clientId: "mock_client_id",
+            clientSecret: "fixture-private-value-alpha",
+            accessToken: "fixture-private-value-beta"
+          }),
+          snapshotReader: {
+            async getFreshnessStatus() {
+              return {
+                mode: "mock_replay",
+                status: "fresh",
+                source: "mock_replay_snapshot",
+                lastSuccessfulSyncAt: "2026-06-05T01:00:00.000Z",
+                ageSeconds: 180,
+                staleAfterSeconds: 300,
+                accountCount: 1,
+                holdingCount: 1,
+                quoteCount: 1,
+                orderbookCount: 1,
+                exchangeRateCount: 1,
+                marketCalendarCount: 2,
+                stockWarningCount: 1,
+                rateLimitScopes: ["getAccounts", "getHoldings"],
+                message: "Mock replay Toss read-only snapshots are fresh."
+              };
+            }
+          }
+        })
+      ],
+      clock: () => new Date("2026-06-06T02:03:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "내 005930 보유 수량 알려줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    expect(response.answer).toContain("source/freshness가 없어서 모릅니다");
+    expect(response.answer).not.toContain("005930 10");
+    expect(JSON.stringify(response)).not.toContain("fixture-private-value-alpha");
+    expect(JSON.stringify(response)).not.toContain("fixture-private-value-beta");
+  });
+
+  it("grounds account answers only from production Toss snapshots with freshness metadata", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      tossSnapshotReader: {
+        async getFreshnessStatus() {
+          return {
+            mode: "production_secret_store",
+            status: "fresh",
+            source: "production_snapshot",
+            lastSuccessfulSyncAt: "2026-06-06T03:00:00.000Z",
+            ageSeconds: 60,
+            staleAfterSeconds: 300,
+            accountCount: 1,
+            holdingCount: 1,
+            quoteCount: 1,
+            orderbookCount: 1,
+            exchangeRateCount: 1,
+            marketCalendarCount: 2,
+            stockWarningCount: 0,
+            rateLimitScopes: ["getAccounts", "getHoldings"],
+            message: "Production Toss read-only snapshots are fresh."
+          };
+        },
+        async readLatest() {
+          return {
+            accounts: [
+              {
+                accountRef: "********1234",
+                maskedAccountNo: "********1234",
+                accountType: { value: "BROKERAGE", known: true },
+                lastSyncedAt: "2026-06-06T03:00:00.000Z"
+              }
+            ],
+            holdings: [
+              {
+                snapshotId: "toss_holdings_snapshot_test",
+                accountRef: "********1234",
+                syncedAt: "2026-06-06T03:00:00.000Z",
+                overview: {
+                  totalPurchaseAmount: { krw: "1000000", usd: null },
+                  marketValue: {
+                    amount: { krw: "1050000", usd: null },
+                    amountAfterCost: { krw: "1047000", usd: null }
+                  },
+                  profitLoss: {
+                    amount: { krw: "50000", usd: null },
+                    amountAfterCost: { krw: "47000", usd: null },
+                    rate: "5.00",
+                    rateAfterCost: "4.70"
+                  },
+                  dailyProfitLoss: {
+                    amount: { krw: "-10000", usd: null },
+                    rate: "-0.95"
+                  },
+                  items: [
+                    {
+                      symbol: "005930",
+                      name: "Samsung Electronics",
+                      marketCountry: { value: "KR", known: true },
+                      currency: { value: "KRW", known: true },
+                      quantity: "10",
+                      lastPrice: "70000",
+                      averagePurchasePrice: "65000",
+                      marketValue: {
+                        purchaseAmount: "650000",
+                        amount: "700000",
+                        amountAfterCost: "698000"
+                      },
+                      profitLoss: {
+                        amount: "50000",
+                        amountAfterCost: "48000",
+                        rate: "7.69",
+                        rateAfterCost: "7.38"
+                      },
+                      dailyProfitLoss: {
+                        amount: "-5000",
+                        rate: "-0.71"
+                      },
+                      cost: {
+                        commission: "1500",
+                        tax: "500"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            quotes: [],
+            orderbooks: [],
+            exchangeRates: [],
+            marketCalendars: [],
+            stockWarnings: [],
+            syncLogs: [],
+            rateLimits: []
+          };
+        }
+      },
+      clock: () => new Date("2026-06-06T03:01:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "내 005930 보유 수량 알려줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    expect(response.answer).toContain("production_snapshot");
+    expect(response.answer).toContain("last sync 2026-06-06T03:00:00.000Z");
+    expect(response.answer).toContain("005930 보유 수량은 10");
+    expect(response.answer).toContain("********1234");
+    expect(JSON.stringify(response)).not.toContain("987654321");
+    expect(JSON.stringify(response)).not.toContain("fixture-private-value-alpha");
+  });
+
   it("publishes broker-independent BrokerAgent availability before Toss specialist metadata", async () => {
     const repository = new InMemoryAgentRunRepository();
     const artifacts = new InMemoryArtifactStore();

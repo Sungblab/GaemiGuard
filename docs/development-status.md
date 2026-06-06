@@ -11,8 +11,8 @@ This is the current-state document coding agents should read before continuing G
 - Recent documentation baseline: `5b924a2`, `docs: use goal format for Devflow handoffs`
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
-- Current Stage 2 baseline includes mock replay Toss snapshot persistence/sync shape with safe freshness status.
-- Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, and a no-broker/manual portfolio foundation.
+- Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.
+- Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
   - `devflow doctor --json`
@@ -27,15 +27,13 @@ This is the current-state document coding agents should read before continuing G
   - `pnpm verify`
   - PR CI `verify`
   - main push CI
-- Latest local verification for the current persistence/sync slice:
-  - `pnpm docs:html`
-  - `pnpm verify`
-- Earlier focused checks for the persistence/sync slice:
+- Latest focused local verification for the current credential/sync slice:
   - `pnpm test`
   - `pnpm typecheck`
 - Current development model: Gate-Based Waterfall, not MVP iteration.
-- Active stage: Stage 2, Broker Connection Foundation.
-- Stage 2 status: first implementation slice is complete; Stage 2 exit gate is not complete.
+- Latest completed stage: Stage 2, Broker Connection Foundation.
+- Stage 2 status: exit accepted after credential boundary, real read-only sync, freshness UI, Commander grounding, security tests, and gate review.
+- Next stage: Stage 3, Research And Memory.
 
 ## Read Order For Future Goals
 
@@ -47,8 +45,8 @@ This is the current-state document coding agents should read before continuing G
    - `docs/product/agent-first-direction.md`
    - `docs/product/broker-connection-and-trading.md`
    - `docs/product/external-tools-and-data.md`
-6. Active stage gate:
-   - currently `docs/stages/stage-2-toss-readonly-connector.md` (file name retained; product meaning is Broker Connection Foundation with Toss read-only as the current slice)
+6. Latest completed stage gate:
+   - `docs/stages/stage-2-toss-readonly-connector.md` (file name retained; product meaning is Broker Connection Foundation)
 7. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
@@ -103,8 +101,8 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | Stage | Status | Notes |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
-| Stage 2 Broker Connection Foundation | In progress | First Toss read-only adapter slice, mock replay SQLite snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, manual portfolio foundation, broker health aggregation, and BrokerAgent metadata are implemented. Real credential store, real sync jobs, UI data flow, and account-grounded Commander answers remain. |
-| Stage 3 Research And Memory | Not started | Should build on accepted broker/no-broker data context and redaction boundaries. |
+| Stage 2 Broker Connection Foundation | Complete | Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented. |
+| Stage 3 Research And Memory | Not started | Should build on accepted broker/no-broker data context, source/freshness metadata, and redaction boundaries. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
 | Stage 6 Guarded Manual Live Orders | Locked | User-approved manual live order submission remains forbidden before this stage. |
@@ -140,7 +138,7 @@ Stage 2 first slice:
 - OAuth2 token issuance modeled only as an injected credential/token boundary.
 - Fetch-based `TossInvestReadonlyClient` skeleton.
 - Mock replay connector for tests and local health wiring.
-- In-memory token cache only; no production secret store yet.
+- In-memory token cache only in the connector; production secrets are stored through the OS credential-store boundary added in the final Stage 2 slice.
 - Mutation operations explicitly forbidden:
   - `createOrder`
   - `modifyOrder`
@@ -173,11 +171,24 @@ Stage 2 broker adapter/manual foundation slice:
 - Toss read-only is wrapped as the first broker adapter in `packages/core/src/broker-adapter.ts`.
 - Toss adapter status distinguishes `not_configured`, `mock_replay`, and future `readonly_available`; order create/modify/cancel capabilities are disabled.
 - Manual no-broker mode has a local service/DB/API foundation for watchlist items, manual holdings, and manual cash balances using the synthetic `manual:default` account reference.
-- API `/health` now includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability without calling any real broker API.
+- API `/health` now includes a `broker_adapters` check that reports no-broker/manual, Toss not-configured, Toss credential-configured, syncing, read-only available, stale, failed, and mock replay states without calling any real broker API during health checks.
 - API manual portfolio endpoints are available at `GET /portfolio/manual`, `PUT /portfolio/manual/watchlist`, `PUT /portfolio/manual/holdings`, and `PUT /portfolio/manual/cash`.
 - Commander emits broker-independent `BrokerAgent` availability/freshness/capability metadata before Toss specialist metadata.
 - `BrokerTossAgent` remains the Toss adapter specialist and still does not create holdings, balances, or account facts without source/freshness grounding.
 - Tests cover adapter status mapping, manual portfolio persistence/API behavior, redaction of secret/account/order sentinels, and order mutation unavailability.
+
+Stage 2 production credential/sync and exit slice:
+
+- `packages/core/src/toss-credential-store.ts` adds a Toss credential-store boundary with a Windows Credential Manager implementation and an in-memory fake provider for tests.
+- API endpoints now support `GET`, `PUT`, and `DELETE /settings/brokers/toss/credentials` for safe credential status, setup, and disconnect without returning secrets.
+- `POST /sync/toss/read-only` runs the real Toss read-only sync path behind the credential boundary and reuses the existing SQLite snapshot repository.
+- The sync job calls only Stage 2 read-only operations. Raw account sequence values are used only in memory for account-scoped Toss calls and are not stored or returned.
+- Sync logs now carry success/failure metadata, failure category, safe request/error codes, retry-after seconds, and next retry time.
+- API `/health` distinguishes no-broker/manual, Toss `not_configured`, `credential_configured`, `syncing`, `readonly_available`, `stale`, `failed`, and `mock_replay` states.
+- Desktop UI displays broker/freshness status from health without claiming connection before credentials and production sync exist.
+- Commander answers account/holding facts only from `production_snapshot` freshness plus stored snapshots; mock/no-source cases explicitly say the account fact is unknown.
+- Security tests cover raw secret/token/account sequence/raw account/order sentinel non-exposure in DB, API responses, Commander responses, artifacts, and external-agent context.
+- Toss order create/modify/cancel remains unavailable and hard-blocked.
 
 Devflow Native:
 
@@ -199,19 +210,19 @@ Documentation routing:
 - `docs/architecture/maps/README.md` maps source docs to code owners and verification gates.
 - `scripts/build-docs-html.mjs` builds the searchable single-file bundle.
 
-## Active Stage 2 Gaps
+## Stage 2 Gate Review
 
-Do not treat Stage 2 as exited until these are implemented and verified:
+Stage 2 exit is accepted in `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md`.
 
-- Production secret storage using the OS credential store.
-- Credential setup/disconnect flow.
-- Real Toss sync jobs using production credentials.
-- Production account sequence mapping and scheduling around the OS credential boundary.
-- Rate-limit scheduling/backoff behavior beyond response metadata normalization.
-- Account/holdings/data freshness UI.
-- Commander answers grounded in real read-only snapshots with source links.
-- Security review for credential lifecycle and external-agent redaction.
-- Stage 2 gate review record.
+Accepted evidence:
+
+- Toss credentials live behind the OS credential-store boundary; tests use only the fake credential provider.
+- Credential setup/disconnect APIs return only safe status metadata.
+- Production Toss read-only sync reuses the snapshot repository and stores only masked account references plus snapshot metadata.
+- Raw secrets, tokens, account sequence values, raw account identifiers, and order sentinels are not exposed through DB, API, Commander, artifacts, or external-agent context.
+- API and desktop health distinguish `no_broker`, `not_configured`, `credential_configured`, `syncing`, `readonly_available`, `stale`, `failed`, and `mock_replay`.
+- Commander answers account/holding facts only when a `production_snapshot` source and freshness metadata exist.
+- Toss order create/modify/cancel remains unavailable.
 
 ## Hard Rules Still Active
 
@@ -219,19 +230,15 @@ Do not treat Stage 2 as exited until these are implemented and verified:
 - No live trading.
 - No automatic trading.
 - No unofficial broker web/internal API.
-- No real broker secrets, tokens, account numbers, order IDs, or personal identifiers in code, docs, tests, logs, DB, artifacts, or external-agent context.
+- No real broker secrets, tokens, account numbers, account sequence values, order IDs, or personal identifiers in code, docs, tests, logs, DB, artifacts, API responses, Commander responses, or external-agent context.
 - No UI copy that implies Toss is connected when only mock or not-configured mode is active.
 
 ## Recommended Next Slice
 
-After the broker adapter/manual foundation slice, the next practical Stage 2 slice is production-safe credential and real read-only sync setup:
+The next practical stage is Stage 3 Research And Memory:
 
-1. Add production credential setup/disconnect flow backed by the OS credential store.
-2. Add real Toss sync jobs that reuse the snapshot repository without writing raw secrets, tokens, raw account numbers, or order identifiers.
-3. Add production account sequence mapping behind the credential boundary.
-4. Add rate-limit scheduling/backoff around real sync execution.
-5. Add user-facing account/holdings/data freshness UI that never implies connection before credentials and sync are configured.
-6. Ground Commander account-aware answers in real read-only snapshots with source links.
-7. Complete the Stage 2 security review and gate review record.
-
-Do not add KIS implementation, production credential storage, UI claims of real Toss connection, manual live orders, or automation in the same slice unless the goal explicitly asks for that broader scope.
+1. Define the source-grounded research and memory contract for Commander, ResearchAgent, MemoryAgent, and ReportAgent.
+2. Add thesis/rule/journal persistence that can reference broker/manual snapshots without exposing credentials or raw broker identifiers.
+3. Add research artifacts tied to holdings, watchlist, and user questions.
+4. Add source-backed recall that can answer "what changed since my thesis?" without treating stale broker data as fresh.
+5. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.

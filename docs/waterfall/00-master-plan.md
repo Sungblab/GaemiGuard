@@ -104,4 +104,4 @@ For each stage:
 
 ## Current State
 
-Stage 1 foundation exists in the codebase and passes CI. Stage 2 has started with a first Toss read-only adapter slice: official operation constants, connector/client skeleton, mock credential/token boundary, API health wiring, Commander/BrokerToss read-only tool contract, and mock snapshot persistence. Stage 2 is not exited until the broker connection foundation, full read/freshness workflow, persistence, UI, security review, and gate evidence are complete.
+Stage 1 foundation exists in the codebase and passes CI. Stage 2 Broker Connection Foundation is complete: Toss read-only adapter, mock and production snapshot sync, OS credential-store boundary, setup/disconnect API, freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, and security/gate review are implemented. Stage 3 Research And Memory is next.

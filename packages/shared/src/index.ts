@@ -128,8 +128,12 @@ export type HealthCheck = {
     | "disabled"
     | "no_broker"
     | "not_configured"
+    | "credential_configured"
+    | "syncing"
     | "mock_replay"
     | "readonly_available"
+    | "stale"
+    | "failed"
     | "warning"
     | "error";
   message: string;

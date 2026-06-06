@@ -121,8 +121,12 @@ function statusLabel(status: HealthCheck["status"]) {
   if (status === "ok") return "정상";
   if (status === "no_broker") return "브로커 없음";
   if (status === "not_configured") return "미연결";
+  if (status === "credential_configured") return "자격증명 설정";
+  if (status === "syncing") return "동기화 중";
   if (status === "mock_replay") return "목업";
   if (status === "readonly_available") return "읽기 가능";
+  if (status === "stale") return "오래됨";
+  if (status === "failed") return "실패";
   if (status === "disabled") return "꺼짐";
   if (status === "warning") return "주의";
   return "오류";
@@ -135,6 +139,44 @@ function statusClass(status: HealthCheck["status"]) {
 function compactHealthLabel(checks: HealthCheck[], name: string, fallback: string) {
   const check = checks.find((item) => item.name === name);
   return check ? statusLabel(check.status) : fallback;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function metadataRecord(check: HealthCheck | undefined): Record<string, unknown> {
+  return asRecord(check?.metadata);
+}
+
+function snapshotFreshness(check: HealthCheck | undefined): Record<string, unknown> {
+  return asRecord(metadataRecord(check).snapshotFreshness);
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function freshnessText(check: HealthCheck | undefined) {
+  if (!check) return "로컬 API 상태 확인 중";
+  const freshness = snapshotFreshness(check);
+  const source = stringValue(freshness.source);
+  const lastSync = stringValue(freshness.lastSuccessfulSyncAt);
+  const nextRetry = stringValue(freshness.nextRetryAt);
+  if (check.status === "not_configured") return "Toss 자격증명이 없어 실제 계좌를 확인하지 않습니다.";
+  if (check.status === "credential_configured") return "자격증명은 저장됐지만 아직 production sync가 없습니다.";
+  if (check.status === "syncing") return "읽기 동기화가 진행 중입니다.";
+  if (check.status === "failed") return nextRetry ? `동기화 실패 · 다음 재시도 ${nextRetry}` : "동기화 실패 · 계좌 사실 사용 보류";
+  if (lastSync) return `${source ?? "snapshot"} · 마지막 동기화 ${lastSync}`;
+  if (check.status === "mock_replay") return "목업 스냅샷만 사용 중입니다.";
+  return check.message;
+}
+
+function sourceLabel(check: HealthCheck | undefined) {
+  const source = stringValue(snapshotFreshness(check).source);
+  if (source === "production_snapshot") return "실제 읽기";
+  if (source === "mock_replay_snapshot") return "목업";
+  return "샘플";
 }
 
 function artifactKindLabel(kind: ArtifactRecord["kind"]) {
@@ -278,6 +320,11 @@ export function App() {
     const ok = health.filter((check) => check.status === "ok").length;
     return `${ok}/${health.length || 7}`;
   }, [health]);
+  const tossHealth = useMemo(() => health.find((check) => check.name === "toss_read_only"), [health]);
+  const brokerHealth = useMemo(() => health.find((check) => check.name === "broker_adapters"), [health]);
+  const tossStatusLabel = tossHealth ? statusLabel(tossHealth.status) : "확인 중";
+  const brokerStatusLabel = brokerHealth ? statusLabel(brokerHealth.status) : "확인 중";
+  const tossFreshnessText = freshnessText(tossHealth);
 
   function askQuickQuestion(question: string) {
     setInput(question);
@@ -352,7 +399,7 @@ export function App() {
         </nav>
         <div className="top-actions">
           <span className="mode-badge sample">샘플 데이터</span>
-          <span className="mode-badge muted">Toss 미연결</span>
+          <span className={`mode-badge broker status-${tossHealth?.status ?? "not_configured"}`}>Toss {tossStatusLabel}</span>
           <span className="mode-badge blocked">실주문 차단</span>
           <div className="health-pill" title="설정/진단에서 자세히 보기">
             <Activity size={15} />
@@ -416,7 +463,7 @@ export function App() {
                 <span>시스템 상태</span>
               </div>
               <strong>Read-only</strong>
-              <small>Toss {compactHealthLabel(health, "toss_read_only", "미연결")} · 실주문 차단</small>
+              <small>Toss {compactHealthLabel(health, "toss_read_only", "미연결")} · {brokerStatusLabel}</small>
             </div>
           </div>
 
@@ -441,6 +488,13 @@ export function App() {
               <div className="sample-alert">
                 <AlertCircle size={15} />
                 <span>샘플 데이터입니다. Toss 연결 전까지 실계좌로 해석하지 마세요.</span>
+              </div>
+              <div className={`freshness-banner status-${tossHealth?.status ?? "not_configured"}`}>
+                <Clock size={15} />
+                <div>
+                  <strong>Toss {tossStatusLabel}</strong>
+                  <span>{tossFreshnessText}</span>
+                </div>
               </div>
               <table className="holdings-table product-table">
                 <thead>
@@ -612,7 +666,7 @@ export function App() {
               </div>
               <div>
                 <span>데이터</span>
-                <strong>샘플</strong>
+                <strong>{sourceLabel(tossHealth)}</strong>
               </div>
             </div>
           </div>

@@ -13,7 +13,7 @@ This is the short routing document for agents starting GaemiGuard work. It point
 | 3 | `docs/development-status.md` | Current implementation state, active work, blockers, and next work. |
 | 4 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, guard and terminal as supporting surfaces. |
 | 5 | `docs/product/broker-connection-and-trading.md` | Broker-independent adapter strategy, no-broker mode, manual trading, and automation authority. |
-| 6 | `docs/stages/stage-2-toss-readonly-connector.md` | Current Stage 2 contract. |
+| 6 | `docs/stages/stage-2-toss-readonly-connector.md` | Latest completed Stage 2 contract and accepted gate review. |
 | 7 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
 Read these only when relevant:
@@ -32,12 +32,12 @@ Read these only when relevant:
 
 - Development follows stage gates.
 - Stage 1 is complete.
-- Stage 2 is in progress.
-- Stage 2 is not exited yet.
+- Stage 2 is complete and exited.
+- Stage 3 Research And Memory is the next stage.
 - Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.
 - Broker direction is adapter-based: Toss is the first implemented read-only adapter slice; KIS is a future adapter candidate after source notes and capability mapping.
 - Toss order create/update/cancel remains forbidden.
-- Real broker secrets, tokens, account numbers, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
+- Real broker secrets, tokens, account numbers, account sequence values, and order IDs must not be stored in code, docs, SQLite, artifacts, API responses, or external agent context.
 
 ## Current Implementation
 
@@ -52,7 +52,11 @@ Read these only when relevant:
 - Shared BrokerAdapter contract and capability metadata
 - Toss read-only connector wrapped as the first broker adapter implementation
 - No-broker/manual portfolio foundation with local watchlist, holding, and cash inputs
-- API `/health` broker adapter status aggregation and manual portfolio endpoints
+- OS credential-store boundary for Toss credential setup/disconnect
+- Production Toss read-only sync using sanitized SQLite snapshots
+- API `/health` broker adapter status aggregation, credential/sync status, and manual portfolio endpoints
+- Desktop broker/freshness status display
+- Commander account answers grounded only in production snapshot source/freshness
 
 Use `docs/development-status.md` for the complete current list.
 
@@ -73,7 +77,7 @@ Short `/goal` example:
 /goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
 
 Goal:
-Complete the Stage 2 next work described in docs/handoffs/<file>.md, including code, tests, docs, PR, CI, and main verification.
+Complete the Stage 3 next work described in docs/handoffs/<file>.md, including code, tests, docs, PR, CI, and main verification.
 
 First read:
 - AGENTS.md
