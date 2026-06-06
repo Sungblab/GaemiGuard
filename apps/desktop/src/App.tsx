@@ -21,6 +21,7 @@ import {
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import type {
   AgentRunEvent,
+  AgentRunBundle,
   ArtifactRecord,
   CommanderResponse,
   HealthCheck,
@@ -327,13 +328,17 @@ function MemoryResearchPanel({
   authoringStatus,
   importForm,
   importStatus,
+  weeklyReview,
+  weeklyStatus,
   isSaving,
   isImporting,
+  isWeeklyGenerating,
   onAuthoringChange,
   onAuthoringSubmit,
   onImportFileChange,
   onImportChange,
-  onImportSubmit
+  onImportSubmit,
+  onWeeklyGenerate
 }: {
   recall: InvestmentMemoryRecallResult | null;
   selectedHolding: Holding;
@@ -343,13 +348,17 @@ function MemoryResearchPanel({
   authoringStatus: string | null;
   importForm: LocalImportForm;
   importStatus: string | null;
+  weeklyReview: AgentRunBundle | null;
+  weeklyStatus: string | null;
   isSaving: boolean;
   isImporting: boolean;
+  isWeeklyGenerating: boolean;
   onAuthoringChange: (patch: Partial<MemoryAuthoringForm>) => void;
   onAuthoringSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onImportFileChange: (file: File | null) => void;
   onImportChange: (patch: Partial<LocalImportForm>) => void;
   onImportSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onWeeklyGenerate: () => void;
 }) {
   const items = recall?.items ?? [];
   const skipped = recall?.skipped ?? [];
@@ -371,6 +380,29 @@ function MemoryResearchPanel({
         <strong>{selectedHolding.symbol}</strong>
         <span>{selectedHolding.name} 관련 thesis, rule, journal, research recall</span>
       </div>
+      <div className="weekly-review-box">
+        <div>
+          <strong>Weekly review artifact</strong>
+          <span>Usable thesis/rule/journal/research memory plus local holding/watchlist context.</span>
+        </div>
+        <button type="button" disabled={isWeeklyGenerating} onClick={onWeeklyGenerate}>
+          {isWeeklyGenerating ? "Generating" : "Generate weekly review"}
+        </button>
+      </div>
+      {weeklyStatus ? <div className="authoring-status">{weeklyStatus}</div> : null}
+      {weeklyReview ? (
+        <div className="weekly-artifact-list">
+          {weeklyReview.artifacts.map((artifact) => (
+            <div className="artifact-row" key={artifact.id}>
+              <FileText size={15} />
+              <div>
+                <div className="artifact-title">{artifact.title}</div>
+                <div className="artifact-kind">{artifact.kind}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <form className="memory-authoring-form" onSubmit={onAuthoringSubmit}>
         <div className="authoring-row">
           <label>
@@ -631,6 +663,9 @@ export function App() {
   });
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [weeklyReview, setWeeklyReview] = useState<AgentRunBundle | null>(null);
+  const [weeklyStatus, setWeeklyStatus] = useState<string | null>(null);
+  const [isWeeklyGenerating, setIsWeeklyGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -774,6 +809,36 @@ export function App() {
       );
     } finally {
       setIsImporting(false);
+    }
+  }
+
+  async function generateWeeklyReview() {
+    if (isWeeklyGenerating) return;
+
+    setIsWeeklyGenerating(true);
+    setWeeklyStatus(null);
+    try {
+      const response = await fetch(`${API_BASE}/reports/weekly-review`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          symbol: selectedHolding.symbol,
+          weekStart: selectedRange.from,
+          weekEnd: selectedRange.to
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+      const body = (await response.json()) as AgentRunBundle;
+      setWeeklyReview(body);
+      setWeeklyStatus(`Weekly review generated with ${body.artifacts.length} artifacts.`);
+    } catch (error) {
+      setWeeklyStatus(error instanceof Error ? `Weekly review failed. ${error.message}` : "Weekly review failed.");
+    } finally {
+      setIsWeeklyGenerating(false);
     }
   }
 
@@ -1132,13 +1197,17 @@ export function App() {
               authoringStatus={authoringStatus}
               importForm={importForm}
               importStatus={importStatus}
+              weeklyReview={weeklyReview}
+              weeklyStatus={weeklyStatus}
               isSaving={isAuthoringSaving}
               isImporting={isImporting}
+              isWeeklyGenerating={isWeeklyGenerating}
               onAuthoringChange={updateAuthoringForm}
               onAuthoringSubmit={saveAuthoredMemory}
               onImportFileChange={(file) => void updateImportFile(file)}
               onImportChange={updateImportForm}
               onImportSubmit={importLocalResearch}
+              onWeeklyGenerate={() => void generateWeeklyReview()}
             />
 
             <section className="panel diagnostics-panel">

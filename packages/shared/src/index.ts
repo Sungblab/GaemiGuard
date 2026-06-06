@@ -61,7 +61,9 @@ export type ArtifactKind =
   | "scenario_markdown"
   | "scenario_json"
   | "order_review_json"
-  | "order_review_markdown";
+  | "order_review_markdown"
+  | "weekly_review_markdown"
+  | "weekly_review_json";
 
 export type AgentRunSummary = {
   id: string;

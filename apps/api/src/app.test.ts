@@ -961,4 +961,104 @@ describe("buildApiApp", () => {
 
     await app.close();
   });
+
+  it("generates weekly review artifacts from usable sourced memory and manual portfolio context", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({
+      dataDir,
+      clock: () => new Date("2026-06-06T07:05:00.000Z")
+    });
+
+    await app.inject({
+      method: "PUT",
+      url: "/portfolio/manual/holdings",
+      payload: {
+        symbol: "AMD",
+        market: "US",
+        currency: "USD",
+        quantity: "3",
+        name: "AMD"
+      }
+    });
+    await app.inject({
+      method: "PUT",
+      url: "/memory/theses",
+      payload: {
+        symbol: "AMD",
+        title: "AMD weekly thesis",
+        body: "Thesis body with fixture-private-value-alpha.",
+        source: {
+          kind: "manual_note",
+          label: "Weekly thesis source",
+          capturedAt: "2026-06-06T07:00:00.000Z",
+          freshness: {
+            status: "local_manual",
+            source: "manual_input",
+            message: "User-authored thesis is current."
+          }
+        }
+      }
+    });
+    await app.inject({
+      method: "POST",
+      url: "/memory/research",
+      payload: {
+        title: "Old AMD rumor",
+        body: "This stale research should be skipped.",
+        source: {
+          kind: "research_artifact",
+          label: "Old AMD memo",
+          capturedAt: "2026-06-01T07:00:00.000Z",
+          freshness: {
+            status: "stale",
+            source: "manual_input",
+            message: "Old local research is stale."
+          }
+        },
+        links: {
+          symbols: ["AMD"]
+        }
+      }
+    });
+
+    const weeklyReview = await app.inject({
+      method: "POST",
+      url: "/reports/weekly-review",
+      payload: {
+        symbol: "AMD",
+        weekStart: "2026-06-01",
+        weekEnd: "2026-06-06"
+      }
+    });
+    expect(weeklyReview.statusCode).toBe(200);
+    expect(weeklyReview.json().artifacts.map((item: { kind: string }) => item.kind)).toEqual([
+      "weekly_review_markdown",
+      "weekly_review_json"
+    ]);
+    expect(weeklyReview.body).toContain("ReportAgent");
+    expect(weeklyReview.json().timeline[0].metadata.usedMemoryCount).toBe(1);
+    expect(weeklyReview.json().timeline[0].metadata.skippedMemory).toEqual([
+      expect.objectContaining({ reason: "stale_source" })
+    ]);
+    expect(weeklyReview.body).toContain("stale_source");
+    expect(weeklyReview.body).not.toContain("fixture-private-value-alpha");
+    expect(weeklyReview.body).not.toContain("This stale research should be skipped");
+
+    const persisted = await app.inject({ method: "GET", url: `/agent-runs/${weeklyReview.json().run.id}` });
+    expect(persisted.statusCode).toBe(200);
+    expect(persisted.json().artifacts.map((item: { kind: string }) => item.kind)).toEqual(
+      expect.arrayContaining(["weekly_review_markdown", "weekly_review_json"])
+    );
+
+    const artifactText = readDiskText(path.join(dataDir, "artifacts"));
+    expect(artifactText).toContain("# Weekly Review: AMD");
+    expect(artifactText).toContain("AMD weekly thesis");
+    expect(artifactText).toContain("Holding: AMD 3 USD");
+    expect(artifactText).not.toContain("fixture-private-value-alpha");
+    expect(artifactText).not.toContain("This stale research should be skipped");
+
+    await app.close();
+  });
 });

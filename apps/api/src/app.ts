@@ -16,6 +16,9 @@ import {
 } from "@gaemiguard/core";
 import { createGaemiGuardDatabase, type GaemiGuardDatabase } from "@gaemiguard/db";
 import type {
+  AgentRunBundle,
+  AgentRunEvent,
+  AgentRunSummary,
   CommanderContext,
   BrokerAdapter,
   BrokerAdapterStatus,
@@ -25,6 +28,7 @@ import type {
   InvestmentMemoryResearchArtifactInput,
   InvestmentMemoryRuleInput,
   InvestmentMemoryThesisInput,
+  ManualPortfolioSnapshot,
   PermissionMode,
   TossReadonlyConnector,
   TossReadonlySnapshotFreshness,
@@ -171,6 +175,12 @@ const tossSyncSchema = z.object({
   symbols: z.array(z.string().min(1)).min(1).optional()
 });
 
+const weeklyReviewSchema = z.object({
+  symbol: z.string().min(1),
+  weekStart: z.string().min(1),
+  weekEnd: z.string().min(1)
+});
+
 function brokerHealthStatus(statuses: BrokerAdapterStatus[]): HealthCheck["status"] {
   if (statuses.some((status) => status.status === "error")) {
     return "error";
@@ -309,6 +319,160 @@ function localImportToResearchArtifact(
   };
 }
 
+function reportId(prefix: string): string {
+  return `${prefix}_${crypto.randomUUID()}`;
+}
+
+function buildWeeklyReviewMarkdown(input: {
+  symbol: string;
+  weekStart: string;
+  weekEnd: string;
+  recall: Awaited<ReturnType<GaemiGuardDatabase["investmentMemory"]["recall"]>>;
+  manualPortfolio: ManualPortfolioSnapshot;
+}): string {
+  const memoryLines =
+    input.recall.items.length > 0
+      ? input.recall.items.map((item) => `- ${item.kind}: ${item.title} (${item.source.freshness.source}/${item.source.freshness.status})`)
+      : ["- No usable sourced memory for this symbol yet."];
+  const skippedLines =
+    input.recall.skipped.length > 0
+      ? input.recall.skipped.map((item) => `- ${item.id}: ${item.reason}`)
+      : ["- None."];
+  const holding = input.manualPortfolio.holdings.find((item) => item.symbol === input.symbol);
+  const watchlist = input.manualPortfolio.watchlist.find((item) => item.symbol === input.symbol);
+
+  return [
+    `# Weekly Review: ${input.symbol}`,
+    "",
+    `Range: ${input.weekStart} - ${input.weekEnd}`,
+    "",
+    "## Source Boundary",
+    "",
+    "- Uses only local manual portfolio context and usable source/freshness memory recall.",
+    "- Stale or missing-source memory is listed as skipped and is not used as grounding.",
+    "- This report is not an order instruction and does not imply live trading authority.",
+    "",
+    "## Holding / Watchlist Context",
+    "",
+    holding
+      ? `- Holding: ${holding.symbol} ${holding.quantity} ${holding.currency} (${holding.source}, updated ${holding.updatedAt})`
+      : "- Holding: no local manual holding found for this symbol.",
+    watchlist ? `- Watchlist: ${watchlist.symbol} ${watchlist.market} (${watchlist.source}, updated ${watchlist.updatedAt})` : "- Watchlist: no local watchlist item found for this symbol.",
+    "",
+    "## Usable Memory And Research",
+    "",
+    ...memoryLines,
+    "",
+    "## Skipped Memory",
+    "",
+    ...skippedLines,
+    "",
+    "## Review Notes",
+    "",
+    "- Re-check whether thesis, rules, journal, and research still agree before changing position size.",
+    "- Fresh broker account facts are required before treating holdings, cash, or allocation as real account truth."
+  ].join("\n");
+}
+
+async function createWeeklyReviewBundle(input: {
+  repository: GaemiGuardDatabase["runs"];
+  artifactStore: FileArtifactStore;
+  investmentMemory: GaemiGuardDatabase["investmentMemory"];
+  manualPortfolio: GaemiGuardDatabase["manualPortfolio"];
+  symbol: string;
+  weekStart: string;
+  weekEnd: string;
+  clock: () => Date;
+}): Promise<AgentRunBundle> {
+  const runId = reportId("weekly_review");
+  const startedAt = input.clock().toISOString();
+  const recall = await input.investmentMemory.recall({
+    symbol: input.symbol,
+    now: startedAt
+  });
+  const manualPortfolio = await input.manualPortfolio.readSnapshot();
+  const markdown = buildWeeklyReviewMarkdown({
+    symbol: input.symbol,
+    weekStart: input.weekStart,
+    weekEnd: input.weekEnd,
+    recall,
+    manualPortfolio
+  });
+  const jsonPayload = {
+    symbol: input.symbol,
+    weekStart: input.weekStart,
+    weekEnd: input.weekEnd,
+    generatedAt: startedAt,
+    usedMemory: recall.items.map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      title: item.title,
+      source: item.source.freshness.source,
+      freshnessStatus: item.source.freshness.status
+    })),
+    skippedMemory: recall.skipped,
+    manualPortfolio: {
+      account: manualPortfolio.account,
+      holdings: manualPortfolio.holdings.filter((item) => item.symbol === input.symbol),
+      watchlist: manualPortfolio.watchlist.filter((item) => item.symbol === input.symbol),
+      freshness: manualPortfolio.freshness
+    }
+  };
+  const markdownArtifact = await input.artifactStore.writeArtifact({
+    id: reportId("artifact"),
+    runId,
+    kind: "weekly_review_markdown",
+    title: `${input.symbol} weekly review`,
+    createdAt: startedAt,
+    extension: "md",
+    content: markdown
+  });
+  const jsonArtifact = await input.artifactStore.writeArtifact({
+    id: reportId("artifact"),
+    runId,
+    kind: "weekly_review_json",
+    title: `${input.symbol} weekly review source bundle`,
+    createdAt: startedAt,
+    extension: "json",
+    content: JSON.stringify(jsonPayload, null, 2)
+  });
+  const finishedAt = input.clock().toISOString();
+  const run: AgentRunSummary = {
+    id: runId,
+    status: "completed",
+    userMessage: `Weekly review for ${input.symbol}`,
+    permissionMode: "manual",
+    startedAt,
+    finishedAt,
+    answer: `Weekly review artifact generated for ${input.symbol} using ${recall.items.length} usable memory records and ${recall.skipped.length} skipped records.`
+  };
+  const timeline: AgentRunEvent[] = [
+    {
+      id: reportId("event"),
+      runId,
+      agent: "ReportAgent",
+      type: "artifact_created",
+      message: "Generated source-backed weekly review artifacts.",
+      createdAt: finishedAt,
+      metadata: {
+        symbol: input.symbol,
+        weekStart: input.weekStart,
+        weekEnd: input.weekEnd,
+        usedMemoryCount: recall.items.length,
+        skippedMemory: recall.skipped
+      }
+    }
+  ];
+  const bundle: AgentRunBundle = {
+    run,
+    timeline,
+    artifacts: [markdownArtifact, jsonArtifact]
+  };
+
+  await input.repository.save(bundle);
+  return bundle;
+}
+
 async function healthChecks(
   tossReadOnlyConnector: TossReadonlyConnector,
   tossSnapshotReader: TossReadonlySnapshotRepository,
@@ -415,9 +579,11 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
     })
   ];
 
+  const artifactStore = new FileArtifactStore(artifactDir);
+
   const commander = createCommanderRuntime({
     repository: db.runs,
-    artifactStore: new FileArtifactStore(artifactDir),
+    artifactStore,
     brokerAdapters,
     tossReadOnlyConnector,
     tossSnapshotReader: db.tossReadonlySnapshots,
@@ -549,6 +715,30 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   });
 
   app.get("/portfolio/manual", async () => db.manualPortfolio.readSnapshot());
+
+  app.post("/reports/weekly-review", async (request, reply) => {
+    const parsed = weeklyReviewSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-weekly-review-request",
+          message: "symbol, weekStart, and weekEnd are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    return createWeeklyReviewBundle({
+      repository: db.runs,
+      artifactStore,
+      investmentMemory: db.investmentMemory,
+      manualPortfolio: db.manualPortfolio,
+      symbol: parsed.data.symbol,
+      weekStart: parsed.data.weekStart,
+      weekEnd: parsed.data.weekEnd,
+      clock
+    });
+  });
 
   app.put("/memory/theses", async (request, reply) => {
     const parsed = thesisMemorySchema.safeParse(request.body);
