@@ -255,6 +255,49 @@ try {
     throw "Memory authoring form did not save and refresh recall."
   }
 
+  $afterAuthoring = Invoke-PlaywrightCli @("snapshot")
+  $importBodyRef = Get-Ref $afterAuthoring "- textbox `"Imported text`" \[ref=(?<ref>e\d+)\]" "local import body"
+  $importQuestionRef = Get-Ref $afterAuthoring "- textbox `"User question link`" \[ref=(?<ref>e\d+)\]" "local import question"
+
+  Invoke-PlaywrightCli @("fill", $importBodyRef, "metric,value`nrisk,fx smoke import") | Out-Null
+  Invoke-PlaywrightCli @("fill", $importQuestionRef, "Smoke imported CSV research for AMD") | Out-Null
+
+  $importButtonEnabled = $false
+  $deadline = (Get-Date).AddSeconds(10)
+  do {
+    Start-Sleep -Milliseconds 250
+    $buttonState = Invoke-PlaywrightCli @("eval", "document.querySelector('.memory-import-form button[type=`"submit`"]').disabled === false")
+    if (($buttonState -join "`n") -match "true") {
+      $importButtonEnabled = $true
+      break
+    }
+  } while ((Get-Date) -lt $deadline)
+
+  if (-not $importButtonEnabled) {
+    throw "Local import button did not become enabled after filling the form."
+  }
+
+  $filledImport = Invoke-PlaywrightCli @("snapshot")
+  $importSaveRef = Get-Ref $filledImport "- button `"Import research`" \[ref=(?<ref>e\d+)\]" "enabled local import button"
+  Invoke-PlaywrightCli @("click", $importSaveRef) | Out-Null
+
+  $importReady = $false
+  $deadline = (Get-Date).AddSeconds(20)
+  do {
+    Start-Sleep -Milliseconds 500
+    $importState = Invoke-PlaywrightCli @("eval", "document.body.innerText.includes('Imported research saved and recalled for AMD') && document.body.innerText.includes('Explicit local Markdown import: AMD-manual-import.txt')")
+    if (($importState -join "`n") -match "true") {
+      $importReady = $true
+      break
+    }
+  } while ((Get-Date) -lt $deadline)
+
+  if (-not $importReady) {
+    $importDebug = Invoke-PlaywrightCli @("snapshot")
+    Save-Lines $importDebug (Join-Path $PlaywrightOutput "gaemiguard-desktop-smoke.import-debug.txt")
+    throw "Local import form did not save and refresh recall."
+  }
+
   $inputRef = Get-LastTextboxRef $before "Commander textbox"
   $sendRef = Get-Ref $before "- button `"send`" \[ref=(?<ref>e\d+)\]" "send button"
 
@@ -303,7 +346,7 @@ try {
   Invoke-PlaywrightCli @("close") | Out-Null
 
   Write-Host "Desktop UI smoke passed."
-  Write-Host "Verified: favicon 200, blocked order banner, memory authoring recall, Commander review card, run-log toggle, composer input re-enabled, console clean."
+  Write-Host "Verified: favicon 200, blocked order banner, memory authoring recall, local import recall, Commander review card, run-log toggle, composer input re-enabled, console clean."
 } finally {
   try {
     Invoke-PlaywrightCli @("close") | Out-Null
