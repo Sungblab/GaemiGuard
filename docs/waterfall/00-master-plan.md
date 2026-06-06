@@ -14,7 +14,7 @@ This is not a small MVP plan. It is a staged build plan for a local-first person
 
 **한국 개인투자자를 위한 로컬 개인 투자 에이전트**
 
-Brokerage apps execute trades. GaemiGuard organizes judgment, evidence, trading authority, and automation boundaries before action.
+GaemiGuard owns the decision-to-order workflow. Official broker APIs are the execution rails; GaemiGuard owns judgment, evidence, trading authority, approval, audit, and automation boundaries.
 
 ## Strategic Scope
 

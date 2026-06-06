@@ -36,7 +36,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 
 - Product promise: agent-first local personal investment workspace for Korean retail investors.
 - Supporting surfaces: investment guard and small local investment terminal.
-- Public short copy: "거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다."
+- Public short copy: "판단 점검부터 주문 실행까지 GaemiGuard에서 하되, 실제 연결은 공식 증권사 API로만 합니다."
 - Broker model: broker-independent adapter contract; Toss is first implemented adapter slice, KIS is a future candidate.
 - No-broker mode: local manual watchlist, holdings, and cash inputs are now represented in DB/API/service contracts; thesis/rules, CSV, research, scenarios, and sample data remain later extensions.
 - First screen: Today Guard dashboard.

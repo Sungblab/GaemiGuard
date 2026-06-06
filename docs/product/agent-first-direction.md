@@ -14,7 +14,7 @@ Plain product statement:
 
 Short Korean positioning for public copy:
 
-> 거래는 증권사에서 하고, 판단 점검은 GaemiGuard에서 합니다.
+> 판단 점검부터 주문 실행까지 GaemiGuard에서 하되, 실제 연결은 공식 증권사 API로만 합니다.
 
 ## Product Shape
 

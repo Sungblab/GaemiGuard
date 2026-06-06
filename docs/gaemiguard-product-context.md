@@ -8,7 +8,7 @@ Read this document as background and future option context, not as permission to
 
 **GaemiGuard** is an agent-first local personal investment workspace for Korean retail investors.
 
-It is not a normal stock trading app, not a simple news summarizer, and not a guaranteed-profit or automation-first trading bot.
+It is not a brokerage screen clone, not a simple news summarizer, and not a guaranteed-profit or automation-first trading bot.
 
 GaemiGuard connects:
 
@@ -24,8 +24,8 @@ The goal is to help users manage their investment thesis, rules, research, scena
 
 Core positioning:
 
-> Brokerage apps execute trades.
-> GaemiGuard helps the user organize judgment, evidence, and trading authority before action.
+> GaemiGuard owns the decision-to-order workflow.
+> Official broker APIs are the execution rails; GaemiGuard owns guardrails, approval, audit, and automation policy.
 
 ---
 
@@ -36,7 +36,7 @@ Core positioning:
 GaemiGuard is:
 
 * A local-first desktop app
-* An investment coach
+* A personal investment agent
 * An investment research orchestrator
 * A thesis and rule management tool
 * A trade review and guardrail system

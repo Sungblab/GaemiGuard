@@ -417,7 +417,7 @@
         <div class="stats">
           <span class="chip"><strong>54</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-05T17:45:34.262Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-06T05:40:43.812Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
@@ -676,13 +676,13 @@ Completion criteria:
 <p>Do not add KIS implementation, production credential storage, UI claims of real Toss connection, manual live orders, or automation in the same slice unless the goal explicitly asks for that broader scope.</p>
 </article>
 <article class="doc-card" id="doc-1" data-category="Overview" data-path="README.md">
-  <div class="doc-kicker">Overview · README.md · 9KB</div>
+  <div class="doc-kicker">Overview · README.md · 8KB</div>
   <h2>GaemiGuard</h2>
   <h1 id="doc-1-gaemiguard">GaemiGuard</h1>
 <p>GaemiGuard는 한국 개인투자자를 위한 로컬 개인 투자 에이전트입니다.</p>
 <p>토스증권 같은 매매 화면을 베끼려는 프로젝트가 아닙니다. 블룸버그 터미널처럼 모든 시장 데이터를 한꺼번에 쏟아내는 프로젝트도 아닙니다. 핵심은 내 계좌, 관심 종목, 리서치, 시나리오, 투자 원칙을 에이전트가 한곳에 모아 판단 전에 확인할 근거를 남기는 것입니다.</p>
 <p>한 줄로 말하면 이렇습니다.</p>
-<blockquote>거래는 증권사에서 하고, 판단 점검은 GaemiGuard에서 합니다.</blockquote>
+<blockquote>판단 점검부터 주문 실행까지 GaemiGuard에서 하되, 실제 연결은 공식 증권사 API로만 합니다.</blockquote>
 <p>GaemiGuard 안에는 세 가지 성격이 함께 있습니다.</p>
 <ul>
 <li>개인 투자 에이전트: Commander가 질문을 받고 필요한 에이전트와 도구를 부릅니다.</li>
@@ -691,31 +691,18 @@ Completion criteria:
 </ul>
 <p>중요한 순서는 에이전트가 먼저이고, 터미널 화면은 그 에이전트가 사용한 근거를 보여주는 보조 화면입니다.</p>
 <p>증권사는 갈아끼울 수 있어야 합니다. Toss, 한국투자, 키움, LS 같은 연결은 GaemiGuard의 본체가 아니라 브로커 어댑터입니다. 증권 연결이 없어도 관심종목, 투자 원칙, 수동 포트폴리오, 샘플 데이터로 먼저 써볼 수 있어야 합니다.</p>
-<h2 id="doc-1-지금-어디까지-됐나요">지금 어디까지 됐나요?</h2>
-<p>현재 main에는 Stage 1 기반 작업과 Stage 2 Toss 읽기 전용 연결의 초반 작업이 들어가 있습니다.</p>
-<p>지금 되는 것:</p>
+<h2 id="doc-1-무엇을-하나요">무엇을 하나요?</h2>
+<p>GaemiGuard는 투자자가 주문 버튼을 누르기 전후의 흐름을 한곳에 모읍니다.</p>
 <ul>
-<li>데스크톱 앱을 로컬에서 실행할 수 있습니다.</li>
-<li>로컬 API 서버가 있습니다.</li>
-<li>SQLite에 앱 상태와 결과물을 저장합니다.</li>
-<li>오른쪽 Commander 채팅 패널에서 작업을 요청하는 구조가 있습니다.</li>
-<li>Portfolio, Research, Scenario, Order Guard 역할의 기본 뼈대가 있습니다.</li>
-<li>실주문은 기본 정책에서 막혀 있습니다.</li>
-<li>Toss Invest OpenAPI를 기준으로 읽기 전용 연결 뼈대가 있습니다.</li>
-<li>실제 Toss 호출 대신 미리 준비한 가짜 응답을 재생해서 계좌/보유종목/현재가/환율/장 일정 같은 시점별 저장 구조를 검증합니다.</li>
-<li>문서와 검증 명령을 한 번에 확인하는 Devflow 작업 점검 도구가 있습니다.</li>
+<li>브로커 계좌, 수동 포트폴리오, 관심종목을 함께 봅니다.</li>
+<li>내 투자 원칙, 보유 비중, 현금, 환율, 시장 일정, 경고를 확인합니다.</li>
+<li>Hermes 같은 리서치 도구와 MiroFish 같은 시나리오 도구를 에이전트가 필요할 때 부릅니다.</li>
+<li>리서치 결과, 시나리오, 주문 검토, 사용자의 판단 이유를 로컬에 남깁니다.</li>
+<li>주문 초안과 모의 주문으로 먼저 점검합니다.</li>
+<li>사용자가 승인한 수동 실주문을 공식 브로커 API로 실행합니다.</li>
+<li>사용자가 정한 원칙, 한도, 중단 스위치 안에서만 자동매매를 다룹니다.</li>
 </ul>
-<p>아직 안 되는 것:</p>
-<ul>
-<li>실제 브로커 계정 연결</li>
-<li>실제 계좌 동기화</li>
-<li>실제 주문 생성, 수정, 취소</li>
-<li>사용자가 승인하는 수동 실주문</li>
-<li>사용자 원칙 기반 자동매매</li>
-<li>수익률 보장이나 매수/매도 추천</li>
-</ul>
-<p>Stage 2는 아직 완료된 단계가 아닙니다. 지금은 실제 돈이 움직이는 기능이 아니라, 브로커 연결의 기초를 만드는 중입니다. 현재 구현된 것은 Toss 읽기 전용 연결과 안전한 스냅샷 저장 구조입니다.</p>
-<p>읽기 전용 앱으로 끝내겠다는 뜻은 아닙니다. 최종 방향에는 수동 매매와 사용자 원칙 기반 자동매매가 들어갑니다. 다만 먼저 계좌 데이터, 투자 메모리, 주문 검토, 감사 로그, 중단 스위치, 중복 주문 방지, 사용자 승인 구조가 검증되어야 합니다.</p>
+<p>핵심은 “더 빨리 사고팔기”가 아니라 “내가 왜 이 주문을 하려는지, 위험한 부분은 없는지, 나중에 다시 확인할 근거가 남는지”입니다.</p>
 <h2 id="doc-1-왜-만들고-있나요">왜 만들고 있나요?</h2>
 <p>개인투자에서 위험한 순간은 보통 “기능이 없어서”가 아니라 “생각할 틈 없이 눌러서” 생깁니다.</p>
 <p>예를 들면 이런 상황입니다.</p>
@@ -730,7 +717,7 @@ Completion criteria:
 <li>내 계좌와 관심 종목을 한 화면에서 보고</li>
 <li>리서치와 시나리오를 함께 남기고</li>
 <li>에이전트가 도구를 실행하더라도 권한과 기록을 남기고</li>
-<li>주문은 충분한 안전 장치가 생기기 전까지 막습니다.</li>
+<li>주문은 안전 장치, 명시 승인, 감사 로그, 중단 스위치 안에서만 실행합니다.</li>
 </ul>
 <h2 id="doc-1-빠르게-실행하기">빠르게 실행하기</h2>
 <p>필요한 것:</p>
@@ -791,12 +778,6 @@ vendor/
 <td><code>docs/agent-index.md</code></td><td>에이전트가 어디부터 읽을지 보는 짧은 길잡이</td>
 </tr>
 <tr>
-<td><code>docs/development-status.md</code></td><td>지금 끝난 일, 진행 중인 일, 다음 작업</td>
-</tr>
-<tr>
-<td><code>docs/development-history.md</code></td><td>PR #1부터 지금까지 무슨 일을 했는지</td>
-</tr>
-<tr>
 <td><code>docs/product/agent-first-direction.md</code></td><td>GaemiGuard가 왜 개인 투자 에이전트 중심인지</td>
 </tr>
 <tr>
@@ -809,9 +790,6 @@ vendor/
 <td><code>docs/README.md</code></td><td>전체 문서 목차</td>
 </tr>
 <tr>
-<td><code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td>현재 Stage 2 기준</td>
-</tr>
-<tr>
 <td><code>docs/gaemiguard-all-docs.html</code></td><td>여러 문서를 한 파일로 묶은 HTML 문서</td>
 </tr>
 <tr>
@@ -821,21 +799,19 @@ vendor/
 <td><code>docs/setup/agent-assisted-setup.md</code></td><td>에이전트에게 설치를 맡길 때 기준</td>
 </tr>
 </tbody></table></div>
-<h2 id="doc-1-개발-단계">개발 단계</h2>
-<p>GaemiGuard는 한 번에 모든 기능을 여는 방식이 아닙니다. 안전한 순서대로 단계를 닫아가며 넓힙니다.</p>
-<ol>
-<li>Stage 1: 로컬 앱, API, DB, 결과물 저장, 채팅 패널, 권한 정책</li>
-<li>Stage 2: 브로커 연결 기초와 Toss 읽기 전용 어댑터</li>
-<li>Stage 3: 계좌/종목/리서치 메모리와 근거 있는 답변</li>
-<li>Stage 4: 시나리오 분석 보조 도구 연결</li>
-<li>Stage 5: 주문 초안, 모의투자, 리스크 리포트</li>
-<li>Stage 6: 명시 승인 기반 수동 실주문</li>
-<li>Stage 7: 사용자 원칙 기반 자동매매 오케스트레이션</li>
-</ol>
-<p>각 단계는 문서에 적힌 완료 기준과 검증을 통과해야 다음 단계로 넘어갑니다.</p>
+<h2 id="doc-1-권한-설계">권한 설계</h2>
+<p>GaemiGuard는 투자 기능을 한꺼번에 열지 않고 권한을 나눠서 다룹니다.</p>
+<ul>
+<li>읽기: 계좌, 보유 종목, 가격, 환율, 일정, 경고를 가져옵니다.</li>
+<li>정리: 투자 원칙, 리서치, 시나리오, 판단 이유를 로컬에 저장합니다.</li>
+<li>검토: 주문 전후로 비중, 현금, 원칙 위반, 근거 부족을 확인합니다.</li>
+<li>수동 실행: 사용자가 승인한 주문만 공식 브로커 API로 실행합니다.</li>
+<li>자동 실행: 사용자가 정한 원칙, 한도, 쿨다운, 중단 스위치 안에서만 실행합니다.</li>
+</ul>
+<p>로컬 파일이나 에이전트 실행 권한이 높아도, 그것이 곧바로 주문 권한이 되지는 않습니다. 주문 권한은 별도입니다.</p>
 <h2 id="doc-1-보안과-투자-경계">보안과 투자 경계</h2>
 <p>GaemiGuard는 투자 판단을 돕는 도구입니다. 특정 수익률, 미래 가격, 매매 성과를 약속하지 않습니다.</p>
-<p>현재 기본 정책은 실주문 차단입니다. 나중에 실주문 기능을 열더라도 최소한 아래가 먼저 필요합니다.</p>
+<p>실거래와 자동매매는 아래 조건을 통과한 흐름에서만 실행됩니다.</p>
 <ul>
 <li>사용자의 명시 승인</li>
 <li>중복 주문 방지 키</li>
@@ -850,7 +826,7 @@ vendor/
 <p>좋은 기여:</p>
 <ul>
 <li>권한 정책과 감사 로그를 더 명확하게 만드는 변경</li>
-<li>Toss Invest OpenAPI 공식 문서 기반의 읽기 전용 연결</li>
+<li>공식 브로커 API 기반 연결</li>
 <li>투자 판단 근거를 저장하고 다시 확인하기 쉬운 결과물</li>
 <li>화면에서 중요한 정보를 더 잘 보이게 만드는 변경</li>
 <li>테스트 가능한 작은 런타임 개선</li>
@@ -1367,7 +1343,7 @@ vendor/
 <p>This is not a small MVP plan. It is a staged build plan for a local-first personal investment agent, broker adapter runtime, investment guard, and trading authority system.</p>
 <h2 id="doc-7-product-promise">Product Promise</h2>
 <p><strong>한국 개인투자자를 위한 로컬 개인 투자 에이전트</strong></p>
-<p>Brokerage apps execute trades. GaemiGuard organizes judgment, evidence, trading authority, and automation boundaries before action.</p>
+<p>GaemiGuard owns the decision-to-order workflow. Official broker APIs are the execution rails; GaemiGuard owns judgment, evidence, trading authority, approval, audit, and automation boundaries.</p>
 <h2 id="doc-7-strategic-scope">Strategic Scope</h2>
 <p>GaemiGuard is:</p>
 <ul>
@@ -3340,7 +3316,7 @@ Approver:</code></pre>
 <ul>
 <li>Product promise: agent-first local personal investment workspace for Korean retail investors.</li>
 <li>Supporting surfaces: investment guard and small local investment terminal.</li>
-<li>Public short copy: &quot;거래는 증권사에서 하고, 판단 정리는 GaemiGuard에서 합니다.&quot;</li>
+<li>Public short copy: &quot;판단 점검부터 주문 실행까지 GaemiGuard에서 하되, 실제 연결은 공식 증권사 API로만 합니다.&quot;</li>
 <li>Broker model: broker-independent adapter contract; Toss is first implemented adapter slice, KIS is a future candidate.</li>
 <li>No-broker mode: local manual watchlist, holdings, and cash inputs are now represented in DB/API/service contracts; thesis/rules, CSV, research, scenarios, and sample data remain later extensions.</li>
 <li>First screen: Today Guard dashboard.</li>
@@ -4189,7 +4165,7 @@ pnpm docs:html</code></pre>
 <p>Read this document as background and future option context, not as permission to implement every listed external tool or automation feature in the current stage.</p>
 <h2 id="doc-33-0-project-summary">0. Project Summary</h2>
 <p><strong>GaemiGuard</strong> is an agent-first local personal investment workspace for Korean retail investors.</p>
-<p>It is not a normal stock trading app, not a simple news summarizer, and not a guaranteed-profit or automation-first trading bot.</p>
+<p>It is not a brokerage screen clone, not a simple news summarizer, and not a guaranteed-profit or automation-first trading bot.</p>
 <p>GaemiGuard connects:</p>
 <ul>
 <li>Broker adapters such as Toss Invest Open API, KIS, future brokers, manual portfolio entry, and CSV import</li>
@@ -4202,15 +4178,15 @@ pnpm docs:html</code></pre>
 </ul>
 <p>The goal is to help users manage their investment thesis, rules, research, scenario simulations, trade reviews, and later-stage automation from one local desktop application.</p>
 <p>Core positioning:</p>
-<blockquote>Brokerage apps execute trades.</blockquote>
-<blockquote>GaemiGuard helps the user organize judgment, evidence, and trading authority before action.</blockquote>
+<blockquote>GaemiGuard owns the decision-to-order workflow.</blockquote>
+<blockquote>Official broker APIs are the execution rails; GaemiGuard owns guardrails, approval, audit, and automation policy.</blockquote>
 <p>---</p>
 <h2 id="doc-33-1-product-philosophy">1. Product Philosophy</h2>
 <h3 id="doc-33-1-1-what-gaemiguard-is">1.1 What GaemiGuard is</h3>
 <p>GaemiGuard is:</p>
 <ul>
 <li>A local-first desktop app</li>
-<li>An investment coach</li>
+<li>A personal investment agent</li>
 <li>An investment research orchestrator</li>
 <li>A thesis and rule management tool</li>
 <li>A trade review and guardrail system</li>
@@ -5257,7 +5233,7 @@ Codex: logged in / not logged in</code></pre>
 <p>Plain product statement:</p>
 <blockquote>GaemiGuard helps a Korean retail investor collect account, market, research, scenario, and personal-rule context before making an investment decision.</blockquote>
 <p>Short Korean positioning for public copy:</p>
-<blockquote>거래는 증권사에서 하고, 판단 점검은 GaemiGuard에서 합니다.</blockquote>
+<blockquote>판단 점검부터 주문 실행까지 GaemiGuard에서 하되, 실제 연결은 공식 증권사 API로만 합니다.</blockquote>
 <h2 id="doc-35-product-shape">Product Shape</h2>
 <p>GaemiGuard should feel like:</p>
 <ul>
@@ -14832,7 +14808,7 @@ Toss, Toss Securities, OpenAI, Codex, Hermes, MiroFish, OpenBB, Graphiti, and ot
             label: &quot;한 문장 제품 약속은 무엇인가?&quot;,
             help: &quot;사용자가 이 앱을 왜 켜는지 정하는 최상위 문장입니다.&quot;,
             options: [
-              [&quot;think_before_trade&quot;, &quot;거래 전 한 번 더 생각하게 하는 투자 가드&quot;, &quot;거래는 증권사에서, 판단 정리는 GaemiGuard에서&quot;],
+              [&quot;think_before_trade&quot;, &quot;거래 전 한 번 더 생각하게 하는 투자 가드&quot;, &quot;판단 점검부터 주문 실행까지 GaemiGuard에서&quot;],
               [&quot;agent_terminal&quot;, &quot;내 계좌, 수동 포트폴리오, 리서치를 연결한 투자 에이전트&quot;, &quot;대화형 분석, 근거 정리, 도구 실행을 전면에 둠&quot;],
               [&quot;auto_strategy&quot;, &quot;개인 투자 원칙 기반 자동매매 오케스트레이터&quot;, &quot;장기 방향에는 가능하지만 초기에는 안전 설계 부담이 큼&quot;],
               [&quot;journal_memory&quot;, &quot;투자 논리와 매매 복기를 자동으로 남기는 메모리 앱&quot;, &quot;기록/복기 중심으로 1단계가 작아짐&quot;]
