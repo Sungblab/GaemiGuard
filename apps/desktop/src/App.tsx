@@ -26,7 +26,8 @@ import type {
   HealthCheck,
   InvestmentMemoryRecallResult,
   InvestmentMemoryRecord,
-  InvestmentMemorySkippedItem
+  InvestmentMemorySkippedItem,
+  InvestmentMemorySource
 } from "@gaemiguard/shared";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:4317";
@@ -46,6 +47,15 @@ type MemorySummaryItem = {
   kind: string;
   source: string;
   freshnessStatus: string;
+};
+
+type MemoryAuthoringKind = "thesis" | "rule" | "journal" | "research";
+
+type MemoryAuthoringForm = {
+  kind: MemoryAuthoringKind;
+  title: string;
+  body: string;
+  userQuestion: string;
 };
 
 type GuardLevel = "blocked" | "warning" | "watch" | "pass" | "pending";
@@ -236,6 +246,30 @@ function memoryEventItems(run: CommanderResponse, key: "usedMemory" | "skippedMe
   return Array.isArray(value) ? value : [];
 }
 
+function createManualMemorySource(kind: MemoryAuthoringKind, symbol: string): InvestmentMemorySource {
+  const capturedAt = new Date().toISOString();
+  const labelKind =
+    kind === "research"
+      ? "research artifact"
+      : kind === "journal"
+        ? "journal entry"
+        : kind === "rule"
+          ? "rule"
+          : "thesis";
+
+  return {
+    kind: kind === "research" ? "research_artifact" : "manual_note",
+    label: `Desktop ${labelKind} authoring for ${symbol}`,
+    capturedAt,
+    freshness: {
+      status: "local_manual",
+      source: "manual_input",
+      message: `User-authored local ${labelKind}; no broker account facts are implied.`,
+      lastUpdatedAt: capturedAt
+    }
+  };
+}
+
 function Timeline({ events }: { events: AgentRunEvent[] }) {
   return (
     <div className="timeline">
@@ -272,12 +306,22 @@ function MemoryResearchPanel({
   recall,
   selectedHolding,
   isLoading,
-  error
+  error,
+  authoringForm,
+  authoringStatus,
+  isSaving,
+  onAuthoringChange,
+  onAuthoringSubmit
 }: {
   recall: InvestmentMemoryRecallResult | null;
   selectedHolding: Holding;
   isLoading: boolean;
   error: string | null;
+  authoringForm: MemoryAuthoringForm;
+  authoringStatus: string | null;
+  isSaving: boolean;
+  onAuthoringChange: (patch: Partial<MemoryAuthoringForm>) => void;
+  onAuthoringSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const items = recall?.items ?? [];
   const skipped = recall?.skipped ?? [];
@@ -299,6 +343,59 @@ function MemoryResearchPanel({
         <strong>{selectedHolding.symbol}</strong>
         <span>{selectedHolding.name} 관련 thesis, rule, journal, research recall</span>
       </div>
+      <form className="memory-authoring-form" onSubmit={onAuthoringSubmit}>
+        <div className="authoring-row">
+          <label>
+            <span>Type</span>
+            <select
+              value={authoringForm.kind}
+              onChange={(event) => onAuthoringChange({ kind: event.target.value as MemoryAuthoringKind })}
+              disabled={isSaving}
+            >
+              <option value="thesis">Thesis</option>
+              <option value="rule">Rule</option>
+              <option value="journal">Journal</option>
+              <option value="research">Research</option>
+            </select>
+          </label>
+          <label>
+            <span>Title</span>
+            <input
+              value={authoringForm.title}
+              onChange={(event) => onAuthoringChange({ title: event.target.value })}
+              disabled={isSaving || authoringForm.kind === "journal"}
+              placeholder={authoringForm.kind === "journal" ? "Journal entry" : `${selectedHolding.symbol} memory title`}
+            />
+          </label>
+        </div>
+        {authoringForm.kind === "research" ? (
+          <label className="authoring-full">
+            <span>User question link</span>
+            <input
+              value={authoringForm.userQuestion}
+              onChange={(event) => onAuthoringChange({ userQuestion: event.target.value })}
+              disabled={isSaving}
+              placeholder={`${selectedHolding.name} 리서치가 내 논리를 바꾸는지`}
+            />
+          </label>
+        ) : null}
+        <label className="authoring-full">
+          <span>Body</span>
+          <textarea
+            value={authoringForm.body}
+            onChange={(event) => onAuthoringChange({ body: event.target.value })}
+            disabled={isSaving}
+            placeholder={`${selectedHolding.name}에 대한 근거, 원칙, 기록, 리서치 내용을 저장`}
+          />
+        </label>
+        <div className="authoring-footer">
+          <span>Saved as local_manual source/freshness for immediate recall.</span>
+          <button type="submit" disabled={isSaving || !authoringForm.body.trim()}>
+            {isSaving ? "Saving" : "Save memory"}
+          </button>
+        </div>
+        {authoringStatus ? <div className="authoring-status">{authoringStatus}</div> : null}
+      </form>
       {isLoading ? <div className="empty-state">Memory recall 확인 중</div> : null}
       {error ? <div className="api-error">{error}</div> : null}
       {!isLoading && !error && items.length === 0 ? (
@@ -426,6 +523,14 @@ export function App() {
   const [memoryRecall, setMemoryRecall] = useState<InvestmentMemoryRecallResult | null>(null);
   const [isMemoryLoading, setIsMemoryLoading] = useState(false);
   const [memoryError, setMemoryError] = useState<string | null>(null);
+  const [authoringForm, setAuthoringForm] = useState<MemoryAuthoringForm>({
+    kind: "thesis",
+    title: "Investment thesis",
+    body: "",
+    userQuestion: ""
+  });
+  const [authoringStatus, setAuthoringStatus] = useState<string | null>(null);
+  const [isAuthoringSaving, setIsAuthoringSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -461,38 +566,26 @@ export function App() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMemoryRecall() {
-      setIsMemoryLoading(true);
-      try {
-        const response = await fetch(`${API_BASE}/memory/recall?symbol=${encodeURIComponent(selectedHolding.symbol)}`);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const body = (await response.json()) as InvestmentMemoryRecallResult;
-        if (!cancelled) {
-          setMemoryRecall(body);
-          setMemoryError(null);
-        }
-      } catch {
-        if (!cancelled) {
-          setMemoryRecall(null);
-          setMemoryError("Memory recall API 확인이 필요합니다.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsMemoryLoading(false);
-        }
+  async function loadMemoryRecall() {
+    setIsMemoryLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/memory/recall?symbol=${encodeURIComponent(selectedHolding.symbol)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+      const body = (await response.json()) as InvestmentMemoryRecallResult;
+      setMemoryRecall(body);
+      setMemoryError(null);
+    } catch {
+      setMemoryRecall(null);
+      setMemoryError("Memory recall API 확인이 필요합니다.");
+    } finally {
+      setIsMemoryLoading(false);
     }
+  }
 
-    loadMemoryRecall();
-
-    return () => {
-      cancelled = true;
-    };
+  useEffect(() => {
+    void loadMemoryRecall();
   }, [selectedHolding.symbol]);
 
   const healthSummary = useMemo(() => {
@@ -507,6 +600,83 @@ export function App() {
 
   function askQuickQuestion(question: string) {
     setInput(question);
+  }
+
+  function updateAuthoringForm(patch: Partial<MemoryAuthoringForm>) {
+    setAuthoringForm((current) => {
+      const next = { ...current, ...patch };
+      if (patch.kind === "journal") {
+        next.title = "Journal entry";
+      }
+      if (patch.kind && patch.kind !== "journal" && current.kind === "journal") {
+        next.title = patch.kind === "rule" ? "Investment rule" : patch.kind === "research" ? "Research artifact" : "Investment thesis";
+      }
+      return next;
+    });
+    setAuthoringStatus(null);
+  }
+
+  async function saveAuthoredMemory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const body = authoringForm.body.trim();
+    const title = authoringForm.title.trim();
+    if (!body || isAuthoringSaving) return;
+
+    setIsAuthoringSaving(true);
+    setAuthoringStatus(null);
+    setMemoryError(null);
+
+    const source = createManualMemorySource(authoringForm.kind, selectedHolding.symbol);
+    const endpoint =
+      authoringForm.kind === "thesis"
+        ? "/memory/theses"
+        : authoringForm.kind === "rule"
+          ? "/memory/rules"
+          : authoringForm.kind === "journal"
+            ? "/memory/journal"
+            : "/memory/research";
+    const method = authoringForm.kind === "thesis" || authoringForm.kind === "rule" ? "PUT" : "POST";
+    const payload =
+      authoringForm.kind === "thesis"
+        ? { symbol: selectedHolding.symbol, title: title || `${selectedHolding.symbol} thesis`, body, source }
+        : authoringForm.kind === "rule"
+          ? { name: title || `${selectedHolding.symbol} rule`, body, source }
+          : authoringForm.kind === "journal"
+            ? { symbol: selectedHolding.symbol, body, source }
+            : {
+                title: title || `${selectedHolding.symbol} research artifact`,
+                body,
+                source,
+                links: {
+                  symbols: [selectedHolding.symbol],
+                  holdingSymbols: [selectedHolding.symbol],
+                  userQuestion: authoringForm.userQuestion.trim() || `${selectedHolding.symbol} local research capture`
+                }
+              };
+
+    try {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+      await loadMemoryRecall();
+      setAuthoringStatus(`${memoryKindLabel(authoringForm.kind)} saved and recalled for ${selectedHolding.symbol}.`);
+      setAuthoringForm((current) => ({ ...current, body: "", userQuestion: "" }));
+    } catch (error) {
+      setAuthoringStatus(
+        error instanceof Error
+          ? `Memory save failed. ${error.message}`
+          : "Memory save failed. Check the local API and required source metadata."
+      );
+    } finally {
+      setIsAuthoringSaving(false);
+    }
   }
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
@@ -797,6 +967,11 @@ export function App() {
               selectedHolding={selectedHolding}
               isLoading={isMemoryLoading}
               error={memoryError}
+              authoringForm={authoringForm}
+              authoringStatus={authoringStatus}
+              isSaving={isAuthoringSaving}
+              onAuthoringChange={updateAuthoringForm}
+              onAuthoringSubmit={saveAuthoredMemory}
             />
 
             <section className="panel diagnostics-panel">

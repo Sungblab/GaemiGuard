@@ -376,7 +376,7 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   });
 
   const app = Fastify({ logger: false });
-  await app.register(cors, { origin: true });
+  await app.register(cors, { origin: true, methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"] });
 
   app.addHook("onClose", async () => {
     db.close();
