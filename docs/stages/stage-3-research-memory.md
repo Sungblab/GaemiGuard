@@ -86,13 +86,22 @@ Implemented:
 - Commander review-card grounding summary for MemoryAgent used/skipped memory when a run includes memory context.
 - Desktop smoke coverage for the memory/research review surface.
 
-Remaining:
+## Exit Slice Status
+
+Implemented:
 
 - Desktop thesis/rules/journal/research authoring UI.
-- Research report artifacts beyond the minimal local research memory record.
-- Local Markdown/PDF/CSV ingestion.
-- Hermes/OpenBB adapter contracts.
-- Daily/weekly report generation and UI visibility.
+- Explicit local Markdown/CSV import UI and API, stored as source-backed research memory with safe source metadata.
+- Minimal PDF-text import API contract for already-extracted text; binary PDF parsing is deferred.
+- Weekly review generation through `ReportAgent` artifacts.
+- Weekly review Markdown/JSON artifact persistence and desktop visibility.
+- Stage 3 exit review in `docs/reviews/2026-06-06-stage-3-research-memory-gate-review.md`.
+
+Deferred beyond Stage 3 exit:
+
+- Binary/scanned PDF parsing and OCR.
+- Hermes/OpenBB adapter implementation.
+- Daily report scheduling.
 
 ## Connector Policy
 
@@ -127,3 +136,5 @@ Stage 3 exits when:
 - Memory recall returns source links.
 - Secret/account redaction snapshots pass.
 - Weekly review flow writes artifacts and is visible in UI.
+
+Exit status: accepted on 2026-06-06 after desktop authoring, explicit local import, weekly review artifact generation, redaction tests, local verification, PR CI, and main CI passed.

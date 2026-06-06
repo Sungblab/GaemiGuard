@@ -298,6 +298,27 @@ try {
     throw "Local import form did not save and refresh recall."
   }
 
+  $afterImport = Invoke-PlaywrightCli @("snapshot")
+  $weeklyReviewRef = Get-Ref $afterImport "- button `"Generate weekly review`" \[ref=(?<ref>e\d+)\]" "weekly review button"
+  Invoke-PlaywrightCli @("click", $weeklyReviewRef) | Out-Null
+
+  $weeklyReviewReady = $false
+  $deadline = (Get-Date).AddSeconds(20)
+  do {
+    Start-Sleep -Milliseconds 500
+    $weeklyReviewState = Invoke-PlaywrightCli @("eval", "document.body.innerText.includes('Weekly review generated with 2 artifacts') && document.body.innerText.includes('weekly_review_markdown')")
+    if (($weeklyReviewState -join "`n") -match "true") {
+      $weeklyReviewReady = $true
+      break
+    }
+  } while ((Get-Date) -lt $deadline)
+
+  if (-not $weeklyReviewReady) {
+    $weeklyDebug = Invoke-PlaywrightCli @("snapshot")
+    Save-Lines $weeklyDebug (Join-Path $PlaywrightOutput "gaemiguard-desktop-smoke.weekly-debug.txt")
+    throw "Weekly review artifact was not generated and shown in the desktop UI."
+  }
+
   $inputRef = Get-LastTextboxRef $before "Commander textbox"
   $sendRef = Get-Ref $before "- button `"send`" \[ref=(?<ref>e\d+)\]" "send button"
 
@@ -346,7 +367,7 @@ try {
   Invoke-PlaywrightCli @("close") | Out-Null
 
   Write-Host "Desktop UI smoke passed."
-  Write-Host "Verified: favicon 200, blocked order banner, memory authoring recall, local import recall, Commander review card, run-log toggle, composer input re-enabled, console clean."
+  Write-Host "Verified: favicon 200, blocked order banner, memory authoring recall, local import recall, weekly review artifact, Commander review card, run-log toggle, composer input re-enabled, console clean."
 } finally {
   try {
     Invoke-PlaywrightCli @("close") | Out-Null

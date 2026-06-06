@@ -96,7 +96,7 @@ Stage 2 snapshot persistence supports both mock replay and production read-only 
 
 ## Stage 3 Research And Memory Runtime
 
-The first Stage 3 slices add local investment memory and source-backed local research artifacts before external research connectors or UI surfaces.
+Stage 3 adds local investment memory, source-backed local research artifacts, explicit user imports, and weekly review report artifacts before external research connectors.
 
 - `MemoryAgent` can load thesis, rule, and journal context for Commander when the user asks memory-oriented questions.
 - `MemoryAgent` can also recall source-backed research artifacts tied to symbols, holdings, watchlist items, and the originating user question.
@@ -105,6 +105,10 @@ The first Stage 3 slices add local investment memory and source-backed local res
 - SQLite stores thesis/rule version records and journal entries under the local memory contract.
 - SQLite also stores local research artifacts under the same memory contract with research links metadata.
 - API endpoints expose local memory writes and recall at `/memory/theses`, `/memory/rules`, `/memory/journal`, `/memory/research`, and `/memory/recall`.
+- API endpoint `/memory/import/local` stores explicit user Markdown, CSV, or already-extracted PDF text imports as research memory with safe file names and source/freshness metadata.
+- API endpoint `/reports/weekly-review` generates persisted `weekly_review_markdown` and `weekly_review_json` artifacts through `ReportAgent`.
 - Desktop reads `/memory/recall` for the selected holding and shows source, freshness, links, and skipped stale/missing-source memory in a review panel.
+- Desktop can author thesis/rule/journal/research memory, import local Markdown/CSV text, and generate weekly review artifacts for the selected symbol.
 - Commander review cards surface MemoryAgent used/skipped grounding metadata when a run includes memory context.
 - Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.
+- Original local file paths are not retained for imports; imported source labels use safe file names only.

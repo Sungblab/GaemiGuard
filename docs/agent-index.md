@@ -13,7 +13,7 @@ This is the short routing document for agents starting GaemiGuard work. It point
 | 3 | `docs/development-status.md` | Current implementation state, active work, blockers, and next work. |
 | 4 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, guard and terminal as supporting surfaces. |
 | 5 | `docs/product/broker-connection-and-trading.md` | Broker-independent adapter strategy, no-broker mode, manual trading, and automation authority. |
-| 6 | `docs/stages/stage-2-toss-readonly-connector.md` | Latest completed Stage 2 contract and accepted gate review. |
+| 6 | `docs/stages/stage-3-research-memory.md` | Latest completed Stage 3 contract and accepted gate review. |
 | 7 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
 Read these only when relevant:
@@ -25,6 +25,7 @@ Read these only when relevant:
 | Product direction | `docs/product/README.md`, `docs/product/agent-first-direction.md`, `docs/product/broker-connection-and-trading.md`, `docs/product/external-tools-and-data.md` |
 | Toss API reference | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
 | Commander/runtime work | `docs/architecture/agent-runtime.md` |
+| Broker foundation history | `docs/stages/stage-2-toss-readonly-connector.md`, `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md` |
 | Desktop smoke testing | `docs/setup/playwright-smoke.md` |
 | Workflow rules | `docs/contributing/workflow.md` |
 
@@ -33,7 +34,8 @@ Read these only when relevant:
 - Development follows stage gates.
 - Stage 1 is complete.
 - Stage 2 is complete and exited.
-- Stage 3 Research And Memory is active.
+- Stage 3 Research And Memory is complete.
+- Stage 4 MiroFish Scenario is the next stage.
 - Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.
 - Broker direction is adapter-based: Toss is the first implemented read-only adapter slice; KIS is a future adapter candidate after source notes and capability mapping.
 - Toss order create/update/cancel remains forbidden.
@@ -60,7 +62,9 @@ Read these only when relevant:
 - Local-only thesis/rule/journal memory persistence and API recall
 - Source-backed local research artifact persistence and API recall
 - Commander MemoryAgent context that uses thesis/rule/journal/research memory only when source/freshness metadata is usable
-- Desktop memory/research review surface with source, freshness, and skipped-source visibility
+- Desktop memory/research authoring and review surface with source, freshness, and skipped-source visibility
+- Explicit local Markdown/CSV import stored as source-backed research memory
+- Weekly review Markdown/JSON report artifacts with desktop visibility
 
 Use `docs/development-status.md` for the complete current list.
 

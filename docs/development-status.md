@@ -12,7 +12,7 @@ This is the current-state document coding agents should read before continuing G
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.
-- Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, desktop memory/research review surface, and redaction tests.
+- Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, explicit local Markdown/CSV import, weekly review artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, desktop memory/research authoring/review/report surfaces, and redaction tests.
 - Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
@@ -32,9 +32,9 @@ This is the current-state document coding agents should read before continuing G
   - `pnpm test`
   - `pnpm typecheck`
 - Current development model: Gate-Based Waterfall, not MVP iteration.
-- Latest completed stage: Stage 2, Broker Connection Foundation.
+- Latest completed stage: Stage 3, Research And Memory.
 - Stage 2 status: exit accepted after credential boundary, real read-only sync, freshness UI, Commander grounding, security tests, and gate review.
-- Active stage: Stage 3, Research And Memory.
+- Active stage: Stage 4, MiroFish Scenario.
 
 ## Read Order For Future Goals
 
@@ -46,8 +46,10 @@ This is the current-state document coding agents should read before continuing G
    - `docs/product/agent-first-direction.md`
    - `docs/product/broker-connection-and-trading.md`
    - `docs/product/external-tools-and-data.md`
-6. Latest completed stage gate:
+6. Latest completed stage gates:
    - `docs/stages/stage-2-toss-readonly-connector.md` (file name retained; product meaning is Broker Connection Foundation)
+   - `docs/stages/stage-3-research-memory.md`
+   - `docs/reviews/2026-06-06-stage-3-research-memory-gate-review.md`
 7. Source references for the active work:
    - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
@@ -103,7 +105,7 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
 | Stage 2 Broker Connection Foundation | Complete | Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented. |
-| Stage 3 Research And Memory | In progress | Local memory, first source-backed research artifact slice, and first desktop review surface are implemented: thesis/rule/journal persistence, research artifact persistence, API recall, Commander MemoryAgent context, source/freshness gating, desktop memory/research visibility, and redaction tests. |
+| Stage 3 Research And Memory | Complete | Thesis/rule/journal/research authoring, explicit local Markdown/CSV import, source/freshness-gated recall, Commander MemoryAgent grounding, weekly review artifacts, desktop visibility, and exit gate review are implemented. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
 | Stage 6 Guarded Manual Live Orders | Locked | User-approved manual live order submission remains forbidden before this stage. |
@@ -217,6 +219,19 @@ Stage 3 desktop memory/research review surface slice:
 - Commander review cards can surface MemoryAgent used/skipped grounding metadata when memory is involved in a run.
 - `scripts/smoke-desktop-ui.ps1` now verifies that the desktop home screen includes the memory/research review surface.
 
+Stage 3 authoring/import/report exit slice:
+
+- Desktop Stage 3 Memory panel now supports selected-symbol thesis, rule, journal, and research authoring.
+- Authored desktop memory automatically receives `local_manual` source/freshness metadata and refreshes `/memory/recall` after save.
+- API CORS explicitly allows browser `PUT`, `DELETE`, and `OPTIONS`, so desktop write flows work through the local API.
+- API endpoint `POST /memory/import/local` stores explicit user Markdown, CSV, or already-extracted PDF text imports as source-backed research memory.
+- Local import metadata stores safe file names and explicit source labels without retaining original local paths.
+- Desktop local import controls support Markdown/CSV file selection or pasted text and show imported research in recall.
+- API endpoint `POST /reports/weekly-review` creates persisted `weekly_review_markdown` and `weekly_review_json` artifacts through `ReportAgent`.
+- Weekly review artifacts combine usable thesis/rule/journal/research recall with local manual holding/watchlist context and list skipped stale/missing-source memory.
+- Desktop weekly review control generates the report and shows the resulting artifacts.
+- Tests cover local import source metadata, redaction, path stripping, weekly review artifact persistence, stale-source exclusion, and desktop smoke coverage for authoring/import/report visibility.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -241,6 +256,10 @@ Documentation routing:
 
 Stage 2 exit is accepted in `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md`.
 
+## Stage 3 Gate Review
+
+Stage 3 exit is accepted in `docs/reviews/2026-06-06-stage-3-research-memory-gate-review.md`.
+
 Accepted evidence:
 
 - Toss credentials live behind the OS credential-store boundary; tests use only the fake credential provider.
@@ -262,9 +281,9 @@ Accepted evidence:
 
 ## Recommended Next Slice
 
-The next practical Stage 3 slice is to expand from the first memory/research review surface into authoring and report generation:
+The next practical slice is Stage 4 MiroFish Scenario:
 
-1. Add desktop authoring flows for thesis/rule/journal and local research artifact capture.
-2. Add weekly review and report artifact generation.
-3. Add local Markdown/PDF/CSV ingestion only with explicit user import and source metadata.
-4. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.
+1. Keep MiroFish scenario work sidecar-only and no-order.
+2. Package source/freshness-grounded portfolio, thesis, rule, journal, research, and weekly review context as scenario inputs.
+3. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of scope unless a later gate explicitly opens them.
+4. Preserve the Stage 3 source/freshness and redaction boundaries when scenario artifacts reference memory or imported research.
