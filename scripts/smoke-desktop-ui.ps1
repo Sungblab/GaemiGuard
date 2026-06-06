@@ -88,6 +88,22 @@ function Get-Ref {
   return $match.Groups["ref"].Value
 }
 
+function Get-LastTextboxRef {
+  param(
+    [string[]]$Snapshot,
+    [string]$Name
+  )
+
+  $text = $Snapshot -join "`n"
+  $matches = [regex]::Matches($text, "- textbox .*?\[ref=(?<ref>e\d+)\]")
+
+  if ($matches.Count -eq 0) {
+    throw "Could not find $Name in Playwright snapshot."
+  }
+
+  return $matches[$matches.Count - 1].Groups["ref"].Value
+}
+
 function Stop-SmokeProcess {
   param($Process)
 
@@ -197,7 +213,49 @@ try {
     throw "Home screen does not show the Stage 3 memory/research review surface."
   }
 
-  $inputRef = Get-Ref $before "- textbox .*?\[ref=(?<ref>e\d+)\]" "Commander textbox"
+  $authoringTitleRef = Get-Ref $before "- textbox `"Title`" \[ref=(?<ref>e\d+)\]" "memory authoring title"
+  $authoringBodyRef = Get-Ref $before "- textbox `"Body`" \[ref=(?<ref>e\d+)\]" "memory authoring body"
+
+  Invoke-PlaywrightCli @("fill", $authoringTitleRef, "Smoke authored AMD thesis") | Out-Null
+  Invoke-PlaywrightCli @("fill", $authoringBodyRef, "Smoke authored local thesis for AMD with local manual source metadata.") | Out-Null
+
+  $authoringButtonEnabled = $false
+  $deadline = (Get-Date).AddSeconds(10)
+  do {
+    Start-Sleep -Milliseconds 250
+    $buttonState = Invoke-PlaywrightCli @("eval", "document.querySelector('.memory-authoring-form button[type=`"submit`"]').disabled === false")
+    if (($buttonState -join "`n") -match "true") {
+      $authoringButtonEnabled = $true
+      break
+    }
+  } while ((Get-Date) -lt $deadline)
+
+  if (-not $authoringButtonEnabled) {
+    throw "Memory authoring save button did not become enabled after filling the form."
+  }
+
+  $filledAuthoring = Invoke-PlaywrightCli @("snapshot")
+  $authoringSaveRef = Get-Ref $filledAuthoring "- button `"Save memory`" \[ref=(?<ref>e\d+)\]" "enabled memory authoring save button"
+  Invoke-PlaywrightCli @("click", $authoringSaveRef) | Out-Null
+
+  $authoringReady = $false
+  $deadline = (Get-Date).AddSeconds(20)
+  do {
+    Start-Sleep -Milliseconds 500
+    $authoringState = Invoke-PlaywrightCli @("eval", "document.body.innerText.includes('Smoke authored AMD thesis') && document.body.innerText.includes('Thesis saved and recalled for AMD')")
+    if (($authoringState -join "`n") -match "true") {
+      $authoringReady = $true
+      break
+    }
+  } while ((Get-Date) -lt $deadline)
+
+  if (-not $authoringReady) {
+    $authoringDebug = Invoke-PlaywrightCli @("snapshot")
+    Save-Lines $authoringDebug (Join-Path $PlaywrightOutput "gaemiguard-desktop-smoke.authoring-debug.txt")
+    throw "Memory authoring form did not save and refresh recall."
+  }
+
+  $inputRef = Get-LastTextboxRef $before "Commander textbox"
   $sendRef = Get-Ref $before "- button `"send`" \[ref=(?<ref>e\d+)\]" "send button"
 
   Invoke-PlaywrightCli @("fill", $inputRef, $Message) | Out-Null
@@ -227,7 +285,7 @@ try {
     throw "Composer input was not re-enabled after Commander response."
   }
 
-  $nextInputRef = Get-Ref $after "- textbox .*?\[ref=(?<ref>e\d+)\]" "Commander textbox after response"
+  $nextInputRef = Get-LastTextboxRef $after "Commander textbox after response"
   Invoke-PlaywrightCli @("fill", $nextInputRef, "next check") | Out-Null
 
   $buttonDisabled = Invoke-PlaywrightCli @("eval", "document.querySelector('.composer button[aria-label=`"send`"]').disabled")
@@ -245,7 +303,7 @@ try {
   Invoke-PlaywrightCli @("close") | Out-Null
 
   Write-Host "Desktop UI smoke passed."
-  Write-Host "Verified: favicon 200, blocked order banner, Commander review card, run-log toggle, composer input re-enabled, console clean."
+  Write-Host "Verified: favicon 200, blocked order banner, memory authoring recall, Commander review card, run-log toggle, composer input re-enabled, console clean."
 } finally {
   try {
     Invoke-PlaywrightCli @("close") | Out-Null

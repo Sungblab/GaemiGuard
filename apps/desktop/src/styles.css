@@ -24,7 +24,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -676,6 +678,116 @@ button {
 .memory-list {
   display: grid;
   gap: 8px;
+}
+
+.memory-authoring-form {
+  display: grid;
+  gap: 9px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 11px;
+  background: #f9fafb;
+}
+
+.authoring-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 9px;
+}
+
+.memory-authoring-form label,
+.memory-authoring-form label span,
+.memory-authoring-form input,
+.memory-authoring-form select,
+.memory-authoring-form textarea {
+  display: block;
+  width: 100%;
+}
+
+.memory-authoring-form label span {
+  margin-bottom: 5px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.memory-authoring-form input,
+.memory-authoring-form select,
+.memory-authoring-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+}
+
+.memory-authoring-form input,
+.memory-authoring-form select {
+  height: 36px;
+  padding: 0 10px;
+}
+
+.memory-authoring-form textarea {
+  min-height: 86px;
+  resize: vertical;
+  padding: 9px 10px;
+  line-height: 1.45;
+}
+
+.memory-authoring-form input:focus,
+.memory-authoring-form select:focus,
+.memory-authoring-form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.memory-authoring-form input:disabled,
+.memory-authoring-form select:disabled,
+.memory-authoring-form textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.authoring-full {
+  min-width: 0;
+}
+
+.authoring-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.authoring-footer span {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.authoring-footer button {
+  min-width: 118px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.authoring-footer button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.authoring-status {
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #047857;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .memory-row {
