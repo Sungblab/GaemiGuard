@@ -680,13 +680,34 @@ button {
   gap: 8px;
 }
 
-.memory-authoring-form {
+.memory-authoring-form,
+.memory-import-form {
   display: grid;
   gap: 9px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 11px;
   background: #f9fafb;
+}
+
+.memory-import-form {
+  background: #ffffff;
+}
+
+.import-head {
+  display: grid;
+  gap: 3px;
+}
+
+.import-head strong {
+  color: #111827;
+  font-size: 13px;
+}
+
+.import-head span {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .authoring-row {
@@ -699,12 +720,18 @@ button {
 .memory-authoring-form label span,
 .memory-authoring-form input,
 .memory-authoring-form select,
-.memory-authoring-form textarea {
+.memory-authoring-form textarea,
+.memory-import-form label,
+.memory-import-form label span,
+.memory-import-form input,
+.memory-import-form select,
+.memory-import-form textarea {
   display: block;
   width: 100%;
 }
 
-.memory-authoring-form label span {
+.memory-authoring-form label span,
+.memory-import-form label span {
   margin-bottom: 5px;
   color: #475569;
   font-size: 12px;
@@ -713,7 +740,10 @@ button {
 
 .memory-authoring-form input,
 .memory-authoring-form select,
-.memory-authoring-form textarea {
+.memory-authoring-form textarea,
+.memory-import-form input,
+.memory-import-form select,
+.memory-import-form textarea {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #ffffff;
@@ -722,12 +752,15 @@ button {
 }
 
 .memory-authoring-form input,
-.memory-authoring-form select {
+.memory-authoring-form select,
+.memory-import-form input,
+.memory-import-form select {
   height: 36px;
   padding: 0 10px;
 }
 
-.memory-authoring-form textarea {
+.memory-authoring-form textarea,
+.memory-import-form textarea {
   min-height: 86px;
   resize: vertical;
   padding: 9px 10px;
@@ -736,14 +769,20 @@ button {
 
 .memory-authoring-form input:focus,
 .memory-authoring-form select:focus,
-.memory-authoring-form textarea:focus {
+.memory-authoring-form textarea:focus,
+.memory-import-form input:focus,
+.memory-import-form select:focus,
+.memory-import-form textarea:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .memory-authoring-form input:disabled,
 .memory-authoring-form select:disabled,
-.memory-authoring-form textarea:disabled {
+.memory-authoring-form textarea:disabled,
+.memory-import-form input:disabled,
+.memory-import-form select:disabled,
+.memory-import-form textarea:disabled {
   background: #f1f5f9;
   color: #94a3b8;
 }

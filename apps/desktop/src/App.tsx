@@ -24,6 +24,7 @@ import type {
   ArtifactRecord,
   CommanderResponse,
   HealthCheck,
+  InvestmentMemoryLocalImportInput,
   InvestmentMemoryRecallResult,
   InvestmentMemoryRecord,
   InvestmentMemorySkippedItem,
@@ -55,6 +56,14 @@ type MemoryAuthoringForm = {
   kind: MemoryAuthoringKind;
   title: string;
   body: string;
+  userQuestion: string;
+};
+
+type LocalImportForm = {
+  fileName: string;
+  fileType: InvestmentMemoryLocalImportInput["fileType"];
+  body: string;
+  title: string;
   userQuestion: string;
 };
 
@@ -270,6 +279,13 @@ function createManualMemorySource(kind: MemoryAuthoringKind, symbol: string): In
   };
 }
 
+function fileTypeFromName(fileName: string): InvestmentMemoryLocalImportInput["fileType"] {
+  const normalized = fileName.toLowerCase();
+  if (normalized.endsWith(".csv")) return "csv";
+  if (normalized.endsWith(".pdf")) return "pdf_text";
+  return "markdown";
+}
+
 function Timeline({ events }: { events: AgentRunEvent[] }) {
   return (
     <div className="timeline">
@@ -309,9 +325,15 @@ function MemoryResearchPanel({
   error,
   authoringForm,
   authoringStatus,
+  importForm,
+  importStatus,
   isSaving,
+  isImporting,
   onAuthoringChange,
-  onAuthoringSubmit
+  onAuthoringSubmit,
+  onImportFileChange,
+  onImportChange,
+  onImportSubmit
 }: {
   recall: InvestmentMemoryRecallResult | null;
   selectedHolding: Holding;
@@ -319,9 +341,15 @@ function MemoryResearchPanel({
   error: string | null;
   authoringForm: MemoryAuthoringForm;
   authoringStatus: string | null;
+  importForm: LocalImportForm;
+  importStatus: string | null;
   isSaving: boolean;
+  isImporting: boolean;
   onAuthoringChange: (patch: Partial<MemoryAuthoringForm>) => void;
   onAuthoringSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onImportFileChange: (file: File | null) => void;
+  onImportChange: (patch: Partial<LocalImportForm>) => void;
+  onImportSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const items = recall?.items ?? [];
   const skipped = recall?.skipped ?? [];
@@ -395,6 +423,69 @@ function MemoryResearchPanel({
           </button>
         </div>
         {authoringStatus ? <div className="authoring-status">{authoringStatus}</div> : null}
+      </form>
+      <form className="memory-import-form" onSubmit={onImportSubmit}>
+        <div className="import-head">
+          <strong>Local Markdown / CSV import</strong>
+          <span>Explicit user import only. The app stores content and safe source metadata, not the original path.</span>
+        </div>
+        <label className="authoring-full">
+          <span>File</span>
+          <input
+            type="file"
+            accept=".md,.markdown,.csv,.txt"
+            onChange={(event) => onImportFileChange(event.target.files?.[0] ?? null)}
+            disabled={isImporting}
+          />
+        </label>
+        <div className="authoring-row">
+          <label>
+            <span>Type</span>
+            <select
+              value={importForm.fileType}
+              onChange={(event) => onImportChange({ fileType: event.target.value as LocalImportForm["fileType"] })}
+              disabled={isImporting}
+            >
+              <option value="markdown">Markdown</option>
+              <option value="csv">CSV</option>
+              <option value="pdf_text">PDF text</option>
+            </select>
+          </label>
+          <label>
+            <span>Title</span>
+            <input
+              value={importForm.title}
+              onChange={(event) => onImportChange({ title: event.target.value })}
+              disabled={isImporting}
+              placeholder={`${selectedHolding.symbol} imported research`}
+            />
+          </label>
+        </div>
+        <label className="authoring-full">
+          <span>Imported text</span>
+          <textarea
+            value={importForm.body}
+            onChange={(event) => onImportChange({ body: event.target.value })}
+            disabled={isImporting}
+            placeholder="Markdown or CSV text selected by the user"
+          />
+        </label>
+        <label className="authoring-full">
+          <span>User question link</span>
+          <input
+            value={importForm.userQuestion}
+            onChange={(event) => onImportChange({ userQuestion: event.target.value })}
+            disabled={isImporting}
+            placeholder={`${selectedHolding.name} imported research`}
+          />
+        </label>
+        <div className="authoring-footer">
+          <span>{importForm.fileName ? `Ready: ${importForm.fileName}` : "Choose a local Markdown or CSV file, or paste text."}</span>
+          <button type="submit" disabled={isImporting || !importForm.body.trim()}>
+            {isImporting ? "Importing" : "Import research"}
+          </button>
+        </div>
+        {importStatus ? <div className="authoring-status">{importStatus}</div> : null}
       </form>
       {isLoading ? <div className="empty-state">Memory recall 확인 중</div> : null}
       {error ? <div className="api-error">{error}</div> : null}
@@ -531,6 +622,15 @@ export function App() {
   });
   const [authoringStatus, setAuthoringStatus] = useState<string | null>(null);
   const [isAuthoringSaving, setIsAuthoringSaving] = useState(false);
+  const [importForm, setImportForm] = useState<LocalImportForm>({
+    fileName: "",
+    fileType: "markdown",
+    body: "",
+    title: "",
+    userQuestion: ""
+  });
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -614,6 +714,67 @@ export function App() {
       return next;
     });
     setAuthoringStatus(null);
+  }
+
+  function updateImportForm(patch: Partial<LocalImportForm>) {
+    setImportForm((current) => ({ ...current, ...patch }));
+    setImportStatus(null);
+  }
+
+  async function updateImportFile(file: File | null) {
+    if (!file) return;
+    const text = await file.text();
+    setImportForm((current) => ({
+      ...current,
+      fileName: file.name,
+      fileType: fileTypeFromName(file.name),
+      title: current.title || file.name.replace(/\.[^.]+$/, ""),
+      body: text
+    }));
+    setImportStatus(null);
+  }
+
+  async function importLocalResearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const body = importForm.body.trim();
+    if (!body || isImporting) return;
+
+    setIsImporting(true);
+    setImportStatus(null);
+    setMemoryError(null);
+
+    const payload: InvestmentMemoryLocalImportInput = {
+      fileName: importForm.fileName || `${selectedHolding.symbol}-manual-import.txt`,
+      fileType: importForm.fileType,
+      ...(importForm.title.trim() ? { title: importForm.title.trim() } : {}),
+      body,
+      symbol: selectedHolding.symbol,
+      userQuestion: importForm.userQuestion.trim() || `${selectedHolding.symbol} local import`
+    };
+
+    try {
+      const response = await fetch(`${API_BASE}/memory/import/local`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+      await loadMemoryRecall();
+      setImportStatus(`Imported research saved and recalled for ${selectedHolding.symbol}.`);
+      setImportForm((current) => ({ ...current, body: "", userQuestion: "" }));
+    } catch (error) {
+      setImportStatus(
+        error instanceof Error
+          ? `Local import failed. ${error.message}`
+          : "Local import failed. Check the local API and source metadata."
+      );
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   async function saveAuthoredMemory(event: FormEvent<HTMLFormElement>) {
@@ -969,9 +1130,15 @@ export function App() {
               error={memoryError}
               authoringForm={authoringForm}
               authoringStatus={authoringStatus}
+              importForm={importForm}
+              importStatus={importStatus}
               isSaving={isAuthoringSaving}
+              isImporting={isImporting}
               onAuthoringChange={updateAuthoringForm}
               onAuthoringSubmit={saveAuthoredMemory}
+              onImportFileChange={(file) => void updateImportFile(file)}
+              onImportChange={updateImportForm}
+              onImportSubmit={importLocalResearch}
             />
 
             <section className="panel diagnostics-panel">

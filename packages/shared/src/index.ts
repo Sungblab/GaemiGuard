@@ -211,6 +211,18 @@ export type InvestmentMemoryResearchArtifactInput = {
   links: InvestmentResearchArtifactLinks;
 };
 
+export type InvestmentMemoryLocalImportFileType = "markdown" | "csv" | "pdf_text";
+
+export type InvestmentMemoryLocalImportInput = {
+  fileName: string;
+  fileType: InvestmentMemoryLocalImportFileType;
+  title?: string;
+  body: string;
+  symbol?: string;
+  userQuestion?: string;
+  importedAt?: string;
+};
+
 export type InvestmentMemoryRecallRequest = {
   symbol?: string;
   query?: string;

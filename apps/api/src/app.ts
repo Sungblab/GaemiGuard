@@ -21,6 +21,7 @@ import type {
   BrokerAdapterStatus,
   HealthCheck,
   InvestmentMemoryJournalInput,
+  InvestmentMemoryLocalImportInput,
   InvestmentMemoryResearchArtifactInput,
   InvestmentMemoryRuleInput,
   InvestmentMemoryThesisInput,
@@ -147,6 +148,20 @@ const researchArtifactMemorySchema = z.object({
     )
 });
 
+const localImportMemorySchema = z
+  .object({
+    fileName: z.string().min(1),
+    fileType: z.enum(["markdown", "csv", "pdf_text"]),
+    title: z.string().min(1).optional(),
+    body: z.string().min(1),
+    symbol: z.string().min(1).optional(),
+    userQuestion: z.string().min(1).optional(),
+    importedAt: z.string().min(1).optional()
+  })
+  .refine((input) => Boolean(input.symbol) || Boolean(input.userQuestion), {
+    message: "symbol or userQuestion is required for imported research recall"
+  });
+
 const tossCredentialSetupSchema = z.object({
   clientId: z.string().min(1),
   clientSecret: z.string().min(1)
@@ -257,6 +272,41 @@ function tossHealthMessage(status: HealthCheck["status"]): string {
     return "The latest Toss read-only sync failed; retry metadata is available.";
   }
   return "Toss credentials are not configured.";
+}
+
+function localImportTypeLabel(fileType: InvestmentMemoryLocalImportInput["fileType"]): string {
+  if (fileType === "markdown") return "Markdown";
+  if (fileType === "csv") return "CSV";
+  return "PDF text";
+}
+
+function localImportToResearchArtifact(
+  input: InvestmentMemoryLocalImportInput,
+  clock: () => Date
+): InvestmentMemoryResearchArtifactInput {
+  const importedAt = input.importedAt ?? clock().toISOString();
+  const safeFileName = path.basename(path.win32.basename(input.fileName));
+  const sourceLabel = `Explicit local ${localImportTypeLabel(input.fileType)} import: ${safeFileName}`;
+
+  return {
+    title: input.title ?? sourceLabel,
+    body: input.body,
+    source: {
+      kind: "research_artifact",
+      label: sourceLabel,
+      capturedAt: importedAt,
+      freshness: {
+        status: "local_manual",
+        source: "manual_input",
+        message: "User explicitly imported this local file as a research artifact; no file path or broker fact is implied.",
+        lastUpdatedAt: importedAt
+      }
+    },
+    links: {
+      ...(input.symbol ? { symbols: [input.symbol], holdingSymbols: [input.symbol] } : {}),
+      ...(input.userQuestion ? { userQuestion: input.userQuestion } : {})
+    }
+  };
 }
 
 async function healthChecks(
@@ -558,6 +608,31 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
     }
 
     return db.investmentMemory.addResearchArtifact(parsed.data as InvestmentMemoryResearchArtifactInput);
+  });
+
+  app.post("/memory/import/local", async (request, reply) => {
+    const parsed = localImportMemorySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-memory-local-import",
+          message: "fileName, fileType, body, and at least one symbol or userQuestion link are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    const input: InvestmentMemoryLocalImportInput = {
+      fileName: parsed.data.fileName,
+      fileType: parsed.data.fileType,
+      body: parsed.data.body,
+      ...(parsed.data.title ? { title: parsed.data.title } : {}),
+      ...(parsed.data.symbol ? { symbol: parsed.data.symbol } : {}),
+      ...(parsed.data.userQuestion ? { userQuestion: parsed.data.userQuestion } : {}),
+      ...(parsed.data.importedAt ? { importedAt: parsed.data.importedAt } : {})
+    };
+
+    return db.investmentMemory.addResearchArtifact(localImportToResearchArtifact(input, clock));
   });
 
   app.get<{ Querystring: { symbol?: string; q?: string; includeStale?: string } }>("/memory/recall", async (request) =>

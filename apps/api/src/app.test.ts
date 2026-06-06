@@ -895,4 +895,70 @@ describe("buildApiApp", () => {
 
     await app.close();
   });
+
+  it("imports explicit local Markdown and CSV research with safe source metadata", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({
+      dataDir,
+      clock: () => new Date("2026-06-06T06:05:00.000Z")
+    });
+
+    const missingLink = await app.inject({
+      method: "POST",
+      url: "/memory/import/local",
+      payload: {
+        fileName: "unlinked.md",
+        fileType: "markdown",
+        body: "No symbol or user question link."
+      }
+    });
+    expect(missingLink.statusCode).toBe(400);
+
+    const markdownImport = await app.inject({
+      method: "POST",
+      url: "/memory/import/local",
+      payload: {
+        fileName: "C:\\Users\\Sungbin\\Documents\\outside\\amd-thesis.md",
+        fileType: "markdown",
+        title: "AMD local thesis memo",
+        body: "Imported Markdown mentions fixture-private-value-alpha and raw account 987654321.",
+        symbol: "AMD",
+        userQuestion: "Does this imported memo change my AMD thesis?"
+      }
+    });
+    expect(markdownImport.statusCode).toBe(200);
+
+    const csvImport = await app.inject({
+      method: "POST",
+      url: "/memory/import/local",
+      payload: {
+        fileName: "amd-risk.csv",
+        fileType: "csv",
+        body: "metric,value\norder,fixture-order-id-should-never-appear\nrisk,fx",
+        symbol: "AMD"
+      }
+    });
+    expect(csvImport.statusCode).toBe(200);
+
+    const recall = await app.inject({ method: "GET", url: "/memory/recall?symbol=AMD" });
+    expect(recall.statusCode).toBe(200);
+    expect(recall.json().items.map((item: { kind: string; title: string }) => `${item.kind}:${item.title}`)).toEqual(
+      expect.arrayContaining(["research:AMD local thesis memo", "research:Explicit local CSV import: amd-risk.csv"])
+    );
+    expect(recall.body).toContain("Explicit local Markdown import: amd-thesis.md");
+    expect(recall.body).not.toContain("C:\\Users\\Sungbin\\Documents\\outside");
+    expect(recall.body).not.toContain("fixture-private-value-alpha");
+    expect(recall.body).not.toContain("fixture-order-id-should-never-appear");
+    expect(recall.body).not.toContain("987654321");
+
+    const diskText = readDiskText(dataDir);
+    expect(diskText).not.toContain("C:\\Users\\Sungbin\\Documents\\outside");
+    for (const forbidden of ["fixture-private-value-alpha", "fixture-order-id-should-never-appear", "987654321"]) {
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
 });
