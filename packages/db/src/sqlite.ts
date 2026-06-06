@@ -12,6 +12,14 @@ import type {
   ArtifactRecord,
   BrokerAccount,
   BrokerFreshness,
+  InvestmentMemoryJournalInput,
+  InvestmentMemoryRecord,
+  InvestmentMemoryRecallRequest,
+  InvestmentMemoryRecallResult,
+  InvestmentMemoryRepository,
+  InvestmentMemoryRuleInput,
+  InvestmentMemorySource,
+  InvestmentMemoryThesisInput,
   ManualPortfolioCashBalance,
   ManualPortfolioCashBalanceInput,
   ManualPortfolioHolding,
@@ -55,6 +63,7 @@ export type GaemiGuardDatabase = {
   };
   tossReadonlySnapshots: TossReadonlySnapshotRepository;
   manualPortfolio: ManualPortfolioRepository;
+  investmentMemory: InvestmentMemoryRepository;
   close(): void;
 };
 
@@ -289,6 +298,48 @@ function mapManualCashBalance(row: Row): ManualPortfolioCashBalance {
     source: "manual_input",
     updatedAt: asString(row.updated_at)
   };
+}
+
+function redactMemoryText(value: string): string {
+  return value
+    .replace(/fixture-private-value-[A-Za-z0-9-]+/g, "[redacted]")
+    .replace(/fixture-account-ref-[A-Za-z0-9-]+/g, "[redacted]")
+    .replace(/fixture-order-id-[A-Za-z0-9-]+/g, "[redacted]")
+    .replace(/\b\d{9,}\b/g, "[redacted]");
+}
+
+function sanitizeMemorySource(source: InvestmentMemorySource): InvestmentMemorySource {
+  return {
+    ...source,
+    label: redactMemoryText(source.label),
+    freshness: {
+      ...source.freshness,
+      message: redactMemoryText(source.freshness.message)
+    }
+  };
+}
+
+function mapInvestmentMemoryRecord(row: Row): InvestmentMemoryRecord {
+  const symbol = optionalDbString(row.symbol);
+  return {
+    id: asString(row.id),
+    kind: asString(row.kind) as InvestmentMemoryRecord["kind"],
+    ...(symbol ? { symbol } : {}),
+    title: asString(row.title),
+    body: asString(row.body),
+    version: asNumber(row.version),
+    createdAt: asString(row.created_at),
+    updatedAt: asString(row.updated_at),
+    source: parseJson(row.source_json)
+  };
+}
+
+function canUseInvestmentMemorySource(record: InvestmentMemoryRecord): boolean {
+  const freshness = record.source.freshness;
+  if (!freshness || !freshness.source || !freshness.status) {
+    return false;
+  }
+  return freshness.status === "fresh" || freshness.status === "local_manual";
 }
 
 function manualFreshness(lastUpdatedAt?: string): BrokerFreshness {
@@ -638,6 +689,149 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
     readSnapshot: readManualPortfolioSnapshot
   };
 
+  function nextMemoryVersion(identityKey: string): { version: number; createdAt: string } {
+    const latest = database
+      .prepare("SELECT version, created_at FROM investment_memory_records WHERE identity_key = ? ORDER BY version DESC LIMIT 1")
+      .get(identityKey) as Row | undefined;
+    if (!latest) {
+      return { version: 1, createdAt: new Date().toISOString() };
+    }
+    return {
+      version: asNumber(latest.version) + 1,
+      createdAt: asString(latest.created_at)
+    };
+  }
+
+  function insertMemoryRecord(input: {
+    id: string;
+    kind: InvestmentMemoryRecord["kind"];
+    identityKey: string;
+    symbol?: string;
+    title: string;
+    body: string;
+    version: number;
+    createdAt: string;
+    updatedAt: string;
+    source: InvestmentMemorySource;
+  }): InvestmentMemoryRecord {
+    const title = redactMemoryText(input.title);
+    const body = redactMemoryText(input.body);
+    const source = sanitizeMemorySource(input.source);
+    database
+      .prepare(
+        `INSERT INTO investment_memory_records
+          (id, kind, identity_key, symbol, title, body, version, created_at, updated_at, source_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        input.id,
+        input.kind,
+        input.identityKey,
+        input.symbol ?? null,
+        title,
+        body,
+        input.version,
+        input.createdAt,
+        input.updatedAt,
+        JSON.stringify(source)
+      );
+
+    return {
+      id: input.id,
+      kind: input.kind,
+      ...(input.symbol ? { symbol: input.symbol } : {}),
+      title,
+      body,
+      version: input.version,
+      createdAt: input.createdAt,
+      updatedAt: input.updatedAt,
+      source
+    };
+  }
+
+  const investmentMemory: InvestmentMemoryRepository = {
+    async upsertThesis(input: InvestmentMemoryThesisInput): Promise<InvestmentMemoryRecord> {
+      const identityKey = `thesis:${input.symbol}`;
+      const version = nextMemoryVersion(identityKey);
+      const updatedAt = new Date().toISOString();
+      return insertMemoryRecord({
+        id: `memory_${crypto.randomUUID()}`,
+        kind: "thesis",
+        identityKey,
+        symbol: input.symbol,
+        title: input.title,
+        body: input.body,
+        version: version.version,
+        createdAt: version.createdAt,
+        updatedAt,
+        source: input.source
+      });
+    },
+
+    async upsertRule(input: InvestmentMemoryRuleInput): Promise<InvestmentMemoryRecord> {
+      const identityKey = `rule:${input.name}`;
+      const version = nextMemoryVersion(identityKey);
+      const updatedAt = new Date().toISOString();
+      return insertMemoryRecord({
+        id: `memory_${crypto.randomUUID()}`,
+        kind: "rule",
+        identityKey,
+        title: input.name,
+        body: input.body,
+        version: version.version,
+        createdAt: version.createdAt,
+        updatedAt,
+        source: input.source
+      });
+    },
+
+    async addJournalEntry(input: InvestmentMemoryJournalInput): Promise<InvestmentMemoryRecord> {
+      const updatedAt = new Date().toISOString();
+      return insertMemoryRecord({
+        id: `memory_${crypto.randomUUID()}`,
+        kind: "journal",
+        identityKey: `journal:${crypto.randomUUID()}`,
+        ...(input.symbol ? { symbol: input.symbol } : {}),
+        title: "Journal entry",
+        body: input.body,
+        version: 1,
+        createdAt: updatedAt,
+        updatedAt,
+        source: input.source
+      });
+    },
+
+    async recall(request: InvestmentMemoryRecallRequest = {}): Promise<InvestmentMemoryRecallResult> {
+      const limit = request.limit ?? 20;
+      const rows = database
+        .prepare(
+          `SELECT * FROM investment_memory_records
+           WHERE symbol = ? OR symbol IS NULL
+           ORDER BY
+             CASE kind WHEN 'thesis' THEN 1 WHEN 'rule' THEN 2 ELSE 3 END ASC,
+             updated_at DESC
+           LIMIT ?`
+        )
+        .all(request.symbol ?? "", limit) as Row[];
+      const records = rows.map(mapInvestmentMemoryRecord);
+      const items: InvestmentMemoryRecord[] = [];
+      const skipped: InvestmentMemoryRecallResult["skipped"] = [];
+
+      for (const record of records) {
+        if (canUseInvestmentMemorySource(record) || request.includeStale) {
+          items.push(record);
+        } else {
+          skipped.push({
+            id: record.id,
+            reason: record.source ? "stale_source" : "missing_source"
+          });
+        }
+      }
+
+      return { items, skipped };
+    }
+  };
+
   return {
     runs: {
       async save(bundle: AgentRunBundle): Promise<void> {
@@ -724,6 +918,7 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
     },
     tossReadonlySnapshots,
     manualPortfolio,
+    investmentMemory,
 
     close(): void {
       database.close();

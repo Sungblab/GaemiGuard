@@ -35,7 +35,7 @@ This is the routing page for the repository documentation. Use it to decide what
 
 Stage 2, Broker Connection Foundation, is complete and exited. The implemented slices are the Toss read-only adapter, snapshot persistence, shared broker adapter contract, no-broker/manual portfolio foundation, OS credential-store boundary, real read-only sync, freshness UI, Commander production snapshot grounding, and security/gate review.
 
-Stage 3, Research And Memory, is the next stage.
+Stage 3, Research And Memory, is active. The first implemented slice is local-only thesis/rule/journal memory persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests.
 
 Read these together before changing broker/source/freshness behavior:
 

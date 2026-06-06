@@ -12,6 +12,7 @@ This is the current-state document coding agents should read before continuing G
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.
+- Current Stage 3 first-slice baseline includes local thesis/rule/journal memory persistence, API endpoints, Commander MemoryAgent context, source/freshness gating, and redaction tests.
 - Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
@@ -33,7 +34,7 @@ This is the current-state document coding agents should read before continuing G
 - Current development model: Gate-Based Waterfall, not MVP iteration.
 - Latest completed stage: Stage 2, Broker Connection Foundation.
 - Stage 2 status: exit accepted after credential boundary, real read-only sync, freshness UI, Commander grounding, security tests, and gate review.
-- Next stage: Stage 3, Research And Memory.
+- Active stage: Stage 3, Research And Memory.
 
 ## Read Order For Future Goals
 
@@ -102,7 +103,7 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
 | Stage 2 Broker Connection Foundation | Complete | Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented. |
-| Stage 3 Research And Memory | Not started | Should build on accepted broker/no-broker data context, source/freshness metadata, and redaction boundaries. |
+| Stage 3 Research And Memory | In progress | First local-only memory slice is implemented: thesis/rule/journal persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
 | Stage 6 Guarded Manual Live Orders | Locked | User-approved manual live order submission remains forbidden before this stage. |
@@ -190,6 +191,15 @@ Stage 2 production credential/sync and exit slice:
 - Security tests cover raw secret/token/account sequence/raw account/order sentinel non-exposure in DB, API responses, Commander responses, artifacts, and external-agent context.
 - Toss order create/modify/cancel remains unavailable and hard-blocked.
 
+Stage 3 first local memory slice:
+
+- `packages/shared/src/index.ts` defines the Stage 3 thesis/rule/journal memory contract with source metadata, freshness metadata, and optional broker snapshot source references.
+- `packages/db/src/schema.ts` and `packages/db/src/sqlite.ts` persist local-only `investment_memory_records` with versioned thesis/rule entries and journal entries.
+- Stored memory text and source labels/messages are redacted before SQLite persistence so raw secret, token, account, and order sentinel values are not retained.
+- API endpoints are available at `PUT /memory/theses`, `PUT /memory/rules`, `POST /memory/journal`, and `GET /memory/recall`.
+- Commander can call `MemoryAgent` for memory-oriented questions and uses only memory records with usable source/freshness status. Stale broker-snapshot memory is skipped instead of being presented as current evidence.
+- Tests cover DB persistence/redaction, API memory CRUD/recall, Commander MemoryAgent context, and stale-source exclusion.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -235,10 +245,10 @@ Accepted evidence:
 
 ## Recommended Next Slice
 
-The next practical stage is Stage 3 Research And Memory:
+The next practical Stage 3 slice is to expand from the local-only memory foundation into source-backed research artifacts and user-visible review surfaces:
 
-1. Define the source-grounded research and memory contract for Commander, ResearchAgent, MemoryAgent, and ReportAgent.
-2. Add thesis/rule/journal persistence that can reference broker/manual snapshots without exposing credentials or raw broker identifiers.
-3. Add research artifacts tied to holdings, watchlist, and user questions.
-4. Add source-backed recall that can answer "what changed since my thesis?" without treating stale broker data as fresh.
+1. Add research artifacts tied to holdings, watchlist, local documents, and user questions.
+2. Add user-visible thesis/rules/journal/recall surfaces in the desktop app.
+3. Add weekly review and report artifact generation.
+4. Add local Markdown/PDF/CSV ingestion only with explicit user import and source metadata.
 5. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.

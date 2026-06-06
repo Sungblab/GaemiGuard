@@ -20,6 +20,9 @@ import type {
   BrokerAdapter,
   BrokerAdapterStatus,
   HealthCheck,
+  InvestmentMemoryJournalInput,
+  InvestmentMemoryRuleInput,
+  InvestmentMemoryThesisInput,
   PermissionMode,
   TossReadonlyConnector,
   TossReadonlySnapshotFreshness,
@@ -77,6 +80,49 @@ const manualHoldingSchema = z.object({
 const manualCashSchema = z.object({
   currency: z.string().min(1),
   amount: z.string().min(1)
+});
+
+const memoryFreshnessSchema = z.object({
+  status: z.enum(["unavailable", "never_synced", "syncing", "fresh", "stale", "failed", "local_manual"]),
+  source: z.enum(["not_configured", "mock_replay_snapshot", "production_snapshot", "manual_input"]),
+  message: z.string().min(1),
+  lastUpdatedAt: z.string().optional(),
+  ageSeconds: z.number().optional(),
+  staleAfterSeconds: z.number().optional()
+});
+
+const memorySourceSchema = z.object({
+  kind: z.enum(["manual_note", "broker_snapshot", "research_artifact"]),
+  label: z.string().min(1),
+  capturedAt: z.string().min(1),
+  freshness: memoryFreshnessSchema,
+  brokerSnapshot: z
+    .object({
+      providerId: z.enum(["manual", "toss", "kis", "kiwoom", "ls", "csv_import"]),
+      source: z.enum(["not_configured", "mock_replay_snapshot", "production_snapshot", "manual_input"]),
+      freshnessStatus: z.enum(["unavailable", "never_synced", "syncing", "fresh", "stale", "failed", "local_manual"]),
+      lastSuccessfulSyncAt: z.string().optional()
+    })
+    .optional()
+});
+
+const thesisMemorySchema = z.object({
+  symbol: z.string().min(1),
+  title: z.string().min(1),
+  body: z.string().min(1),
+  source: memorySourceSchema
+});
+
+const ruleMemorySchema = z.object({
+  name: z.string().min(1),
+  body: z.string().min(1),
+  source: memorySourceSchema
+});
+
+const journalMemorySchema = z.object({
+  symbol: z.string().min(1).optional(),
+  body: z.string().min(1),
+  source: memorySourceSchema
 });
 
 const tossCredentialSetupSchema = z.object({
@@ -303,6 +349,7 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
     brokerAdapters,
     tossReadOnlyConnector,
     tossSnapshotReader: db.tossReadonlySnapshots,
+    investmentMemory: db.investmentMemory,
     clock
   });
 
@@ -315,8 +362,8 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
 
   app.get("/health", async () => ({
     ok: true,
-    stage: "stage_2_toss_readonly_connector",
-    gate: "persistence_sync_slice",
+    stage: "stage_3_research_memory",
+    gate: "first_memory_slice",
     checks: await healthChecks(tossReadOnlyConnector, db.tossReadonlySnapshots, brokerAdapters, tossSyncState, clock)
   }));
 
@@ -430,6 +477,59 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
   });
 
   app.get("/portfolio/manual", async () => db.manualPortfolio.readSnapshot());
+
+  app.put("/memory/theses", async (request, reply) => {
+    const parsed = thesisMemorySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-memory-thesis",
+          message: "symbol, title, body, and source are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    return db.investmentMemory.upsertThesis(parsed.data as InvestmentMemoryThesisInput);
+  });
+
+  app.put("/memory/rules", async (request, reply) => {
+    const parsed = ruleMemorySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-memory-rule",
+          message: "name, body, and source are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    return db.investmentMemory.upsertRule(parsed.data as InvestmentMemoryRuleInput);
+  });
+
+  app.post("/memory/journal", async (request, reply) => {
+    const parsed = journalMemorySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-memory-journal",
+          message: "body and source are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    return db.investmentMemory.addJournalEntry(parsed.data as InvestmentMemoryJournalInput);
+  });
+
+  app.get<{ Querystring: { symbol?: string; includeStale?: string } }>("/memory/recall", async (request) =>
+    db.investmentMemory.recall({
+      ...(request.query.symbol ? { symbol: request.query.symbol } : {}),
+      includeStale: request.query.includeStale === "true",
+      now: clock().toISOString()
+    })
+  );
 
   app.put("/portfolio/manual/watchlist", async (request, reply) => {
     const parsed = manualWatchlistSchema.safeParse(request.body);

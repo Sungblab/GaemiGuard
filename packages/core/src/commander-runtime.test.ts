@@ -439,4 +439,168 @@ describe("createCommanderRuntime", () => {
     expect(JSON.stringify(response)).not.toContain("fixture-private-value-alpha");
     expect(JSON.stringify(response)).not.toContain("fixture-private-value-beta");
   });
+
+  it("uses local thesis, rule, and journal memory only when source freshness is usable", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      investmentMemory: {
+        async recall() {
+          return {
+            items: [
+              {
+                id: "memory_thesis_1",
+                kind: "thesis",
+                symbol: "005930",
+                title: "Samsung cycle recovery",
+                body: "Buy only if the memory source stays fresh.",
+                version: 1,
+                createdAt: "2026-06-06T04:00:00.000Z",
+                updatedAt: "2026-06-06T04:00:00.000Z",
+                source: {
+                  kind: "manual_note",
+                  label: "Local thesis note",
+                  capturedAt: "2026-06-06T04:00:00.000Z",
+                  freshness: {
+                    status: "fresh",
+                    source: "manual_input",
+                    message: "User-authored thesis is current."
+                  },
+                  brokerSnapshot: {
+                    providerId: "toss",
+                    source: "production_snapshot",
+                    freshnessStatus: "fresh",
+                    lastSuccessfulSyncAt: "2026-06-06T03:55:00.000Z"
+                  }
+                }
+              },
+              {
+                id: "memory_rule_1",
+                kind: "rule",
+                title: "No stale account facts",
+                body: "Do not use stale broker facts for sizing.",
+                version: 1,
+                createdAt: "2026-06-06T04:01:00.000Z",
+                updatedAt: "2026-06-06T04:01:00.000Z",
+                source: {
+                  kind: "manual_note",
+                  label: "Local rule note",
+                  capturedAt: "2026-06-06T04:01:00.000Z",
+                  freshness: {
+                    status: "fresh",
+                    source: "manual_input",
+                    message: "User-authored rule is current."
+                  }
+                }
+              },
+              {
+                id: "memory_journal_1",
+                kind: "journal",
+                symbol: "005930",
+                title: "Journal entry",
+                body: "The position still matches the thesis.",
+                version: 1,
+                createdAt: "2026-06-06T04:02:00.000Z",
+                updatedAt: "2026-06-06T04:02:00.000Z",
+                source: {
+                  kind: "broker_snapshot",
+                  label: "Toss production snapshot",
+                  capturedAt: "2026-06-06T04:02:00.000Z",
+                  freshness: {
+                    status: "fresh",
+                    source: "production_snapshot",
+                    message: "Production snapshot is fresh.",
+                    lastUpdatedAt: "2026-06-06T03:55:00.000Z",
+                    ageSeconds: 300,
+                    staleAfterSeconds: 600
+                  },
+                  brokerSnapshot: {
+                    providerId: "toss",
+                    source: "production_snapshot",
+                    freshnessStatus: "fresh",
+                    lastSuccessfulSyncAt: "2026-06-06T03:55:00.000Z"
+                  }
+                }
+              },
+              {
+                id: "memory_thesis_stale",
+                kind: "thesis",
+                symbol: "005930",
+                title: "Stale thesis",
+                body: "This stale note must not be used.",
+                version: 1,
+                createdAt: "2026-06-01T04:00:00.000Z",
+                updatedAt: "2026-06-01T04:00:00.000Z",
+                source: {
+                  kind: "broker_snapshot",
+                  label: "Old broker snapshot",
+                  capturedAt: "2026-06-01T04:00:00.000Z",
+                  freshness: {
+                    status: "stale",
+                    source: "production_snapshot",
+                    message: "Production snapshot is stale."
+                  },
+                  brokerSnapshot: {
+                    providerId: "toss",
+                    source: "production_snapshot",
+                    freshnessStatus: "stale",
+                    lastSuccessfulSyncAt: "2026-06-01T03:55:00.000Z"
+                  }
+                }
+              }
+            ],
+            skipped: [
+              {
+                id: "memory_thesis_stale",
+                reason: "stale_source"
+              }
+            ]
+          };
+        }
+      },
+      clock: () => new Date("2026-06-06T04:05:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "내 005930 투자 논리와 원칙, 지난 매매 기록을 같이 봐줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    const memoryEvent = response.timeline.find((event) => event.agent === "MemoryAgent");
+    expect(memoryEvent?.metadata?.usedMemory).toEqual([
+      {
+        id: "memory_thesis_1",
+        kind: "thesis",
+        source: "manual_input",
+        freshnessStatus: "fresh"
+      },
+      {
+        id: "memory_rule_1",
+        kind: "rule",
+        source: "manual_input",
+        freshnessStatus: "fresh"
+      },
+      {
+        id: "memory_journal_1",
+        kind: "journal",
+        source: "production_snapshot",
+        freshnessStatus: "fresh"
+      }
+    ]);
+    expect(memoryEvent?.metadata?.skippedMemory).toEqual([{ id: "memory_thesis_stale", reason: "stale_source" }]);
+    expect(response.answer).toContain("Stage 3 memory context");
+    expect(response.answer).toContain("thesis: Samsung cycle recovery");
+    expect(response.answer).toContain("rule: No stale account facts");
+    expect(response.answer).toContain("journal: Journal entry");
+    expect(response.answer).not.toContain("Stale thesis");
+  });
 });

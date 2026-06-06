@@ -236,4 +236,108 @@ describe("createGaemiGuardDatabase", () => {
 
     db.close();
   });
+
+  it("persists local thesis, rule, and journal memory with source freshness and redaction", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-db-"));
+    tempDirs.push(dir);
+
+    const db = createGaemiGuardDatabase({ dataDir: dir });
+
+    await db.investmentMemory.upsertThesis({
+      symbol: "005930",
+      title: "Samsung cycle recovery",
+      body: "Thesis should not store fixture-private-value-alpha or raw account 987654321.",
+      source: {
+        kind: "manual_note",
+        label: "Local thesis note",
+        capturedAt: "2026-06-06T04:00:00.000Z",
+        freshness: {
+          status: "fresh",
+          source: "manual_input",
+          message: "User-authored thesis is current."
+        },
+        brokerSnapshot: {
+          providerId: "toss",
+          source: "production_snapshot",
+          freshnessStatus: "fresh",
+          lastSuccessfulSyncAt: "2026-06-06T03:55:00.000Z"
+        }
+      }
+    });
+    await db.investmentMemory.upsertRule({
+      name: "No stale account facts",
+      body: "Do not use stale broker facts for sizing.",
+      source: {
+        kind: "manual_note",
+        label: "Local rule note",
+        capturedAt: "2026-06-06T04:01:00.000Z",
+        freshness: {
+          status: "fresh",
+          source: "manual_input",
+          message: "User-authored rule is current."
+        }
+      }
+    });
+    await db.investmentMemory.addJournalEntry({
+      symbol: "005930",
+      body: "Reviewed thesis with masked source ********1234.",
+      source: {
+        kind: "broker_snapshot",
+        label: "Toss production snapshot",
+        capturedAt: "2026-06-06T04:02:00.000Z",
+        freshness: {
+          status: "fresh",
+          source: "production_snapshot",
+          message: "Production snapshot is fresh.",
+          lastUpdatedAt: "2026-06-06T03:55:00.000Z",
+          ageSeconds: 300,
+          staleAfterSeconds: 600
+        },
+        brokerSnapshot: {
+          providerId: "toss",
+          source: "production_snapshot",
+          freshnessStatus: "fresh",
+          lastSuccessfulSyncAt: "2026-06-06T03:55:00.000Z"
+        }
+      }
+    });
+
+    const recall = await db.investmentMemory.recall({
+      symbol: "005930",
+      now: "2026-06-06T04:05:00.000Z"
+    });
+
+    expect(recall.items.map((item) => item.kind)).toEqual(["thesis", "rule", "journal"]);
+    expect(recall.items[0]).toMatchObject({
+      kind: "thesis",
+      symbol: "005930",
+      version: 1,
+      source: {
+        kind: "manual_note",
+        freshness: {
+          status: "fresh",
+          source: "manual_input"
+        },
+        brokerSnapshot: {
+          source: "production_snapshot",
+          freshnessStatus: "fresh"
+        }
+      }
+    });
+
+    const serialized = JSON.stringify(recall);
+    const diskText = readDiskText(dir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear",
+      "987654321"
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    db.close();
+  });
 });
