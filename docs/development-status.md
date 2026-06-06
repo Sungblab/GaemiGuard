@@ -12,7 +12,7 @@ This is the current-state document coding agents should read before continuing G
 - Recent infrastructure baseline: `e41067e`, `chore: install Devflow Native harness`
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.
-- Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, and redaction tests.
+- Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, desktop memory/research review surface, and redaction tests.
 - Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
@@ -103,7 +103,7 @@ Devflow next-session prompts and manual handoffs should follow this structure.
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | Complete | Electron/React desktop, Fastify API, SQLite, artifact store, Commander runtime, specialist stubs, permission engine, Order Guard dry-run, live-order hard block. |
 | Stage 2 Broker Connection Foundation | Complete | Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented. |
-| Stage 3 Research And Memory | In progress | Local memory and first source-backed research artifact slices are implemented: thesis/rule/journal persistence, research artifact persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests. |
+| Stage 3 Research And Memory | In progress | Local memory, first source-backed research artifact slice, and first desktop review surface are implemented: thesis/rule/journal persistence, research artifact persistence, API recall, Commander MemoryAgent context, source/freshness gating, desktop memory/research visibility, and redaction tests. |
 | Stage 4 MiroFish Scenario | Not started | Sidecar remains scenario-only; no order execution. |
 | Stage 5 Paper Trading And Order Draft | Not started | Order drafts and paper trading stay unavailable until earlier gates pass. |
 | Stage 6 Guarded Manual Live Orders | Locked | User-approved manual live order submission remains forbidden before this stage. |
@@ -210,6 +210,13 @@ Stage 3 source-backed research artifact slice:
 - Stale research artifacts are skipped and reported as skipped memory instead of being used as answer grounding.
 - Tests cover DB persistence/redaction, API write/recall validation, Commander research recall, missing-source rejection, and stale research exclusion.
 
+Stage 3 desktop memory/research review surface slice:
+
+- `apps/desktop/src/App.tsx` shows a Stage 3 Memory panel for the selected holding with `/memory/recall` results.
+- The panel surfaces source, freshness status, research links, and skipped stale/missing-source memory so users can review what Commander may use.
+- Commander review cards can surface MemoryAgent used/skipped grounding metadata when memory is involved in a run.
+- `scripts/smoke-desktop-ui.ps1` now verifies that the desktop home screen includes the memory/research review surface.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -255,9 +262,9 @@ Accepted evidence:
 
 ## Recommended Next Slice
 
-The next practical Stage 3 slice is to expand from source-backed local research artifacts into user-visible review surfaces and report generation:
+The next practical Stage 3 slice is to expand from the first memory/research review surface into authoring and report generation:
 
-1. Add user-visible thesis/rules/journal/recall and research inbox surfaces in the desktop app.
+1. Add desktop authoring flows for thesis/rule/journal and local research artifact capture.
 2. Add weekly review and report artifact generation.
 3. Add local Markdown/PDF/CSV ingestion only with explicit user import and source metadata.
 4. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.

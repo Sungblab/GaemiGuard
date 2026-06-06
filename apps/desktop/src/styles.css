@@ -634,6 +634,137 @@ button {
   font-size: 12px;
 }
 
+.memory-research-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-gate-banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border-radius: 8px;
+  background: #eef6ff;
+  color: #1d4ed8;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.memory-context-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 10px 12px;
+}
+
+.memory-context-line strong,
+.memory-context-line span {
+  display: block;
+}
+
+.memory-context-line span {
+  color: #6b7280;
+  font-size: 12px;
+  text-align: right;
+}
+
+.memory-list {
+  display: grid;
+  gap: 8px;
+}
+
+.memory-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #eef0f3;
+  border-radius: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
+.memory-row-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.memory-row-title strong {
+  font-size: 13px;
+}
+
+.memory-row small {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.memory-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 23px;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  background: #f3f4f6;
+  color: #475569;
+}
+
+.memory-kind.kind-research {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.memory-kind.kind-thesis {
+  background: #eef6ff;
+  color: #1d4ed8;
+}
+
+.memory-kind.kind-rule {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.memory-kind.kind-journal {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.skipped-memory,
+.memory-run-review {
+  display: grid;
+  gap: 5px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.skipped-memory strong,
+.skipped-memory span,
+.memory-run-review strong,
+.memory-run-review span {
+  display: block;
+}
+
+.memory-run-review {
+  margin: 11px 0;
+  background: #f8fafc;
+  color: #475569;
+}
+
 .diagnostics-panel details {
   border: 0;
 }
