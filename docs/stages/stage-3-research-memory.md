@@ -48,6 +48,31 @@ Do not store:
 - unredacted broker tokens
 - source files outside user-approved workspace without explicit import
 
+## First Slice Status
+
+Implemented:
+
+- Local-only thesis, rule, and journal memory records in SQLite.
+- Versioned thesis and rule writes.
+- Journal entry writes.
+- Source metadata with freshness status and optional broker snapshot reference.
+- API endpoints:
+  - `PUT /memory/theses`
+  - `PUT /memory/rules`
+  - `POST /memory/journal`
+  - `GET /memory/recall`
+- Commander `MemoryAgent` context for memory-oriented questions.
+- Recall filtering that uses only records with usable source/freshness metadata and skips stale broker-snapshot records.
+- Redaction tests proving raw secret, token, account, and order sentinel values are not persisted, returned, or used in Commander context.
+
+Remaining:
+
+- Desktop thesis/rules/journal/recall UI.
+- Research report artifacts.
+- Local Markdown/PDF/CSV ingestion.
+- Hermes/OpenBB adapter contracts.
+- Daily/weekly report generation and UI visibility.
+
 ## Connector Policy
 
 OpenDART and KRX are optional public-data connectors, not Stage 3 entry requirements.

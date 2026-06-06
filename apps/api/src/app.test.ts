@@ -650,4 +650,119 @@ describe("buildApiApp", () => {
 
     await app.close();
   });
+
+  it("stores local investment memory and lets Commander use only fresh sourced memory", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({
+      dataDir,
+      clock: () => new Date("2026-06-06T04:05:00.000Z")
+    });
+
+    const thesis = await app.inject({
+      method: "PUT",
+      url: "/memory/theses",
+      payload: {
+        symbol: "005930",
+        title: "Samsung cycle recovery",
+        body: "This thesis mentions fixture-private-value-alpha and raw account 987654321, which must be redacted.",
+        source: {
+          kind: "manual_note",
+          label: "Local thesis note",
+          capturedAt: "2026-06-06T04:00:00.000Z",
+          freshness: {
+            status: "fresh",
+            source: "manual_input",
+            message: "User-authored thesis is current."
+          }
+        }
+      }
+    });
+    expect(thesis.statusCode).toBe(200);
+
+    const rule = await app.inject({
+      method: "PUT",
+      url: "/memory/rules",
+      payload: {
+        name: "No stale account facts",
+        body: "Do not use stale broker facts for sizing.",
+        source: {
+          kind: "manual_note",
+          label: "Local rule note",
+          capturedAt: "2026-06-06T04:01:00.000Z",
+          freshness: {
+            status: "fresh",
+            source: "manual_input",
+            message: "User-authored rule is current."
+          }
+        }
+      }
+    });
+    expect(rule.statusCode).toBe(200);
+
+    const staleJournal = await app.inject({
+      method: "POST",
+      url: "/memory/journal",
+      payload: {
+        symbol: "005930",
+        body: "This stale broker note must not appear in Commander answers.",
+        source: {
+          kind: "broker_snapshot",
+          label: "Old Toss production snapshot",
+          capturedAt: "2026-06-01T04:02:00.000Z",
+          freshness: {
+            status: "stale",
+            source: "production_snapshot",
+            message: "Production snapshot is stale."
+          },
+          brokerSnapshot: {
+            providerId: "toss",
+            source: "production_snapshot",
+            freshnessStatus: "stale",
+            lastSuccessfulSyncAt: "2026-06-01T03:55:00.000Z"
+          }
+        }
+      }
+    });
+    expect(staleJournal.statusCode).toBe(200);
+
+    const recall = await app.inject({ method: "GET", url: "/memory/recall?symbol=005930" });
+    expect(recall.statusCode).toBe(200);
+    expect(recall.json().items.map((item: { kind: string }) => item.kind)).toEqual(["thesis", "rule"]);
+    expect(recall.body).not.toContain("fixture-private-value-alpha");
+    expect(recall.body).not.toContain("987654321");
+
+    const chat = await app.inject({
+      method: "POST",
+      url: "/chat",
+      payload: {
+        message: "내 005930 투자 논리와 원칙을 기억 기반으로 봐줘",
+        permissionMode: "manual",
+        context: {
+          selectedSymbol: "005930"
+        }
+      }
+    });
+    expect(chat.statusCode).toBe(200);
+    expect(chat.body).toContain("Stage 3 memory context");
+    expect(chat.body).toContain("Samsung cycle recovery");
+    expect(chat.body).toContain("No stale account facts");
+    expect(chat.body).not.toContain("This stale broker note");
+
+    const serializedApiResponses = `${thesis.body}\n${rule.body}\n${staleJournal.body}\n${recall.body}\n${chat.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-private-value-beta",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear",
+      "987654321"
+    ]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
 });

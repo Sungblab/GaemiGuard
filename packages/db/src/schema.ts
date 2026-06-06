@@ -125,5 +125,17 @@ export const migrations = [
     currency TEXT PRIMARY KEY,
     amount TEXT NOT NULL,
     updated_at TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS investment_memory_records (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    identity_key TEXT NOT NULL,
+    symbol TEXT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    source_json TEXT NOT NULL
   )`
 ];

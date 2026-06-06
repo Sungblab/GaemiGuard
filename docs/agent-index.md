@@ -33,7 +33,7 @@ Read these only when relevant:
 - Development follows stage gates.
 - Stage 1 is complete.
 - Stage 2 is complete and exited.
-- Stage 3 Research And Memory is the next stage.
+- Stage 3 Research And Memory is active.
 - Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.
 - Broker direction is adapter-based: Toss is the first implemented read-only adapter slice; KIS is a future adapter candidate after source notes and capability mapping.
 - Toss order create/update/cancel remains forbidden.
@@ -57,6 +57,8 @@ Read these only when relevant:
 - API `/health` broker adapter status aggregation, credential/sync status, and manual portfolio endpoints
 - Desktop broker/freshness status display
 - Commander account answers grounded only in production snapshot source/freshness
+- Local-only thesis/rule/journal memory persistence and API recall
+- Commander MemoryAgent context that uses memory only when source/freshness metadata is usable
 
 Use `docs/development-status.md` for the complete current list.
 

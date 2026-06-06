@@ -418,13 +418,13 @@
         <div class="stats">
           <span class="chip"><strong>55</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-06T09:03:45.284Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-06T09:32:39.242Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
       <div id="noResults" class="no-results">검색 결과가 없습니다.</div>
       <article class="doc-card" id="doc-0" data-category="Overview" data-path="docs/development-status.md">
-  <div class="doc-kicker">Overview · docs/development-status.md · 14KB</div>
+  <div class="doc-kicker">Overview · docs/development-status.md · 15KB</div>
   <h2>GaemiGuard Development Status</h2>
   <h1 id="doc-0-gaemiguard-development-status">GaemiGuard Development Status</h1>
 <p>Updated: 2026-06-06</p>
@@ -437,6 +437,7 @@
 <li>Recent infrastructure baseline: <code>e41067e</code>, <code>chore: install Devflow Native harness</code></li>
 <li>Recent feature baseline: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
 <li>Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.</li>
+<li>Current Stage 3 first-slice baseline includes local thesis/rule/journal memory persistence, API endpoints, Commander MemoryAgent context, source/freshness gating, and redaction tests.</li>
 <li>Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.</li>
 <li>Development history is indexed in <code>docs/development-history.md</code>.</li>
 <li>Latest verified commands for the current main baseline:</li>
@@ -458,7 +459,7 @@
 <li>Current development model: Gate-Based Waterfall, not MVP iteration.</li>
 <li>Latest completed stage: Stage 2, Broker Connection Foundation.</li>
 <li>Stage 2 status: exit accepted after credential boundary, real read-only sync, freshness UI, Commander grounding, security tests, and gate review.</li>
-<li>Next stage: Stage 3, Research And Memory.</li>
+<li>Active stage: Stage 3, Research And Memory.</li>
 </ul>
 <h2 id="doc-0-read-order-for-future-goals">Read Order For Future Goals</h2>
 <ol>
@@ -536,7 +537,7 @@ Completion criteria:
 <td>Stage 2 Broker Connection Foundation</td><td>Complete</td><td>Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented.</td>
 </tr>
 <tr>
-<td>Stage 3 Research And Memory</td><td>Not started</td><td>Should build on accepted broker/no-broker data context, source/freshness metadata, and redaction boundaries.</td>
+<td>Stage 3 Research And Memory</td><td>In progress</td><td>First local-only memory slice is implemented: thesis/rule/journal persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests.</td>
 </tr>
 <tr>
 <td>Stage 4 MiroFish Scenario</td><td>Not started</td><td>Sidecar remains scenario-only; no order execution.</td>
@@ -632,6 +633,15 @@ Completion criteria:
 <li>Security tests cover raw secret/token/account sequence/raw account/order sentinel non-exposure in DB, API responses, Commander responses, artifacts, and external-agent context.</li>
 <li>Toss order create/modify/cancel remains unavailable and hard-blocked.</li>
 </ul>
+<p>Stage 3 first local memory slice:</p>
+<ul>
+<li><code>packages/shared/src/index.ts</code> defines the Stage 3 thesis/rule/journal memory contract with source metadata, freshness metadata, and optional broker snapshot source references.</li>
+<li><code>packages/db/src/schema.ts</code> and <code>packages/db/src/sqlite.ts</code> persist local-only <code>investment_memory_records</code> with versioned thesis/rule entries and journal entries.</li>
+<li>Stored memory text and source labels/messages are redacted before SQLite persistence so raw secret, token, account, and order sentinel values are not retained.</li>
+<li>API endpoints are available at <code>PUT /memory/theses</code>, <code>PUT /memory/rules</code>, <code>POST /memory/journal</code>, and <code>GET /memory/recall</code>.</li>
+<li>Commander can call <code>MemoryAgent</code> for memory-oriented questions and uses only memory records with usable source/freshness status. Stale broker-snapshot memory is skipped instead of being presented as current evidence.</li>
+<li>Tests cover DB persistence/redaction, API memory CRUD/recall, Commander MemoryAgent context, and stale-source exclusion.</li>
+</ul>
 <p>Devflow Native:</p>
 <ul>
 <li>Repo-local Devflow scaffold is installed.</li>
@@ -674,12 +684,12 @@ Completion criteria:
 <li>No UI copy that implies Toss is connected when only mock or not-configured mode is active.</li>
 </ul>
 <h2 id="doc-0-recommended-next-slice">Recommended Next Slice</h2>
-<p>The next practical stage is Stage 3 Research And Memory:</p>
+<p>The next practical Stage 3 slice is to expand from the local-only memory foundation into source-backed research artifacts and user-visible review surfaces:</p>
 <ol>
-<li>Define the source-grounded research and memory contract for Commander, ResearchAgent, MemoryAgent, and ReportAgent.</li>
-<li>Add thesis/rule/journal persistence that can reference broker/manual snapshots without exposing credentials or raw broker identifiers.</li>
-<li>Add research artifacts tied to holdings, watchlist, and user questions.</li>
-<li>Add source-backed recall that can answer &quot;what changed since my thesis?&quot; without treating stale broker data as fresh.</li>
+<li>Add research artifacts tied to holdings, watchlist, local documents, and user questions.</li>
+<li>Add user-visible thesis/rules/journal/recall surfaces in the desktop app.</li>
+<li>Add weekly review and report artifact generation.</li>
+<li>Add local Markdown/PDF/CSV ingestion only with explicit user import and source metadata.</li>
 <li>Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.</li>
 </ol>
 </article>
@@ -1276,7 +1286,7 @@ vendor/
 </tbody></table></div>
 <h2 id="doc-6-stage-status">Stage Status</h2>
 <p>Stage 2, Broker Connection Foundation, is complete and exited. The implemented slices are the Toss read-only adapter, snapshot persistence, shared broker adapter contract, no-broker/manual portfolio foundation, OS credential-store boundary, real read-only sync, freshness UI, Commander production snapshot grounding, and security/gate review.</p>
-<p>Stage 3, Research And Memory, is the next stage.</p>
+<p>Stage 3, Research And Memory, is active. The first implemented slice is local-only thesis/rule/journal memory persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests.</p>
 <p>Read these together before changing broker/source/freshness behavior:</p>
 <ol>
 <li><code>docs/development-status.md</code></li>
@@ -2888,7 +2898,7 @@ Approver:</code></pre>
 <p>Implemented and merged to <code>main</code> before this waterfall package. Keep this document as the baseline gate record shape for future stages.</p>
 </article>
 <article class="doc-card" id="doc-21" data-category="Stage Gates" data-path="docs/stages/stage-3-research-memory.md">
-  <div class="doc-kicker">Stage Gates · docs/stages/stage-3-research-memory.md · 2KB</div>
+  <div class="doc-kicker">Stage Gates · docs/stages/stage-3-research-memory.md · 3KB</div>
   <h2>Stage 3 Gate: Research And Memory</h2>
   <h1 id="doc-21-stage-3-gate-research-and-memory">Stage 3 Gate: Research And Memory</h1>
 <p>Generated: 2026-06-04</p>
@@ -2934,6 +2944,30 @@ Approver:</code></pre>
 <li>raw secrets</li>
 <li>unredacted broker tokens</li>
 <li>source files outside user-approved workspace without explicit import</li>
+</ul>
+<h2 id="doc-21-first-slice-status">First Slice Status</h2>
+<p>Implemented:</p>
+<ul>
+<li>Local-only thesis, rule, and journal memory records in SQLite.</li>
+<li>Versioned thesis and rule writes.</li>
+<li>Journal entry writes.</li>
+<li>Source metadata with freshness status and optional broker snapshot reference.</li>
+<li>API endpoints:</li>
+<li><code>PUT /memory/theses</code></li>
+<li><code>PUT /memory/rules</code></li>
+<li><code>POST /memory/journal</code></li>
+<li><code>GET /memory/recall</code></li>
+<li>Commander <code>MemoryAgent</code> context for memory-oriented questions.</li>
+<li>Recall filtering that uses only records with usable source/freshness metadata and skips stale broker-snapshot records.</li>
+<li>Redaction tests proving raw secret, token, account, and order sentinel values are not persisted, returned, or used in Commander context.</li>
+</ul>
+<p>Remaining:</p>
+<ul>
+<li>Desktop thesis/rules/journal/recall UI.</li>
+<li>Research report artifacts.</li>
+<li>Local Markdown/PDF/CSV ingestion.</li>
+<li>Hermes/OpenBB adapter contracts.</li>
+<li>Daily/weekly report generation and UI visibility.</li>
 </ul>
 <h2 id="doc-21-connector-policy">Connector Policy</h2>
 <p>OpenDART and KRX are optional public-data connectors, not Stage 3 entry requirements.</p>
@@ -3368,7 +3402,7 @@ Approver:</code></pre>
 <td>Stage 2 Broker Connection Foundation</td><td><code>docs/stages/stage-2-toss-readonly-connector.md</code></td><td>Complete</td>
 </tr>
 <tr>
-<td>Stage 3 Research And Memory</td><td><code>docs/stages/stage-3-research-memory.md</code></td><td>Not started</td>
+<td>Stage 3 Research And Memory</td><td><code>docs/stages/stage-3-research-memory.md</code></td><td>In progress</td>
 </tr>
 <tr>
 <td>Stage 4 MiroFish Scenario</td><td><code>docs/stages/stage-4-mirofish-scenario.md</code></td><td>Not started</td>
@@ -3511,12 +3545,15 @@ Approver:</code></pre>
 <td>Broker connection foundation and Toss read-only adapter</td><td><code>docs/product/broker-connection-and-trading.md</code>, <code>docs/toss-invest-openapi.md</code>, <code>vendor/tossinvest/openapi-1.0.3.json</code>, <code>docs/stages/stage-2-toss-readonly-connector.md</code>, <code>docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md</code></td><td><code>packages/shared/src/broker-adapter.ts</code>, <code>packages/shared/src/toss-readonly.ts</code>, <code>packages/core/src/broker-adapter.ts</code>, <code>packages/core/src/toss-credential-store.ts</code>, <code>packages/core/src/toss-readonly-connector.ts</code>, <code>packages/core/src/toss-readonly-sync.ts</code>, <code>packages/db/src/schema.ts</code>, <code>packages/db/src/sqlite.ts</code>, <code>apps/api/src/app.ts</code>, <code>apps/desktop/src/App.tsx</code></td><td>adapter contract tests, credential boundary tests, connector tests, sync job tests, DB snapshot/manual portfolio tests, API health/credential/sync tests, Commander grounding tests, mutation hard-block tests, <code>pnpm verify</code>, <code>pnpm smoke:desktop</code></td>
 </tr>
 <tr>
+<td>Stage 3 research and memory</td><td><code>docs/stages/stage-3-research-memory.md</code>, <code>docs/architecture/agent-runtime.md</code>, <code>docs/development-status.md</code></td><td><code>packages/shared/src/index.ts</code>, <code>packages/db/src/schema.ts</code>, <code>packages/db/src/sqlite.ts</code>, <code>packages/core/src/commander-runtime.ts</code>, <code>apps/api/src/app.ts</code></td><td>memory DB/API/Commander tests, redaction tests, stale-source tests, <code>pnpm verify</code></td>
+</tr>
+<tr>
 <td>Desktop smoke</td><td><code>docs/setup/playwright-smoke.md</code></td><td><code>apps/desktop/</code>, <code>scripts/smoke-desktop-ui.ps1</code></td><td><code>pnpm smoke:desktop</code></td>
 </tr>
 </tbody></table></div>
 </article>
 <article class="doc-card" id="doc-28" data-category="Architecture" data-path="docs/architecture/agent-runtime.md">
-  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 6KB</div>
+  <div class="doc-kicker">Architecture · docs/architecture/agent-runtime.md · 7KB</div>
   <h2>Agent Runtime Architecture</h2>
   <h1 id="doc-28-agent-runtime-architecture">Agent Runtime Architecture</h1>
 <p>Generated: 2026-06-04</p>
@@ -3599,6 +3636,16 @@ Approver:</code></pre>
 <li>API <code>/health</code> reports <code>snapshotFreshness</code> and distinguishes <code>not_configured</code>, <code>credential_configured</code>, <code>syncing</code>, <code>readonly_available</code>, <code>stale</code>, <code>failed</code>, and <code>mock_replay</code>.</li>
 <li><code>BrokerTossAgent</code> can include snapshot availability/freshness in timeline metadata. It answers holdings/account facts only when <code>production_snapshot</code> source and freshness metadata exist.</li>
 <li>No-broker/manual portfolio mode is represented in the DB/API/service contracts. Manual mode remains local context, not a broker connection.</li>
+</ul>
+<h2 id="doc-28-stage-3-research-and-memory-runtime">Stage 3 Research And Memory Runtime</h2>
+<p>The first Stage 3 slice adds local-only investment memory before external research connectors or UI surfaces.</p>
+<ul>
+<li><code>MemoryAgent</code> can load thesis, rule, and journal context for Commander when the user asks memory-oriented questions.</li>
+<li>Memory records carry source metadata, freshness metadata, and optional broker snapshot references.</li>
+<li>Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot memory is skipped and surfaced as skipped metadata, not treated as current evidence.</li>
+<li>SQLite stores thesis/rule version records and journal entries under the local memory contract.</li>
+<li>API endpoints expose local memory writes and recall at <code>/memory/theses</code>, <code>/memory/rules</code>, <code>/memory/journal</code>, and <code>/memory/recall</code>.</li>
+<li>Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.</li>
 </ul>
 </article>
 <article class="doc-card" id="doc-29" data-category="Architecture" data-path="docs/architecture/stage-1-foundation.md">
@@ -3727,7 +3774,7 @@ Approver:</code></pre>
 <li>Development follows stage gates.</li>
 <li>Stage 1 is complete.</li>
 <li>Stage 2 is complete and exited.</li>
-<li>Stage 3 Research And Memory is the next stage.</li>
+<li>Stage 3 Research And Memory is active.</li>
 <li>Product direction is agent-first: the personal investment agent is primary; investment guard and local terminal surfaces support it.</li>
 <li>Broker direction is adapter-based: Toss is the first implemented read-only adapter slice; KIS is a future adapter candidate after source notes and capability mapping.</li>
 <li>Toss order create/update/cancel remains forbidden.</li>
@@ -3751,6 +3798,8 @@ Approver:</code></pre>
 <li>API <code>/health</code> broker adapter status aggregation, credential/sync status, and manual portfolio endpoints</li>
 <li>Desktop broker/freshness status display</li>
 <li>Commander account answers grounded only in production snapshot source/freshness</li>
+<li>Local-only thesis/rule/journal memory persistence and API recall</li>
+<li>Commander MemoryAgent context that uses memory only when source/freshness metadata is usable</li>
 </ul>
 <p>Use <code>docs/development-status.md</code> for the complete current list.</p>
 <h2 id="doc-30-planning-the-next-work">Planning The Next Work</h2>

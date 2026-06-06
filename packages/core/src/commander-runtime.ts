@@ -8,6 +8,9 @@ import type {
   BrokerAdapterStatus,
   CommanderRequest,
   CommanderResponse,
+  InvestmentMemoryRecord,
+  InvestmentMemoryRepository,
+  InvestmentMemorySkippedItem,
   PermissionMode,
   TossReadonlyConnector,
   TossReadonlyConnectorStatus,
@@ -52,6 +55,7 @@ export type CommanderRuntimeOptions = {
   tossReadOnlyConnector?: TossReadonlyConnector;
   tossSnapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus"> &
     Partial<Pick<TossReadonlySnapshotRepository, "readLatest">>;
+  investmentMemory?: Pick<InvestmentMemoryRepository, "recall">;
   clock?: () => Date;
   idFactory?: (prefix: string) => string;
 };
@@ -118,7 +122,8 @@ function buildAnswer(
   brokerStatuses: BrokerAdapterStatus[],
   tossStatus?: TossReadonlyConnectorStatus,
   tossSnapshotFreshness?: TossReadonlySnapshotFreshness,
-  accountGrounding?: string
+  accountGrounding?: string,
+  memoryGrounding?: string
 ): string {
   const sentences = [
     `${symbol} 기준으로 Portfolio, Research, Scenario, Order Guard를 순서대로 확인했습니다.`,
@@ -160,11 +165,19 @@ function buildAnswer(
     sentences.splice(4, 0, accountGrounding);
   }
 
+  if (memoryGrounding) {
+    sentences.splice(4, 0, memoryGrounding);
+  }
+
   return sentences.join(" ");
 }
 
 function asksAccountFacts(message: string): boolean {
   return /계좌|보유|수량|비중|잔고|portfolio|holding|account/i.test(message);
+}
+
+function asksMemoryFacts(message: string): boolean {
+  return /투자 논리|논리|원칙|기억|매매 기록|journal|thesis|rule|memory|recall/i.test(message);
 }
 
 function canUseProductionSnapshot(freshness?: TossReadonlySnapshotFreshness): boolean {
@@ -206,6 +219,20 @@ function buildAccountGrounding(
   }
 
   return `production_snapshot source, last sync ${freshness.lastSuccessfulSyncAt} 기준으로 ${matchingHolding.accountRef} 계좌의 ${symbol} 보유 수량은 ${matchingHolding.item.quantity}입니다.`;
+}
+
+function canUseMemoryRecord(record: InvestmentMemoryRecord): boolean {
+  const freshness = record.source.freshness;
+  return freshness.status === "fresh" || freshness.status === "local_manual";
+}
+
+function buildMemoryGrounding(records: InvestmentMemoryRecord[]): string | undefined {
+  if (records.length === 0) {
+    return undefined;
+  }
+
+  const labels = records.map((record) => `${record.kind}: ${record.title}`).join("; ");
+  return `Stage 3 memory context used with source/freshness grounding: ${labels}.`;
 }
 
 export function createCommanderRuntime(options: CommanderRuntimeOptions): CommanderRuntime {
@@ -299,6 +326,37 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
         );
       }
 
+      let memoryGrounding: string | undefined;
+      if (options.investmentMemory && asksMemoryFacts(request.message)) {
+        const recall = await options.investmentMemory.recall({
+          symbol,
+          now: clock().toISOString()
+        });
+        const usableMemory = recall.items.filter(canUseMemoryRecord);
+        const staleSkipped: InvestmentMemorySkippedItem[] = recall.items
+          .filter((item) => !canUseMemoryRecord(item))
+          .map((item) => ({
+            id: item.id,
+            reason: "stale_source"
+          }));
+        const skippedMemory = [...recall.skipped, ...staleSkipped].filter(
+          (item, index, items) => items.findIndex((candidate) => candidate.id === item.id) === index
+        );
+        memoryGrounding = buildMemoryGrounding(usableMemory);
+
+        timeline.push(
+          event(idFactory, runId, "MemoryAgent", "context_loaded", "Loaded local Stage 3 investment memory context.", startedAt, {
+            usedMemory: usableMemory.map((item) => ({
+              id: item.id,
+              kind: item.kind,
+              source: item.source.freshness.source,
+              freshnessStatus: item.source.freshness.status
+            })),
+            skippedMemory
+          })
+        );
+      }
+
       timeline.push(
         event(idFactory, runId, "ResearchAgent", "specialist_called", "Prepared research limitations and source plan.", startedAt, {
           limitation: "Hermes/OpenBB connectors are not connected in Stage 1 foundation."
@@ -354,7 +412,8 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
         brokerStatuses,
         tossStatus,
         tossSnapshotFreshness,
-        accountGrounding
+        accountGrounding,
+        memoryGrounding
       );
 
       timeline.push(

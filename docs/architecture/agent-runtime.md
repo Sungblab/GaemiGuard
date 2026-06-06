@@ -93,3 +93,14 @@ Stage 2 snapshot persistence supports both mock replay and production read-only 
 - API `/health` reports `snapshotFreshness` and distinguishes `not_configured`, `credential_configured`, `syncing`, `readonly_available`, `stale`, `failed`, and `mock_replay`.
 - `BrokerTossAgent` can include snapshot availability/freshness in timeline metadata. It answers holdings/account facts only when `production_snapshot` source and freshness metadata exist.
 - No-broker/manual portfolio mode is represented in the DB/API/service contracts. Manual mode remains local context, not a broker connection.
+
+## Stage 3 Research And Memory Runtime
+
+The first Stage 3 slice adds local-only investment memory before external research connectors or UI surfaces.
+
+- `MemoryAgent` can load thesis, rule, and journal context for Commander when the user asks memory-oriented questions.
+- Memory records carry source metadata, freshness metadata, and optional broker snapshot references.
+- Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot memory is skipped and surfaced as skipped metadata, not treated as current evidence.
+- SQLite stores thesis/rule version records and journal entries under the local memory contract.
+- API endpoints expose local memory writes and recall at `/memory/theses`, `/memory/rules`, `/memory/journal`, and `/memory/recall`.
+- Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.

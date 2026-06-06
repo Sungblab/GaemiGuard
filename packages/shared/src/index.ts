@@ -1,7 +1,9 @@
 export * from "./broker-adapter";
 export * from "./toss-readonly";
 
-export type Stage = "stage_1_foundation" | "stage_2_toss_readonly_connector";
+import type { BrokerFreshness, BrokerFreshnessSource, BrokerFreshnessStatus, BrokerProviderId } from "./broker-adapter";
+
+export type Stage = "stage_1_foundation" | "stage_2_toss_readonly_connector" | "stage_3_research_memory";
 
 export type PermissionMode = "manual" | "guarded_auto" | "trusted_auto" | "full_access";
 
@@ -139,3 +141,77 @@ export type HealthCheck = {
   message: string;
   metadata?: Record<string, unknown>;
 };
+
+export type InvestmentMemoryKind = "thesis" | "rule" | "journal";
+
+export type InvestmentMemorySourceKind = "manual_note" | "broker_snapshot" | "research_artifact";
+
+export type InvestmentMemoryBrokerSnapshotSource = {
+  providerId: BrokerProviderId;
+  source: BrokerFreshnessSource;
+  freshnessStatus: BrokerFreshnessStatus;
+  lastSuccessfulSyncAt?: string;
+};
+
+export type InvestmentMemorySource = {
+  kind: InvestmentMemorySourceKind;
+  label: string;
+  capturedAt: string;
+  freshness: BrokerFreshness;
+  brokerSnapshot?: InvestmentMemoryBrokerSnapshotSource;
+};
+
+export type InvestmentMemoryRecord = {
+  id: string;
+  kind: InvestmentMemoryKind;
+  symbol?: string;
+  title: string;
+  body: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  source: InvestmentMemorySource;
+};
+
+export type InvestmentMemoryThesisInput = {
+  symbol: string;
+  title: string;
+  body: string;
+  source: InvestmentMemorySource;
+};
+
+export type InvestmentMemoryRuleInput = {
+  name: string;
+  body: string;
+  source: InvestmentMemorySource;
+};
+
+export type InvestmentMemoryJournalInput = {
+  symbol?: string;
+  body: string;
+  source: InvestmentMemorySource;
+};
+
+export type InvestmentMemoryRecallRequest = {
+  symbol?: string;
+  now?: string;
+  includeStale?: boolean;
+  limit?: number;
+};
+
+export type InvestmentMemorySkippedItem = {
+  id: string;
+  reason: "missing_source" | "stale_source";
+};
+
+export type InvestmentMemoryRecallResult = {
+  items: InvestmentMemoryRecord[];
+  skipped: InvestmentMemorySkippedItem[];
+};
+
+export interface InvestmentMemoryRepository {
+  upsertThesis(input: InvestmentMemoryThesisInput): Promise<InvestmentMemoryRecord>;
+  upsertRule(input: InvestmentMemoryRuleInput): Promise<InvestmentMemoryRecord>;
+  addJournalEntry(input: InvestmentMemoryJournalInput): Promise<InvestmentMemoryRecord>;
+  recall(request?: InvestmentMemoryRecallRequest): Promise<InvestmentMemoryRecallResult>;
+}
