@@ -21,6 +21,7 @@ import type {
   BrokerAdapterStatus,
   HealthCheck,
   InvestmentMemoryJournalInput,
+  InvestmentMemoryResearchArtifactInput,
   InvestmentMemoryRuleInput,
   InvestmentMemoryThesisInput,
   PermissionMode,
@@ -123,6 +124,27 @@ const journalMemorySchema = z.object({
   symbol: z.string().min(1).optional(),
   body: z.string().min(1),
   source: memorySourceSchema
+});
+
+const researchArtifactMemorySchema = z.object({
+  title: z.string().min(1),
+  body: z.string().min(1),
+  source: memorySourceSchema,
+  links: z
+    .object({
+      symbols: z.array(z.string().min(1)).optional(),
+      holdingSymbols: z.array(z.string().min(1)).optional(),
+      watchlistSymbols: z.array(z.string().min(1)).optional(),
+      userQuestion: z.string().min(1).optional()
+    })
+    .refine(
+      (links) =>
+        Boolean(links.userQuestion) ||
+        Boolean(links.symbols?.length) ||
+        Boolean(links.holdingSymbols?.length) ||
+        Boolean(links.watchlistSymbols?.length),
+      "at least one symbol, holding, watchlist, or user question link is required"
+    )
 });
 
 const tossCredentialSetupSchema = z.object({
@@ -523,9 +545,25 @@ export async function buildApiApp(options: BuildApiAppOptions): Promise<FastifyI
     return db.investmentMemory.addJournalEntry(parsed.data as InvestmentMemoryJournalInput);
   });
 
-  app.get<{ Querystring: { symbol?: string; includeStale?: string } }>("/memory/recall", async (request) =>
+  app.post("/memory/research", async (request, reply) => {
+    const parsed = researchArtifactMemorySchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: {
+          code: "invalid-memory-research-artifact",
+          message: "title, body, source, and links are required",
+          issues: parsed.error.issues
+        }
+      });
+    }
+
+    return db.investmentMemory.addResearchArtifact(parsed.data as InvestmentMemoryResearchArtifactInput);
+  });
+
+  app.get<{ Querystring: { symbol?: string; q?: string; includeStale?: string } }>("/memory/recall", async (request) =>
     db.investmentMemory.recall({
       ...(request.query.symbol ? { symbol: request.query.symbol } : {}),
+      ...(request.query.q ? { query: request.query.q } : {}),
       includeStale: request.query.includeStale === "true",
       now: clock().toISOString()
     })

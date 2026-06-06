@@ -177,7 +177,7 @@ function asksAccountFacts(message: string): boolean {
 }
 
 function asksMemoryFacts(message: string): boolean {
-  return /투자 논리|논리|원칙|기억|매매 기록|journal|thesis|rule|memory|recall/i.test(message);
+  return /투자 논리|논리|원칙|기억|매매 기록|리서치|research|journal|thesis|rule|memory|recall/i.test(message);
 }
 
 function canUseProductionSnapshot(freshness?: TossReadonlySnapshotFreshness): boolean {
@@ -222,7 +222,10 @@ function buildAccountGrounding(
 }
 
 function canUseMemoryRecord(record: InvestmentMemoryRecord): boolean {
-  const freshness = record.source.freshness;
+  const freshness = record.source?.freshness;
+  if (!freshness) {
+    return false;
+  }
   return freshness.status === "fresh" || freshness.status === "local_manual";
 }
 
@@ -330,6 +333,7 @@ export function createCommanderRuntime(options: CommanderRuntimeOptions): Comman
       if (options.investmentMemory && asksMemoryFacts(request.message)) {
         const recall = await options.investmentMemory.recall({
           symbol,
+          query: request.message,
           now: clock().toISOString()
         });
         const usableMemory = recall.items.filter(canUseMemoryRecord);

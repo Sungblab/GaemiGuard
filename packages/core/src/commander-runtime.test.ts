@@ -603,4 +603,102 @@ describe("createCommanderRuntime", () => {
     expect(response.answer).toContain("journal: Journal entry");
     expect(response.answer).not.toContain("Stale thesis");
   });
+
+  it("uses source-backed research artifacts only when their source freshness is usable", async () => {
+    const repository = new InMemoryAgentRunRepository();
+    const artifacts = new InMemoryArtifactStore();
+    const runtime = createCommanderRuntime({
+      repository,
+      artifactStore: artifacts,
+      investmentMemory: {
+        async recall() {
+          return {
+            items: [
+              {
+                id: "research_artifact_1",
+                kind: "research",
+                symbol: "005930",
+                title: "Samsung HBM capacity memo",
+                body: "Research artifact should be usable only with fresh source metadata.",
+                version: 1,
+                createdAt: "2026-06-06T05:00:00.000Z",
+                updatedAt: "2026-06-06T05:00:00.000Z",
+                source: {
+                  kind: "research_artifact",
+                  label: "Local imported research memo",
+                  capturedAt: "2026-06-06T05:00:00.000Z",
+                  freshness: {
+                    status: "fresh",
+                    source: "manual_input",
+                    message: "Local research artifact was reviewed by the user."
+                  }
+                },
+                research: {
+                  links: {
+                    symbols: ["005930"],
+                    holdingSymbols: ["005930"],
+                    watchlistSymbols: ["000660"],
+                    userQuestion: "Does this change my Samsung thesis?"
+                  }
+                }
+              },
+              {
+                id: "research_artifact_stale",
+                kind: "research",
+                symbol: "005930",
+                title: "Old Samsung rumor note",
+                body: "This stale research artifact must not be used.",
+                version: 1,
+                createdAt: "2026-06-01T05:00:00.000Z",
+                updatedAt: "2026-06-01T05:00:00.000Z",
+                source: {
+                  kind: "research_artifact",
+                  label: "Old local memo",
+                  capturedAt: "2026-06-01T05:00:00.000Z",
+                  freshness: {
+                    status: "stale",
+                    source: "manual_input",
+                    message: "Local research artifact is stale."
+                  }
+                },
+                research: {
+                  links: {
+                    symbols: ["005930"],
+                    userQuestion: "Old rumor"
+                  }
+                }
+              }
+            ],
+            skipped: [{ id: "research_artifact_stale", reason: "stale_source" }]
+          };
+        }
+      },
+      clock: () => new Date("2026-06-06T05:05:00.000Z"),
+      idFactory: (() => {
+        let index = 0;
+        return (prefix: string) => `${prefix}_${++index}`;
+      })()
+    });
+
+    const response = await runtime.handleUserMessage({
+      message: "005930 리서치가 내 투자 논리를 바꾸는지 봐줘",
+      permissionMode: "manual",
+      context: {
+        selectedSymbol: "005930"
+      }
+    });
+
+    const memoryEvent = response.timeline.find((event) => event.agent === "MemoryAgent");
+    expect(memoryEvent?.metadata?.usedMemory).toEqual([
+      {
+        id: "research_artifact_1",
+        kind: "research",
+        source: "manual_input",
+        freshnessStatus: "fresh"
+      }
+    ]);
+    expect(memoryEvent?.metadata?.skippedMemory).toEqual([{ id: "research_artifact_stale", reason: "stale_source" }]);
+    expect(response.answer).toContain("research: Samsung HBM capacity memo");
+    expect(response.answer).not.toContain("Old Samsung rumor note");
+  });
 });

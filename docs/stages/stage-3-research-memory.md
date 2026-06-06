@@ -65,10 +65,22 @@ Implemented:
 - Recall filtering that uses only records with usable source/freshness metadata and skips stale broker-snapshot records.
 - Redaction tests proving raw secret, token, account, and order sentinel values are not persisted, returned, or used in Commander context.
 
+## Second Slice Status
+
+Implemented:
+
+- Source-backed research artifact records in the local investment memory contract.
+- Research artifact links to symbols, holding symbols, watchlist symbols, and the originating user question.
+- API endpoint:
+  - `POST /memory/research`
+- `/memory/recall` returns fresh research artifacts for the selected symbol and skips stale research sources.
+- Commander `MemoryAgent` can recall research artifacts for research/thesis questions only when source/freshness metadata is usable.
+- Tests cover missing source metadata rejection, stale research exclusion, and redaction of secret/account/order sentinels in research artifact text, source labels, and user-question links.
+
 Remaining:
 
 - Desktop thesis/rules/journal/recall UI.
-- Research report artifacts.
+- Research report artifacts beyond the minimal local research memory record.
 - Local Markdown/PDF/CSV ingestion.
 - Hermes/OpenBB adapter contracts.
 - Daily/weekly report generation and UI visibility.

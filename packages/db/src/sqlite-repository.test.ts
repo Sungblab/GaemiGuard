@@ -340,4 +340,115 @@ describe("createGaemiGuardDatabase", () => {
 
     db.close();
   });
+
+  it("persists source-backed research artifacts linked to holdings, watchlist, and user questions", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-db-"));
+    tempDirs.push(dir);
+
+    const db = createGaemiGuardDatabase({ dataDir: dir });
+
+    await db.investmentMemory.addResearchArtifact({
+      title: "Samsung HBM capacity memo",
+      body: "Research artifact must redact fixture-private-value-alpha and raw account 987654321.",
+      source: {
+        kind: "research_artifact",
+        label: "Local imported research memo fixture-account-ref-9012",
+        capturedAt: "2026-06-06T05:00:00.000Z",
+        freshness: {
+          status: "fresh",
+          source: "manual_input",
+          message: "Local research artifact is user-reviewed and current."
+        }
+      },
+      links: {
+        symbols: ["005930"],
+        holdingSymbols: ["005930"],
+        watchlistSymbols: ["000660"],
+        userQuestion: "Does fixture-order-id-should-never-appear change my Samsung thesis?"
+      }
+    });
+    await db.investmentMemory.addResearchArtifact({
+      title: "Old Samsung rumor note",
+      body: "This stale research artifact should not be recalled.",
+      source: {
+        kind: "research_artifact",
+        label: "Old local memo",
+        capturedAt: "2026-06-01T05:00:00.000Z",
+        freshness: {
+          status: "stale",
+          source: "manual_input",
+          message: "Local research artifact is stale."
+        }
+      },
+      links: {
+        symbols: ["005930"],
+        userQuestion: "Old rumor"
+      }
+    });
+    await db.investmentMemory.addResearchArtifact({
+      title: "Question-only HBM memo",
+      body: "This research artifact is connected through the originating user question.",
+      source: {
+        kind: "research_artifact",
+        label: "Question-linked local memo",
+        capturedAt: "2026-06-06T05:01:00.000Z",
+        freshness: {
+          status: "fresh",
+          source: "manual_input",
+          message: "Question-linked research artifact is current."
+        }
+      },
+      links: {
+        userQuestion: "Does HBM capacity change my thesis?"
+      }
+    });
+
+    const recall = await db.investmentMemory.recall({
+      symbol: "005930",
+      now: "2026-06-06T05:05:00.000Z"
+    });
+
+    expect(recall.items).toHaveLength(1);
+    expect(recall.items[0]).toMatchObject({
+      kind: "research",
+      symbol: "005930",
+      title: "Samsung HBM capacity memo",
+      source: {
+        kind: "research_artifact",
+        freshness: {
+          status: "fresh",
+          source: "manual_input"
+        }
+      },
+      research: {
+        links: {
+          symbols: ["005930"],
+          holdingSymbols: ["005930"],
+          watchlistSymbols: ["000660"]
+        }
+      }
+    });
+    expect(recall.skipped).toHaveLength(1);
+    expect(recall.skipped[0]?.reason).toBe("stale_source");
+
+    const questionRecall = await db.investmentMemory.recall({
+      query: "Does HBM capacity change my thesis?",
+      now: "2026-06-06T05:05:00.000Z"
+    });
+    expect(questionRecall.items.map((item) => item.title)).toEqual(["Question-only HBM memo"]);
+
+    const serialized = JSON.stringify(recall);
+    const diskText = readDiskText(dir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear",
+      "987654321"
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    db.close();
+  });
 });
