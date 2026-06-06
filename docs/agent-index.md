@@ -58,7 +58,8 @@ Read these only when relevant:
 - Desktop broker/freshness status display
 - Commander account answers grounded only in production snapshot source/freshness
 - Local-only thesis/rule/journal memory persistence and API recall
-- Commander MemoryAgent context that uses memory only when source/freshness metadata is usable
+- Source-backed local research artifact persistence and API recall
+- Commander MemoryAgent context that uses thesis/rule/journal/research memory only when source/freshness metadata is usable
 
 Use `docs/development-status.md` for the complete current list.
 

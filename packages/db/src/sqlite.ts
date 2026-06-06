@@ -17,9 +17,11 @@ import type {
   InvestmentMemoryRecallRequest,
   InvestmentMemoryRecallResult,
   InvestmentMemoryRepository,
+  InvestmentMemoryResearchArtifactInput,
   InvestmentMemoryRuleInput,
   InvestmentMemorySource,
   InvestmentMemoryThesisInput,
+  InvestmentResearchArtifactLinks,
   ManualPortfolioCashBalance,
   ManualPortfolioCashBalanceInput,
   ManualPortfolioHolding,
@@ -319,8 +321,18 @@ function sanitizeMemorySource(source: InvestmentMemorySource): InvestmentMemoryS
   };
 }
 
+function sanitizeResearchLinks(links: InvestmentResearchArtifactLinks): InvestmentResearchArtifactLinks {
+  return {
+    ...(links.symbols ? { symbols: links.symbols.map(redactMemoryText) } : {}),
+    ...(links.holdingSymbols ? { holdingSymbols: links.holdingSymbols.map(redactMemoryText) } : {}),
+    ...(links.watchlistSymbols ? { watchlistSymbols: links.watchlistSymbols.map(redactMemoryText) } : {}),
+    ...(links.userQuestion ? { userQuestion: redactMemoryText(links.userQuestion) } : {})
+  };
+}
+
 function mapInvestmentMemoryRecord(row: Row): InvestmentMemoryRecord {
   const symbol = optionalDbString(row.symbol);
+  const researchLinksJson = row.research_links_json === null ? undefined : optionalDbString(row.research_links_json);
   return {
     id: asString(row.id),
     kind: asString(row.kind) as InvestmentMemoryRecord["kind"],
@@ -330,7 +342,8 @@ function mapInvestmentMemoryRecord(row: Row): InvestmentMemoryRecord {
     version: asNumber(row.version),
     createdAt: asString(row.created_at),
     updatedAt: asString(row.updated_at),
-    source: parseJson(row.source_json)
+    source: parseJson(row.source_json),
+    ...(researchLinksJson ? { research: { links: JSON.parse(researchLinksJson) as InvestmentResearchArtifactLinks } } : {})
   };
 }
 
@@ -372,6 +385,7 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
   ensureColumn(database, "toss_sync_logs", "safe_request_id", "safe_request_id TEXT");
   ensureColumn(database, "toss_sync_logs", "retry_after_seconds", "retry_after_seconds INTEGER");
   ensureColumn(database, "toss_sync_logs", "next_retry_at", "next_retry_at TEXT");
+  ensureColumn(database, "investment_memory_records", "research_links_json", "research_links_json TEXT");
 
   const syncLogStatement = database.prepare(
     `INSERT INTO toss_sync_logs
@@ -713,15 +727,17 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
     createdAt: string;
     updatedAt: string;
     source: InvestmentMemorySource;
+    researchLinks?: InvestmentResearchArtifactLinks;
   }): InvestmentMemoryRecord {
     const title = redactMemoryText(input.title);
     const body = redactMemoryText(input.body);
     const source = sanitizeMemorySource(input.source);
+    const researchLinks = input.researchLinks ? sanitizeResearchLinks(input.researchLinks) : undefined;
     database
       .prepare(
         `INSERT INTO investment_memory_records
-          (id, kind, identity_key, symbol, title, body, version, created_at, updated_at, source_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          (id, kind, identity_key, symbol, title, body, version, created_at, updated_at, source_json, research_links_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         input.id,
@@ -733,7 +749,8 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
         input.version,
         input.createdAt,
         input.updatedAt,
-        JSON.stringify(source)
+        JSON.stringify(source),
+        researchLinks ? JSON.stringify(researchLinks) : null
       );
 
     return {
@@ -745,8 +762,40 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
       version: input.version,
       createdAt: input.createdAt,
       updatedAt: input.updatedAt,
-      source
+      source,
+      ...(researchLinks ? { research: { links: researchLinks } } : {})
     };
+  }
+
+  function researchRecordMatchesSymbol(record: InvestmentMemoryRecord, symbol: string): boolean {
+    const links = record.research?.links;
+    if (!links) {
+      return false;
+    }
+    const linkedSymbols = [...(links.symbols ?? []), ...(links.holdingSymbols ?? []), ...(links.watchlistSymbols ?? [])];
+    return linkedSymbols.includes(symbol);
+  }
+
+  function researchRecordMatchesQuery(record: InvestmentMemoryRecord, query: string): boolean {
+    const userQuestion = record.research?.links.userQuestion?.trim().toLowerCase();
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!userQuestion || !normalizedQuery) {
+      return false;
+    }
+    return userQuestion.includes(normalizedQuery) || normalizedQuery.includes(userQuestion);
+  }
+
+  function memoryRecordMatchesRecallRequest(record: InvestmentMemoryRecord, request: InvestmentMemoryRecallRequest): boolean {
+    if (!request.symbol && !request.query) {
+      return true;
+    }
+    if (record.kind !== "research") {
+      return !request.symbol || record.symbol === request.symbol || !record.symbol;
+    }
+    return (
+      (request.symbol ? record.symbol === request.symbol || researchRecordMatchesSymbol(record, request.symbol) : false) ||
+      (request.query ? researchRecordMatchesQuery(record, request.query) : false)
+    );
   }
 
   const investmentMemory: InvestmentMemoryRepository = {
@@ -801,19 +850,38 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
       });
     },
 
+    async addResearchArtifact(input: InvestmentMemoryResearchArtifactInput): Promise<InvestmentMemoryRecord> {
+      const updatedAt = new Date().toISOString();
+      const primarySymbol = input.links.symbols?.[0] ?? input.links.holdingSymbols?.[0] ?? input.links.watchlistSymbols?.[0];
+      return insertMemoryRecord({
+        id: `memory_${crypto.randomUUID()}`,
+        kind: "research",
+        identityKey: `research:${crypto.randomUUID()}`,
+        ...(primarySymbol ? { symbol: primarySymbol } : {}),
+        title: input.title,
+        body: input.body,
+        version: 1,
+        createdAt: updatedAt,
+        updatedAt,
+        source: input.source,
+        researchLinks: input.links
+      });
+    },
+
     async recall(request: InvestmentMemoryRecallRequest = {}): Promise<InvestmentMemoryRecallResult> {
       const limit = request.limit ?? 20;
       const rows = database
         .prepare(
           `SELECT * FROM investment_memory_records
-           WHERE symbol = ? OR symbol IS NULL
            ORDER BY
              CASE kind WHEN 'thesis' THEN 1 WHEN 'rule' THEN 2 ELSE 3 END ASC,
-             updated_at DESC
-           LIMIT ?`
+             updated_at DESC`
         )
-        .all(request.symbol ?? "", limit) as Row[];
-      const records = rows.map(mapInvestmentMemoryRecord);
+        .all() as Row[];
+      const records = rows
+        .map(mapInvestmentMemoryRecord)
+        .filter((record) => memoryRecordMatchesRecallRequest(record, request))
+        .slice(0, limit);
       const items: InvestmentMemoryRecord[] = [];
       const skipped: InvestmentMemoryRecallResult["skipped"] = [];
 

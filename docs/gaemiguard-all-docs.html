@@ -418,13 +418,13 @@
         <div class="stats">
           <span class="chip"><strong>55</strong> Markdown docs</span>
           <span class="chip"><strong>5</strong> raw appendices</span>
-          <span class="chip">Generated <strong>2026-06-06T09:32:39.242Z</strong></span>
+          <span class="chip">Generated <strong>2026-06-06T13:41:41.685Z</strong></span>
           <span class="chip">Source <strong>GaemiGuard</strong></span>
         </div>
       </section>
       <div id="noResults" class="no-results">검색 결과가 없습니다.</div>
       <article class="doc-card" id="doc-0" data-category="Overview" data-path="docs/development-status.md">
-  <div class="doc-kicker">Overview · docs/development-status.md · 15KB</div>
+  <div class="doc-kicker">Overview · docs/development-status.md · 16KB</div>
   <h2>GaemiGuard Development Status</h2>
   <h1 id="doc-0-gaemiguard-development-status">GaemiGuard Development Status</h1>
 <p>Updated: 2026-06-06</p>
@@ -437,7 +437,7 @@
 <li>Recent infrastructure baseline: <code>e41067e</code>, <code>chore: install Devflow Native harness</code></li>
 <li>Recent feature baseline: PR #10, <code>c97bbee</code>, <code>feat: add Toss read-only connector skeleton</code></li>
 <li>Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.</li>
-<li>Current Stage 3 first-slice baseline includes local thesis/rule/journal memory persistence, API endpoints, Commander MemoryAgent context, source/freshness gating, and redaction tests.</li>
+<li>Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, and redaction tests.</li>
 <li>Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.</li>
 <li>Development history is indexed in <code>docs/development-history.md</code>.</li>
 <li>Latest verified commands for the current main baseline:</li>
@@ -537,7 +537,7 @@ Completion criteria:
 <td>Stage 2 Broker Connection Foundation</td><td>Complete</td><td>Toss read-only adapter, mock replay and production snapshot sync, OS credential-store boundary, setup/disconnect API, safe freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, manual/no-broker foundation, and security tests are implemented.</td>
 </tr>
 <tr>
-<td>Stage 3 Research And Memory</td><td>In progress</td><td>First local-only memory slice is implemented: thesis/rule/journal persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests.</td>
+<td>Stage 3 Research And Memory</td><td>In progress</td><td>Local memory and first source-backed research artifact slices are implemented: thesis/rule/journal persistence, research artifact persistence, API recall, Commander MemoryAgent context, source/freshness gating, and redaction tests.</td>
 </tr>
 <tr>
 <td>Stage 4 MiroFish Scenario</td><td>Not started</td><td>Sidecar remains scenario-only; no order execution.</td>
@@ -642,6 +642,16 @@ Completion criteria:
 <li>Commander can call <code>MemoryAgent</code> for memory-oriented questions and uses only memory records with usable source/freshness status. Stale broker-snapshot memory is skipped instead of being presented as current evidence.</li>
 <li>Tests cover DB persistence/redaction, API memory CRUD/recall, Commander MemoryAgent context, and stale-source exclusion.</li>
 </ul>
+<p>Stage 3 source-backed research artifact slice:</p>
+<ul>
+<li><code>packages/shared/src/index.ts</code> extends investment memory with <code>research</code> records and research links to symbols, holding symbols, watchlist symbols, and the originating user question.</li>
+<li><code>packages/db/src/schema.ts</code> and <code>packages/db/src/sqlite.ts</code> persist source-backed research artifacts locally with redacted body, source, and link metadata.</li>
+<li>API endpoint <code>POST /memory/research</code> writes research artifacts. Missing source metadata is rejected.</li>
+<li><code>/memory/recall</code> can return research artifacts tied to the selected symbol through direct symbol, holding, or watchlist links.</li>
+<li>Commander <code>MemoryAgent</code> recalls research artifacts for research/thesis questions only when source/freshness metadata is usable.</li>
+<li>Stale research artifacts are skipped and reported as skipped memory instead of being used as answer grounding.</li>
+<li>Tests cover DB persistence/redaction, API write/recall validation, Commander research recall, missing-source rejection, and stale research exclusion.</li>
+</ul>
 <p>Devflow Native:</p>
 <ul>
 <li>Repo-local Devflow scaffold is installed.</li>
@@ -684,10 +694,9 @@ Completion criteria:
 <li>No UI copy that implies Toss is connected when only mock or not-configured mode is active.</li>
 </ul>
 <h2 id="doc-0-recommended-next-slice">Recommended Next Slice</h2>
-<p>The next practical Stage 3 slice is to expand from the local-only memory foundation into source-backed research artifacts and user-visible review surfaces:</p>
+<p>The next practical Stage 3 slice is to expand from source-backed local research artifacts into user-visible review surfaces and report generation:</p>
 <ol>
-<li>Add research artifacts tied to holdings, watchlist, local documents, and user questions.</li>
-<li>Add user-visible thesis/rules/journal/recall surfaces in the desktop app.</li>
+<li>Add user-visible thesis/rules/journal/recall and research inbox surfaces in the desktop app.</li>
 <li>Add weekly review and report artifact generation.</li>
 <li>Add local Markdown/PDF/CSV ingestion only with explicit user import and source metadata.</li>
 <li>Keep KIS implementation, live orders, order drafts, paper trading, and automation out of Stage 3 unless a later gate explicitly opens them.</li>
@@ -2898,7 +2907,7 @@ Approver:</code></pre>
 <p>Implemented and merged to <code>main</code> before this waterfall package. Keep this document as the baseline gate record shape for future stages.</p>
 </article>
 <article class="doc-card" id="doc-21" data-category="Stage Gates" data-path="docs/stages/stage-3-research-memory.md">
-  <div class="doc-kicker">Stage Gates · docs/stages/stage-3-research-memory.md · 3KB</div>
+  <div class="doc-kicker">Stage Gates · docs/stages/stage-3-research-memory.md · 4KB</div>
   <h2>Stage 3 Gate: Research And Memory</h2>
   <h1 id="doc-21-stage-3-gate-research-and-memory">Stage 3 Gate: Research And Memory</h1>
 <p>Generated: 2026-06-04</p>
@@ -2961,10 +2970,21 @@ Approver:</code></pre>
 <li>Recall filtering that uses only records with usable source/freshness metadata and skips stale broker-snapshot records.</li>
 <li>Redaction tests proving raw secret, token, account, and order sentinel values are not persisted, returned, or used in Commander context.</li>
 </ul>
+<h2 id="doc-21-second-slice-status">Second Slice Status</h2>
+<p>Implemented:</p>
+<ul>
+<li>Source-backed research artifact records in the local investment memory contract.</li>
+<li>Research artifact links to symbols, holding symbols, watchlist symbols, and the originating user question.</li>
+<li>API endpoint:</li>
+<li><code>POST /memory/research</code></li>
+<li><code>/memory/recall</code> returns fresh research artifacts for the selected symbol and skips stale research sources.</li>
+<li>Commander <code>MemoryAgent</code> can recall research artifacts for research/thesis questions only when source/freshness metadata is usable.</li>
+<li>Tests cover missing source metadata rejection, stale research exclusion, and redaction of secret/account/order sentinels in research artifact text, source labels, and user-question links.</li>
+</ul>
 <p>Remaining:</p>
 <ul>
 <li>Desktop thesis/rules/journal/recall UI.</li>
-<li>Research report artifacts.</li>
+<li>Research report artifacts beyond the minimal local research memory record.</li>
 <li>Local Markdown/PDF/CSV ingestion.</li>
 <li>Hermes/OpenBB adapter contracts.</li>
 <li>Daily/weekly report generation and UI visibility.</li>
@@ -3638,13 +3658,15 @@ Approver:</code></pre>
 <li>No-broker/manual portfolio mode is represented in the DB/API/service contracts. Manual mode remains local context, not a broker connection.</li>
 </ul>
 <h2 id="doc-28-stage-3-research-and-memory-runtime">Stage 3 Research And Memory Runtime</h2>
-<p>The first Stage 3 slice adds local-only investment memory before external research connectors or UI surfaces.</p>
+<p>The first Stage 3 slices add local investment memory and source-backed local research artifacts before external research connectors or UI surfaces.</p>
 <ul>
 <li><code>MemoryAgent</code> can load thesis, rule, and journal context for Commander when the user asks memory-oriented questions.</li>
+<li><code>MemoryAgent</code> can also recall source-backed research artifacts tied to symbols, holdings, watchlist items, and the originating user question.</li>
 <li>Memory records carry source metadata, freshness metadata, and optional broker snapshot references.</li>
-<li>Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot memory is skipped and surfaced as skipped metadata, not treated as current evidence.</li>
+<li>Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot or research artifact memory is skipped and surfaced as skipped metadata, not treated as current evidence.</li>
 <li>SQLite stores thesis/rule version records and journal entries under the local memory contract.</li>
-<li>API endpoints expose local memory writes and recall at <code>/memory/theses</code>, <code>/memory/rules</code>, <code>/memory/journal</code>, and <code>/memory/recall</code>.</li>
+<li>SQLite also stores local research artifacts under the same memory contract with research links metadata.</li>
+<li>API endpoints expose local memory writes and recall at <code>/memory/theses</code>, <code>/memory/rules</code>, <code>/memory/journal</code>, <code>/memory/research</code>, and <code>/memory/recall</code>.</li>
 <li>Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.</li>
 </ul>
 </article>
@@ -3712,7 +3734,7 @@ Approver:</code></pre>
 </ul>
 </article>
 <article class="doc-card" id="doc-30" data-category="Product Context" data-path="docs/agent-index.md">
-  <div class="doc-kicker">Product Context · docs/agent-index.md · 5KB</div>
+  <div class="doc-kicker">Product Context · docs/agent-index.md · 6KB</div>
   <h2>GaemiGuard Agent Index</h2>
   <h1 id="doc-30-gaemiguard-agent-index">GaemiGuard Agent Index</h1>
 <p>Updated: 2026-06-06</p>
@@ -3799,7 +3821,8 @@ Approver:</code></pre>
 <li>Desktop broker/freshness status display</li>
 <li>Commander account answers grounded only in production snapshot source/freshness</li>
 <li>Local-only thesis/rule/journal memory persistence and API recall</li>
-<li>Commander MemoryAgent context that uses memory only when source/freshness metadata is usable</li>
+<li>Source-backed local research artifact persistence and API recall</li>
+<li>Commander MemoryAgent context that uses thesis/rule/journal/research memory only when source/freshness metadata is usable</li>
 </ul>
 <p>Use <code>docs/development-status.md</code> for the complete current list.</p>
 <h2 id="doc-30-planning-the-next-work">Planning The Next Work</h2>

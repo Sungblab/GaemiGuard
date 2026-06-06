@@ -142,7 +142,7 @@ export type HealthCheck = {
   metadata?: Record<string, unknown>;
 };
 
-export type InvestmentMemoryKind = "thesis" | "rule" | "journal";
+export type InvestmentMemoryKind = "thesis" | "rule" | "journal" | "research";
 
 export type InvestmentMemorySourceKind = "manual_note" | "broker_snapshot" | "research_artifact";
 
@@ -161,6 +161,17 @@ export type InvestmentMemorySource = {
   brokerSnapshot?: InvestmentMemoryBrokerSnapshotSource;
 };
 
+export type InvestmentResearchArtifactLinks = {
+  symbols?: string[];
+  holdingSymbols?: string[];
+  watchlistSymbols?: string[];
+  userQuestion?: string;
+};
+
+export type InvestmentResearchArtifactMetadata = {
+  links: InvestmentResearchArtifactLinks;
+};
+
 export type InvestmentMemoryRecord = {
   id: string;
   kind: InvestmentMemoryKind;
@@ -171,6 +182,7 @@ export type InvestmentMemoryRecord = {
   createdAt: string;
   updatedAt: string;
   source: InvestmentMemorySource;
+  research?: InvestmentResearchArtifactMetadata;
 };
 
 export type InvestmentMemoryThesisInput = {
@@ -192,8 +204,16 @@ export type InvestmentMemoryJournalInput = {
   source: InvestmentMemorySource;
 };
 
+export type InvestmentMemoryResearchArtifactInput = {
+  title: string;
+  body: string;
+  source: InvestmentMemorySource;
+  links: InvestmentResearchArtifactLinks;
+};
+
 export type InvestmentMemoryRecallRequest = {
   symbol?: string;
+  query?: string;
   now?: string;
   includeStale?: boolean;
   limit?: number;
@@ -213,5 +233,6 @@ export interface InvestmentMemoryRepository {
   upsertThesis(input: InvestmentMemoryThesisInput): Promise<InvestmentMemoryRecord>;
   upsertRule(input: InvestmentMemoryRuleInput): Promise<InvestmentMemoryRecord>;
   addJournalEntry(input: InvestmentMemoryJournalInput): Promise<InvestmentMemoryRecord>;
+  addResearchArtifact(input: InvestmentMemoryResearchArtifactInput): Promise<InvestmentMemoryRecord>;
   recall(request?: InvestmentMemoryRecallRequest): Promise<InvestmentMemoryRecallResult>;
 }

@@ -765,4 +765,134 @@ describe("buildApiApp", () => {
 
     await app.close();
   });
+
+  it("stores research artifacts and recalls them only with source and freshness grounding", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+
+    const app = await buildApiApp({
+      dataDir,
+      clock: () => new Date("2026-06-06T05:05:00.000Z")
+    });
+
+    const missingSource = await app.inject({
+      method: "POST",
+      url: "/memory/research",
+      payload: {
+        title: "Missing source memo",
+        body: "No source metadata.",
+        links: {
+          symbols: ["005930"]
+        }
+      }
+    });
+    expect(missingSource.statusCode).toBe(400);
+
+    const emptyLinks = await app.inject({
+      method: "POST",
+      url: "/memory/research",
+      payload: {
+        title: "Empty links memo",
+        body: "No usable links.",
+        source: {
+          kind: "research_artifact",
+          label: "Local imported research memo",
+          capturedAt: "2026-06-06T05:00:00.000Z",
+          freshness: {
+            status: "fresh",
+            source: "manual_input",
+            message: "User-reviewed local research artifact is current."
+          }
+        },
+        links: {}
+      }
+    });
+    expect(emptyLinks.statusCode).toBe(400);
+
+    const research = await app.inject({
+      method: "POST",
+      url: "/memory/research",
+      payload: {
+        title: "Samsung HBM capacity memo",
+        body: "This research mentions fixture-private-value-alpha and raw account 987654321.",
+        source: {
+          kind: "research_artifact",
+          label: "Local imported research memo fixture-account-ref-9012",
+          capturedAt: "2026-06-06T05:00:00.000Z",
+          freshness: {
+            status: "fresh",
+            source: "manual_input",
+            message: "User-reviewed local research artifact is current."
+          }
+        },
+        links: {
+          symbols: ["005930"],
+          holdingSymbols: ["005930"],
+          watchlistSymbols: ["000660"],
+          userQuestion: "Does fixture-order-id-should-never-appear change my Samsung thesis?"
+        }
+      }
+    });
+    expect(research.statusCode).toBe(200);
+
+    const staleResearch = await app.inject({
+      method: "POST",
+      url: "/memory/research",
+      payload: {
+        title: "Old Samsung rumor note",
+        body: "This stale research artifact must not appear in Commander answers.",
+        source: {
+          kind: "research_artifact",
+          label: "Old local memo",
+          capturedAt: "2026-06-01T05:00:00.000Z",
+          freshness: {
+            status: "stale",
+            source: "manual_input",
+            message: "Local research artifact is stale."
+          }
+        },
+        links: {
+          symbols: ["005930"],
+          userQuestion: "Old rumor"
+        }
+      }
+    });
+    expect(staleResearch.statusCode).toBe(200);
+
+    const recall = await app.inject({ method: "GET", url: "/memory/recall?symbol=005930" });
+    expect(recall.statusCode).toBe(200);
+    expect(recall.json().items.map((item: { kind: string; title: string }) => `${item.kind}:${item.title}`)).toEqual([
+      "research:Samsung HBM capacity memo"
+    ]);
+    expect(recall.json().skipped.map((item: { reason: string }) => item.reason)).toEqual(["stale_source"]);
+
+    const chat = await app.inject({
+      method: "POST",
+      url: "/chat",
+      payload: {
+        message: "005930 리서치가 내 투자 논리를 바꾸는지 봐줘",
+        permissionMode: "manual",
+        context: {
+          selectedSymbol: "005930"
+        }
+      }
+    });
+    expect(chat.statusCode).toBe(200);
+    expect(chat.body).toContain("research: Samsung HBM capacity memo");
+    expect(chat.body).not.toContain("Old Samsung rumor note");
+
+    const serializedApiResponses = `${missingSource.body}\n${emptyLinks.body}\n${research.body}\n${staleResearch.body}\n${recall.body}\n${chat.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [
+      "fixture-private-value-alpha",
+      "fixture-account-ref-9012",
+      "fixture-order-id-should-never-appear",
+      "987654321"
+    ]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
 });

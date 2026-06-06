@@ -96,11 +96,13 @@ Stage 2 snapshot persistence supports both mock replay and production read-only 
 
 ## Stage 3 Research And Memory Runtime
 
-The first Stage 3 slice adds local-only investment memory before external research connectors or UI surfaces.
+The first Stage 3 slices add local investment memory and source-backed local research artifacts before external research connectors or UI surfaces.
 
 - `MemoryAgent` can load thesis, rule, and journal context for Commander when the user asks memory-oriented questions.
+- `MemoryAgent` can also recall source-backed research artifacts tied to symbols, holdings, watchlist items, and the originating user question.
 - Memory records carry source metadata, freshness metadata, and optional broker snapshot references.
-- Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot memory is skipped and surfaced as skipped metadata, not treated as current evidence.
+- Commander uses only memory records whose source/freshness status is usable. Stale broker-snapshot or research artifact memory is skipped and surfaced as skipped metadata, not treated as current evidence.
 - SQLite stores thesis/rule version records and journal entries under the local memory contract.
-- API endpoints expose local memory writes and recall at `/memory/theses`, `/memory/rules`, `/memory/journal`, and `/memory/recall`.
+- SQLite also stores local research artifacts under the same memory contract with research links metadata.
+- API endpoints expose local memory writes and recall at `/memory/theses`, `/memory/rules`, `/memory/journal`, `/memory/research`, and `/memory/recall`.
 - Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.
