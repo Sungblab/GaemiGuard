@@ -68,26 +68,28 @@ Trading rule:
 
 ## Stage 2 Broker Connection Runtime
 
-Stage 2 is now interpreted as Broker Connection Foundation. The current implementation introduces the shared broker adapter contract, wraps the official Toss Invest OpenAPI read-only connector as the first adapter, and adds a no-broker/manual portfolio foundation without enabling a production credential store.
+Stage 2 is interpreted as Broker Connection Foundation. The completed implementation introduces the shared broker adapter contract, wraps the official Toss Invest OpenAPI read-only connector as the first adapter, adds a no-broker/manual portfolio foundation, and completes production-safe credential setup plus real read-only sync.
 
 - `BrokerAgent` is the broker-independent runtime role.
 - `BrokerAgent` receives common adapter availability, freshness, authority, and capability metadata before any broker-specific specialist metadata.
 - `BrokerTossAgent` can advertise only read-only tool names: account list, holdings, current prices, orderbook summary, exchange rate, market calendar, and stock warnings.
 - `BrokerTossAgent` remains the Toss adapter specialist. It must not answer holdings, balances, buying power, or account facts unless a source/freshness-grounded snapshot is available.
-- The API health check reports both the common `broker_adapters` status and the Toss-specific connector mode plus official OpenAPI version.
-- Default local runtime mode is `not_configured`; tests may inject a `mock_replay` connector.
+- The API health check reports both the common `broker_adapters` status and the Toss-specific connector mode, freshness, failure/retry metadata, and official OpenAPI version.
+- Default local runtime mode is `not_configured`; tests may inject a `mock_replay` connector or fake credential store.
 - Manual no-broker runtime mode is available through the synthetic `manual:default` account reference and local watchlist, holding, and cash inputs.
-- Client secrets and access tokens are kept at the injected credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.
+- Client secrets and access tokens are kept at the OS credential/token boundary and are not written to SQLite, artifacts, Commander responses, or external agent context.
+- Production sync uses raw Toss account sequence values only in memory for account-scoped read calls.
 - Order creation, modification, and cancellation operation IDs are blocked before any HTTP call can be made.
 - KIS is a future adapter candidate, not implemented in the current code.
 
-## Stage 2 Persistence/Sync Slice Runtime
+## Stage 2 Persistence/Sync Runtime
 
-The second Stage 2 slice adds mock replay snapshot persistence without enabling production credentials or real Toss sync.
+Stage 2 snapshot persistence supports both mock replay and production read-only sync.
 
 - `syncMockTossReadonlySnapshots` calls only the Stage 2 read-only connector operations and writes snapshot data to SQLite.
-- Stored account data is limited to masked account references. Raw account numbers, client secrets, access tokens, and order identifiers are not stored or forwarded.
-- SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, and rate-limit metadata.
-- API `/health` can report `snapshotFreshness` for explicit mock replay syncs. It distinguishes `not_configured` from `mock_replay` and must not describe mock replay as a real Toss connection.
-- `BrokerTossAgent` can include snapshot availability/freshness in timeline metadata. It still must not answer with holdings, balances, or account facts as grounded facts until the real sync and source-link slice is complete.
-- No-broker/manual portfolio mode is represented in the DB/API/service contracts, but the desktop workflow has not been expanded into a full manual portfolio UI.
+- `runTossReadonlySyncJob` runs production read-only sync through the credential boundary and writes sanitized snapshots.
+- Stored account data is limited to masked account references. Raw account numbers, account sequence values, client secrets, access tokens, and order identifiers are not stored or forwarded.
+- SQLite owns current snapshot tables for accounts, holdings, quotes, orderbook summaries, FX, market calendars, stock warnings, sync logs, rate-limit metadata, failure category, retry-after seconds, and next retry time.
+- API `/health` reports `snapshotFreshness` and distinguishes `not_configured`, `credential_configured`, `syncing`, `readonly_available`, `stale`, `failed`, and `mock_replay`.
+- `BrokerTossAgent` can include snapshot availability/freshness in timeline metadata. It answers holdings/account facts only when `production_snapshot` source and freshness metadata exist.
+- No-broker/manual portfolio mode is represented in the DB/API/service contracts. Manual mode remains local context, not a broker connection.

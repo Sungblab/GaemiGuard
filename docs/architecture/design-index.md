@@ -53,7 +53,7 @@ This is the canonical index of GaemiGuard design and architecture material. It e
 | Stage | Gate document | Current status |
 | --- | --- | --- |
 | Stage 1 Foundation Runtime | `docs/stages/stage-1-foundation-gate.md` | Complete |
-| Stage 2 Broker Connection Foundation | `docs/stages/stage-2-toss-readonly-connector.md` | In progress |
+| Stage 2 Broker Connection Foundation | `docs/stages/stage-2-toss-readonly-connector.md` | Complete |
 | Stage 3 Research And Memory | `docs/stages/stage-3-research-memory.md` | Not started |
 | Stage 4 MiroFish Scenario | `docs/stages/stage-4-mirofish-scenario.md` | Not started |
 | Stage 5 Paper Trading And Order Draft | `docs/stages/stage-5-paper-trading-order-draft.md` | Not started |

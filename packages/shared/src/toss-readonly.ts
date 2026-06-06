@@ -280,11 +280,33 @@ export type TossConnectorResult<T> = {
   requestId?: string;
 };
 
-export type TossReadonlySnapshotSource = "mock_replay_snapshot";
+export type TossReadonlySnapshotSource = "mock_replay_snapshot" | "production_snapshot";
+
+export type TossReadonlySyncMode = Extract<TossConnectorMode, "mock_replay" | "production_secret_store">;
+
+export type TossReadonlySyncFailureCategory =
+  | "not_configured"
+  | "authentication"
+  | "authorization"
+  | "rate_limited"
+  | "network"
+  | "upstream"
+  | "policy_blocked"
+  | "unknown";
+
+export type TossReadonlySyncFailureMetadata = {
+  status: "failed";
+  failureCategory: TossReadonlySyncFailureCategory;
+  message: string;
+  safeErrorCode?: string;
+  safeRequestId?: string;
+  retryAfterSeconds?: number;
+  nextRetryAt?: string;
+};
 
 export type TossReadonlySnapshotFreshness = {
-  mode: Extract<TossConnectorMode, "mock_replay">;
-  status: "never_synced" | "fresh" | "stale";
+  mode: TossReadonlySyncMode;
+  status: "never_synced" | "fresh" | "stale" | "failed";
   source: TossReadonlySnapshotSource;
   lastSuccessfulSyncAt?: string;
   ageSeconds?: number;
@@ -297,12 +319,15 @@ export type TossReadonlySnapshotFreshness = {
   marketCalendarCount: number;
   stockWarningCount: number;
   rateLimitScopes: TossStage2ReadonlyDataOperationId[];
+  latestFailure?: TossReadonlySyncFailureMetadata;
+  nextRetryAt?: string;
   message: string;
 };
 
 export type TossReadonlySnapshotFreshnessRequest = {
   now?: string;
   staleAfterSeconds?: number;
+  mode?: TossReadonlySyncMode;
 };
 
 export type TossReadonlyStoredAccount = {
@@ -334,11 +359,16 @@ export type TossReadonlyStoredRateLimitMetadata = {
 
 export type TossReadonlyStoredSyncLog = {
   id: string;
-  mode: Extract<TossConnectorMode, "mock_replay">;
+  mode: TossReadonlySyncMode;
   status: "succeeded" | "failed" | "skipped";
   startedAt: string;
   finishedAt: string;
   message: string;
+  failureCategory?: TossReadonlySyncFailureCategory;
+  safeErrorCode?: string;
+  safeRequestId?: string;
+  retryAfterSeconds?: number;
+  nextRetryAt?: string;
   accountCount: number;
   holdingCount: number;
   quoteCount: number;
@@ -374,6 +404,7 @@ export type TossReadonlySnapshotBundle = {
 
 export interface TossReadonlySnapshotRepository {
   saveSyncSnapshot(snapshot: TossReadonlySnapshotWrite): Promise<void>;
+  saveSyncFailure(syncLog: TossReadonlyStoredSyncLog): Promise<void>;
   getFreshnessStatus(request?: TossReadonlySnapshotFreshnessRequest): Promise<TossReadonlySnapshotFreshness>;
   readLatest(): Promise<TossReadonlySnapshotBundle>;
 }

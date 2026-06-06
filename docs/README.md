@@ -31,11 +31,13 @@ This is the routing page for the repository documentation. Use it to decide what
 | External API and sidecars | `docs/product/external-tools-and-data.md`, `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json`, `docs/mirofish-sidecar-porting.md` | External tool priority, official API snapshot, and sidecar boundaries. |
 | Workflow and verification | `docs/contributing/workflow.md`, `docs/testing/strategy.md`, `docs/setup/playwright-smoke.md` | Devflow, gates, setup, and smoke verification. |
 
-## Active Stage
+## Stage Status
 
-Stage 2, Broker Connection Foundation, is in progress. The current implemented slices are the Toss read-only adapter, snapshot persistence, the shared broker adapter contract, and the no-broker/manual portfolio foundation.
+Stage 2, Broker Connection Foundation, is complete and exited. The implemented slices are the Toss read-only adapter, snapshot persistence, shared broker adapter contract, no-broker/manual portfolio foundation, OS credential-store boundary, real read-only sync, freshness UI, Commander production snapshot grounding, and security/gate review.
 
-Read these together for Stage 2 work:
+Stage 3, Research And Memory, is the next stage.
+
+Read these together before changing broker/source/freshness behavior:
 
 1. `docs/development-status.md`
 2. `docs/agent-index.md`

@@ -1,11 +1,21 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createMockTossReadonlyConnector } from "@gaemiguard/core";
+import {
+  InMemoryTossTokenCache,
+  TossInvestReadonlyClient,
+  createInMemoryTossCredentialStore,
+  createMockTossReadonlyConnector,
+  createTossCredentialProviderFromStore
+} from "@gaemiguard/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildApiApp } from "./app";
 
 const tempDirs: string[] = [];
+
+const SENTINEL_CLIENT_SECRET = "fixture-private-value-alpha";
+const SENTINEL_ACCESS_TOKEN = "fixture-private-value-beta";
+const RAW_ACCOUNT_SEQ_SENTINEL = "987654321";
 
 afterEach(() => {
   for (const dir of tempDirs.splice(0)) {
@@ -25,6 +35,136 @@ function readDiskText(rootDir: string): string {
     }
   }
   return output;
+}
+
+function createProductionReplayFetch() {
+  const calls: { path: string; body?: string; account?: string }[] = [];
+  const fetchImpl: typeof fetch = async (input, init) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+    const body = typeof init?.body === "string" ? init.body : undefined;
+    const account = headers.get("X-Tossinvest-Account") ?? undefined;
+    calls.push({
+      path: url.pathname,
+      ...(body ? { body } : {}),
+      ...(account ? { account } : {})
+    });
+
+    if (url.pathname === "/oauth2/token") {
+      return new Response(
+        JSON.stringify({
+          access_token: SENTINEL_ACCESS_TOKEN,
+          token_type: "Bearer",
+          expires_in: 1800
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const resultByPath: Record<string, unknown> = {
+      "/api/v1/accounts": [
+        {
+          accountNo: "fixture-account-ref-1234",
+          accountSeq: Number(RAW_ACCOUNT_SEQ_SENTINEL),
+          accountType: "BROKERAGE"
+        }
+      ],
+      "/api/v1/holdings": {
+        totalPurchaseAmount: { krw: "1000000", usd: null },
+        marketValue: {
+          amount: { krw: "1050000", usd: null },
+          amountAfterCost: { krw: "1047000", usd: null }
+        },
+        profitLoss: {
+          amount: { krw: "50000", usd: null },
+          amountAfterCost: { krw: "47000", usd: null },
+          rate: "5.00",
+          rateAfterCost: "4.70"
+        },
+        dailyProfitLoss: {
+          amount: { krw: "-10000", usd: null },
+          rate: "-0.95"
+        },
+        items: [
+          {
+            symbol: "005930",
+            name: "Samsung Electronics",
+            marketCountry: "KR",
+            currency: "KRW",
+            quantity: "10",
+            lastPrice: "70000",
+            averagePurchasePrice: "65000",
+            marketValue: {
+              purchaseAmount: "650000",
+              amount: "700000",
+              amountAfterCost: "698000"
+            },
+            profitLoss: {
+              amount: "50000",
+              amountAfterCost: "48000",
+              rate: "7.69",
+              rateAfterCost: "7.38"
+            },
+            dailyProfitLoss: {
+              amount: "-5000",
+              rate: "-0.71"
+            },
+            cost: {
+              commission: "1500",
+              tax: "500"
+            }
+          }
+        ]
+      },
+      "/api/v1/prices": [
+        {
+          symbol: "005930",
+          timestamp: "2026-06-06T03:00:00Z",
+          lastPrice: "70000",
+          currency: "KRW"
+        }
+      ],
+      "/api/v1/orderbook": {
+        timestamp: "2026-06-06T03:00:00Z",
+        currency: "KRW",
+        asks: [{ price: "70100", volume: "100" }],
+        bids: [{ price: "70000", volume: "120" }]
+      },
+      "/api/v1/exchange-rate": {
+        baseCurrency: "USD",
+        quoteCurrency: "KRW",
+        rate: "1380.10",
+        midRate: "1379.80",
+        basisPoint: "0.30",
+        rateChangeType: "UP",
+        validFrom: "2026-06-06T03:00:00Z",
+        validUntil: "2026-06-06T04:00:00Z"
+      },
+      "/api/v1/market-calendar/KR": {
+        today: { date: "2026-06-06", integrated: null },
+        previousBusinessDay: { date: "2026-06-05", integrated: null },
+        nextBusinessDay: { date: "2026-06-08", integrated: null }
+      },
+      "/api/v1/market-calendar/US": {
+        today: { date: "2026-06-06", regularMarket: null },
+        previousBusinessDay: { date: "2026-06-05", regularMarket: null },
+        nextBusinessDay: { date: "2026-06-08", regularMarket: null }
+      },
+      "/api/v1/stocks/005930/warnings": []
+    };
+
+    return new Response(JSON.stringify({ result: resultByPath[url.pathname] ?? {} }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-RateLimit-Limit": "10",
+        "X-RateLimit-Remaining": "8",
+        "X-RateLimit-Reset": "1"
+      }
+    });
+  };
+
+  return { fetchImpl, calls };
 }
 
 describe("buildApiApp", () => {
@@ -199,7 +339,7 @@ describe("buildApiApp", () => {
     expect(health.statusCode).toBe(200);
     const tossCheck = health.json().checks.find((check: { name: string }) => check.name === "toss_read_only");
     expect(tossCheck).toMatchObject({
-      status: "ok",
+      status: "mock_replay",
       metadata: {
         mode: "mock_replay",
         openApiVersion: "1.0.3"
@@ -249,7 +389,7 @@ describe("buildApiApp", () => {
     expect(health.statusCode).toBe(200);
     const tossCheck = health.json().checks.find((check: { name: string }) => check.name === "toss_read_only");
     expect(tossCheck).toMatchObject({
-      status: "ok",
+      status: "mock_replay",
       metadata: {
         mode: "mock_replay",
         snapshotFreshness: {
@@ -322,6 +462,188 @@ describe("buildApiApp", () => {
       "fixture-account-ref-9012",
       "fixture-order-id-should-never-appear"
     ]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
+
+  it("sets up and disconnects Toss credentials through a credential boundary without returning secrets", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+    const credentialStore = createInMemoryTossCredentialStore({
+      provider: "fake_os_credential_store",
+      clock: () => new Date("2026-06-06T03:00:00.000Z")
+    });
+
+    const app = await buildApiApp({
+      dataDir,
+      tossCredentialStore: credentialStore,
+      clock: () => new Date("2026-06-06T03:00:00.000Z")
+    });
+
+    const setup = await app.inject({
+      method: "PUT",
+      url: "/settings/brokers/toss/credentials",
+      payload: {
+        clientId: "fixture-client-id",
+        clientSecret: SENTINEL_CLIENT_SECRET
+      }
+    });
+    expect(setup.statusCode).toBe(200);
+    expect(setup.json()).toMatchObject({
+      provider: "toss",
+      credentialStatus: {
+        configured: true,
+        provider: "fake_os_credential_store",
+        boundary: "production_secret_store"
+      }
+    });
+
+    const healthAfterSetup = await app.inject({ method: "GET", url: "/health" });
+    expect(healthAfterSetup.statusCode).toBe(200);
+    const brokerAdaptersCheck = healthAfterSetup
+      .json()
+      .checks.find((check: { name: string }) => check.name === "broker_adapters");
+    expect(brokerAdaptersCheck).toMatchObject({
+      status: "credential_configured"
+    });
+    const tossAdapter = brokerAdaptersCheck.metadata.adapters.find(
+      (adapter: { provider: { id: string } }) => adapter.provider.id === "toss"
+    );
+    expect(tossAdapter).toMatchObject({
+      provider: { id: "toss", displayName: "Toss Invest" },
+      status: "credential_configured",
+      freshness: {
+        source: "production_snapshot",
+        status: "never_synced"
+      }
+    });
+    expect(healthAfterSetup.body).not.toContain("Toss Invest adapter is connected");
+    expect(healthAfterSetup.body).not.toContain("Toss connected");
+
+    const disconnect = await app.inject({
+      method: "DELETE",
+      url: "/settings/brokers/toss/credentials"
+    });
+    expect(disconnect.statusCode).toBe(200);
+    expect(disconnect.json()).toMatchObject({
+      provider: "toss",
+      credentialStatus: {
+        configured: false,
+        provider: "fake_os_credential_store"
+      }
+    });
+
+    const serializedApiResponses = `${setup.body}\n${healthAfterSetup.body}\n${disconnect.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [SENTINEL_CLIENT_SECRET, SENTINEL_ACCESS_TOKEN, RAW_ACCOUNT_SEQ_SENTINEL]) {
+      expect(serializedApiResponses).not.toContain(forbidden);
+      expect(diskText).not.toContain(forbidden);
+    }
+
+    await app.close();
+  });
+
+  it("runs real Toss read-only sync with production credentials and exposes source/freshness safely", async () => {
+    const dataDir = mkdtempSync(path.join(os.tmpdir(), "gaemiguard-api-"));
+    tempDirs.push(dataDir);
+    const credentialStore = createInMemoryTossCredentialStore({
+      provider: "fake_os_credential_store",
+      clock: () => new Date("2026-06-06T03:00:00.000Z")
+    });
+    await credentialStore.write({
+      clientId: "fixture-client-id",
+      clientSecret: SENTINEL_CLIENT_SECRET
+    });
+    const { fetchImpl, calls } = createProductionReplayFetch();
+    const connector = new TossInvestReadonlyClient({
+      fetch: fetchImpl,
+      credentials: createTossCredentialProviderFromStore(credentialStore),
+      tokenCache: new InMemoryTossTokenCache(),
+      clock: () => new Date("2026-06-06T03:00:00.000Z")
+    });
+
+    const app = await buildApiApp({
+      dataDir,
+      tossCredentialStore: credentialStore,
+      tossReadOnlyConnector: connector,
+      clock: () => new Date("2026-06-06T03:00:00.000Z")
+    });
+
+    const sync = await app.inject({
+      method: "POST",
+      url: "/sync/toss/read-only",
+      payload: {
+        symbols: ["005930"]
+      }
+    });
+    expect(sync.statusCode).toBe(200);
+    expect(sync.json()).toMatchObject({
+      status: "succeeded",
+      mode: "production_secret_store",
+      accountCount: 1,
+      holdingCount: 1,
+      source: "production_snapshot"
+    });
+
+    const health = await app.inject({ method: "GET", url: "/health" });
+    const tossCheck = health.json().checks.find((check: { name: string }) => check.name === "toss_read_only");
+    expect(tossCheck).toMatchObject({
+      status: "readonly_available",
+      metadata: {
+        mode: "production_secret_store",
+        snapshotFreshness: {
+          mode: "production_secret_store",
+          status: "fresh",
+          source: "production_snapshot",
+          lastSuccessfulSyncAt: "2026-06-06T03:00:00.000Z"
+        }
+      }
+    });
+
+    const chat = await app.inject({
+      method: "POST",
+      url: "/chat",
+      payload: {
+        message: "내 005930 보유 사실을 계좌 기준으로 알려줘",
+        permissionMode: "manual",
+        context: {
+          selectedSymbol: "005930"
+        }
+      }
+    });
+    expect(chat.statusCode).toBe(200);
+    expect(chat.body).toContain("production_snapshot");
+    expect(chat.body).toContain("005930");
+    expect(chat.body).toContain("10");
+
+    const disconnect = await app.inject({
+      method: "DELETE",
+      url: "/settings/brokers/toss/credentials"
+    });
+    expect(disconnect.statusCode).toBe(200);
+
+    const afterDisconnectChat = await app.inject({
+      method: "POST",
+      url: "/chat",
+      payload: {
+        message: "내 005930 보유 사실을 계좌 기준으로 알려줘",
+        permissionMode: "manual",
+        context: {
+          selectedSymbol: "005930"
+        }
+      }
+    });
+    expect(afterDisconnectChat.statusCode).toBe(200);
+    expect(afterDisconnectChat.body).toContain("source/freshness가 없어서 모릅니다");
+    expect(afterDisconnectChat.body).not.toContain("005930 보유 수량은 10");
+
+    expect(calls.find((call) => call.path === "/api/v1/holdings")?.account).toBe(RAW_ACCOUNT_SEQ_SENTINEL);
+    const serializedApiResponses = `${sync.body}\n${health.body}\n${chat.body}\n${disconnect.body}\n${afterDisconnectChat.body}`;
+    const diskText = readDiskText(dataDir);
+    for (const forbidden of [SENTINEL_CLIENT_SECRET, SENTINEL_ACCESS_TOKEN, RAW_ACCOUNT_SEQ_SENTINEL, "fixture-account-ref-1234"]) {
       expect(serializedApiResponses).not.toContain(forbidden);
       expect(diskText).not.toContain(forbidden);
     }

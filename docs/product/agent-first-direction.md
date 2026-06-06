@@ -147,10 +147,10 @@ Stage 2 is now interpreted as Broker Connection Foundation. The existing impleme
 - The shared broker adapter contract is implemented.
 - The current Toss read-only code is wrapped as the first adapter implementation.
 - No-broker/manual portfolio mode has local watchlist, holding, and cash service/API foundations.
-- Finish production credential setup through the OS credential boundary.
-- Add real read-only Toss sync using the existing snapshot repository.
-- Show data freshness without pretending mock or not-configured state is connected.
-- Ground Commander account answers in real read-only snapshots only after source/freshness links exist.
+- Production credential setup/disconnect is implemented through the OS credential boundary.
+- Real read-only Toss sync uses the existing snapshot repository.
+- API and desktop surfaces show data freshness without pretending mock, credential-only, stale, or failed state is connected.
+- Commander account answers are grounded only in production read-only snapshots with source/freshness metadata.
 - Add KIS source notes and capability mapping before any KIS implementation.
 
 Stage 3 should make the personal investment agent useful:

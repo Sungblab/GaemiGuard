@@ -8,8 +8,12 @@ export type BrokerProviderDescriptor = {
 export type BrokerConnectionStatus =
   | "no_broker"
   | "not_configured"
+  | "credential_configured"
+  | "syncing"
   | "mock_replay"
   | "readonly_available"
+  | "stale"
+  | "failed"
   | "unavailable"
   | "error";
 
@@ -39,7 +43,7 @@ export type BrokerCapabilities = {
   };
 };
 
-export type BrokerFreshnessStatus = "unavailable" | "never_synced" | "fresh" | "stale" | "local_manual";
+export type BrokerFreshnessStatus = "unavailable" | "never_synced" | "syncing" | "fresh" | "stale" | "failed" | "local_manual";
 
 export type BrokerFreshnessSource = "not_configured" | "mock_replay_snapshot" | "production_snapshot" | "manual_input";
 

@@ -13,7 +13,7 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 3. PR #5-#7 established the waterfall plan, documentation hub, setup, and contribution documents.
 4. PR #8-#9 improved the Stage 1 home screen and Windows desktop smoke testing.
 5. PR #10-#11 started the Toss read-only connector and added mock replay based snapshot persistence/sync shape.
-6. PR #12-#15 added agent-facing docs, Korean README positioning, agent-first product direction, and broker-agent product alignment.
+6. PR #12-#17 added agent-facing docs, Korean README positioning, agent-first product direction, broker-agent product alignment, broker adapter foundation, and clarified in-app trading copy.
 
 ## Pull Request History
 
@@ -34,6 +34,8 @@ For current truth, always prefer `docs/development-status.md` and the latest `gi
 | [#13](https://github.com/Sungblab/GaemiGuard/pull/13) | `5eccb43` | 2026-06-06 | Refreshed the public Korean README and onboarding copy. | Made the public repo easier for Korean users to understand. |
 | [#14](https://github.com/Sungblab/GaemiGuard/pull/14) | `aa12b4c` | 2026-06-06 | Defined GaemiGuard as an agent-first local personal investment workspace and added product direction docs. | Re-centered the product on the personal investment agent rather than a broker clone or terminal clone. |
 | [#15](https://github.com/Sungblab/GaemiGuard/pull/15) | `543d12c` | 2026-06-06 | Aligned the broker-agent product design with the Stage 2 Broker Connection Foundation direction. | Clarified that Toss is the first adapter slice, not the product center. |
+| [#16](https://github.com/Sungblab/GaemiGuard/pull/16) | `fe83a4d` | 2026-06-06 | Added the shared BrokerAdapter contract, Toss adapter wrapper, manual/no-broker portfolio foundation, broker health aggregation, and broker-independent Commander metadata. | Turned the Toss-only Stage 2 code into a broker adapter foundation while keeping order mutation disabled. |
+| [#17](https://github.com/Sungblab/GaemiGuard/pull/17) | `0f596a4` | 2026-06-06 | Clarified in-app trading product copy and live-order direction. | Kept README/product copy aligned with official APIs and later-stage trading boundaries. |
 
 ## Completed Major Blocks
 
@@ -43,18 +45,15 @@ Complete. The repo has the local desktop app, local API, SQLite, artifact persis
 
 ### Stage 2 Broker Connection Foundation
 
-In progress. The current implemented code includes the Toss read-only adapter skeleton, mock replay based snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, broker health aggregation, and no-broker/manual portfolio DB/API/service foundation.
+Complete. The current implemented code includes the Toss read-only adapter skeleton, mock replay based snapshot persistence/sync shape, shared BrokerAdapter contract, Toss adapter wrapper, broker health aggregation, no-broker/manual portfolio DB/API/service foundation, OS credential-store boundary, credential setup/disconnect API, real Toss read-only sync, freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, and Stage 2 security/gate review.
 
-Remaining work:
+Deferred to later stages:
 
-- Real secret storage boundary
-- Toss credential setup/disconnect
-- Real Toss read-only sync
 - KIS source note and capability map before any KIS implementation
-- Rate-limit aware scheduling and retry policy
-- Account/holding/data freshness UI
-- Commander answers grounded in actual read-only data and source references
-- Stage 2 security review and gate evidence
+- Stage 3 research and memory
+- Stage 5 order draft and paper trading
+- Stage 6 user-approved manual live orders
+- Stage 7 rule-based automation
 
 ## Related Documents
 

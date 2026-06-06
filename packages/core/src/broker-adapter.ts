@@ -443,6 +443,7 @@ function accountSeqFromRef(accounts: TossAccount[], accountRef: string): number 
 export type TossBrokerAdapterOptions = {
   connector: TossReadonlyConnector;
   snapshotReader?: Pick<TossReadonlySnapshotRepository, "getFreshnessStatus">;
+  syncStateReader?: () => { status: "idle" | "syncing"; startedAt?: string };
   clock?: () => Date;
 };
 
@@ -452,15 +453,27 @@ export function createTossBrokerAdapter(options: TossBrokerAdapterOptions): Brok
     const mode = connectorStatus.metadata.mode;
     const snapshot =
       options.snapshotReader && mode !== "not_configured"
-        ? await options.snapshotReader.getFreshnessStatus({ now: nowIso(options.clock) })
+        ? await options.snapshotReader.getFreshnessStatus({
+            now: nowIso(options.clock),
+            mode: mode === "mock_replay" ? "mock_replay" : "production_secret_store"
+          })
         : undefined;
+    const syncState = options.syncStateReader?.();
     const readAvailable = connectorStatus.status === "ok" && mode !== "not_configured";
     const adapterStatus =
-      connectorStatus.status === "ok"
-        ? mode === "mock_replay"
+      connectorStatus.status !== "ok"
+        ? "not_configured"
+        : mode === "mock_replay"
           ? "mock_replay"
-          : "readonly_available"
-        : "not_configured";
+          : syncState?.status === "syncing"
+            ? "syncing"
+            : snapshot?.status === "fresh"
+              ? "readonly_available"
+              : snapshot?.status === "stale"
+                ? "stale"
+                : snapshot?.status === "failed"
+                  ? "failed"
+                  : "credential_configured";
 
     return {
       mode,
@@ -473,14 +486,23 @@ export function createTossBrokerAdapter(options: TossBrokerAdapterOptions): Brok
         message:
           adapterStatus === "mock_replay"
             ? "Toss Invest adapter is available through mock replay fixtures only."
-            : adapterStatus === "readonly_available"
+            : adapterStatus === "credential_configured"
+              ? "Toss Invest credentials are configured in the credential boundary, but no production read-only sync has completed."
+              : adapterStatus === "syncing"
+                ? "Toss Invest read-only sync is running; order mutation remains disabled."
+                : adapterStatus === "readonly_available"
               ? "Toss Invest adapter has a read-only credential boundary; order mutation remains disabled."
+              : adapterStatus === "stale"
+                ? "Toss Invest read-only snapshots are stale; refresh before relying on account facts."
+                : adapterStatus === "failed"
+                  ? "The latest Toss Invest read-only sync failed; inspect retry metadata before relying on account facts."
               : "Toss Invest adapter is present, but credentials are not configured.",
         metadata: {
           openApiVersion: connectorStatus.metadata.openApiVersion,
           includedOperations: connectorStatus.metadata.includedOperations,
           forbiddenOperations: connectorStatus.metadata.forbiddenOperations,
-          tools: connectorStatus.metadata.tools
+          tools: connectorStatus.metadata.tools,
+          ...(syncState ? { syncState } : {})
         }
       }
     };

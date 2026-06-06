@@ -30,6 +30,8 @@ import type {
   TossReadonlySnapshotFreshnessRequest,
   TossReadonlySnapshotRepository,
   TossReadonlySnapshotWrite,
+  TossReadonlySyncFailureMetadata,
+  TossReadonlySyncMode,
   TossReadonlyStoredAccount,
   TossReadonlyStoredHoldingsSnapshot,
   TossReadonlyStoredRateLimitMetadata,
@@ -62,6 +64,10 @@ function asString(value: unknown): string {
 
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function asOptionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function parseJson<T>(value: unknown): T {
@@ -161,13 +167,24 @@ function mapTossStockWarning(row: Row): TossReadonlyStoredStockWarningSnapshot {
 }
 
 function mapTossSyncLog(row: Row): TossReadonlyStoredSyncLog {
+  const failureCategory = row.failure_category === null ? undefined : asString(row.failure_category);
+  const safeErrorCode = row.safe_error_code === null ? undefined : asString(row.safe_error_code);
+  const safeRequestId = row.safe_request_id === null ? undefined : asString(row.safe_request_id);
+  const retryAfterSeconds = asOptionalNumber(row.retry_after_seconds);
+  const nextRetryAt = row.next_retry_at === null ? undefined : asString(row.next_retry_at);
+
   return {
     id: asString(row.id),
-    mode: "mock_replay",
+    mode: asString(row.mode) as TossReadonlyStoredSyncLog["mode"],
     status: asString(row.status) as TossReadonlyStoredSyncLog["status"],
     startedAt: asString(row.started_at),
     finishedAt: asString(row.finished_at),
     message: asString(row.message),
+    ...(failureCategory ? { failureCategory: failureCategory as NonNullable<TossReadonlyStoredSyncLog["failureCategory"]> } : {}),
+    ...(safeErrorCode ? { safeErrorCode } : {}),
+    ...(safeRequestId ? { safeRequestId } : {}),
+    ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+    ...(nextRetryAt ? { nextRetryAt } : {}),
     accountCount: asNumber(row.account_count),
     holdingCount: asNumber(row.holding_count),
     quoteCount: asNumber(row.quote_count),
@@ -188,6 +205,37 @@ function mapTossRateLimit(row: Row): TossReadonlyStoredRateLimitMetadata {
 
 function pairKey(rate: TossExchangeRate): string {
   return `${rate.baseCurrency.value}-${rate.quoteCurrency.value}`;
+}
+
+function sourceFromMode(mode: TossReadonlySyncMode): "mock_replay_snapshot" | "production_snapshot" {
+  return mode === "mock_replay" ? "mock_replay_snapshot" : "production_snapshot";
+}
+
+function modeLabel(mode: TossReadonlySyncMode): string {
+  return mode === "mock_replay" ? "Mock replay" : "Production";
+}
+
+function failureMetadataFromSyncLog(syncLog: TossReadonlyStoredSyncLog): TossReadonlySyncFailureMetadata | undefined {
+  if (syncLog.status !== "failed" || !syncLog.failureCategory) {
+    return undefined;
+  }
+
+  return {
+    status: "failed",
+    failureCategory: syncLog.failureCategory,
+    message: syncLog.message,
+    ...(syncLog.safeErrorCode ? { safeErrorCode: syncLog.safeErrorCode } : {}),
+    ...(syncLog.safeRequestId ? { safeRequestId: syncLog.safeRequestId } : {}),
+    ...(syncLog.retryAfterSeconds !== undefined ? { retryAfterSeconds: syncLog.retryAfterSeconds } : {}),
+    ...(syncLog.nextRetryAt ? { nextRetryAt: syncLog.nextRetryAt } : {})
+  };
+}
+
+function ensureColumn(database: Database.Database, table: string, column: string, definition: string): void {
+  const rows = database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!rows.some((row) => row.name === column)) {
+    database.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`);
+  }
 }
 
 const MANUAL_ACCOUNT: BrokerAccount = {
@@ -267,6 +315,42 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
 
   for (const migration of migrations) {
     database.exec(migration);
+  }
+  ensureColumn(database, "toss_sync_logs", "failure_category", "failure_category TEXT");
+  ensureColumn(database, "toss_sync_logs", "safe_error_code", "safe_error_code TEXT");
+  ensureColumn(database, "toss_sync_logs", "safe_request_id", "safe_request_id TEXT");
+  ensureColumn(database, "toss_sync_logs", "retry_after_seconds", "retry_after_seconds INTEGER");
+  ensureColumn(database, "toss_sync_logs", "next_retry_at", "next_retry_at TEXT");
+
+  const syncLogStatement = database.prepare(
+    `INSERT INTO toss_sync_logs
+      (id, mode, status, started_at, finished_at, message, failure_category, safe_error_code, safe_request_id,
+       retry_after_seconds, next_retry_at, account_count, holding_count, quote_count, orderbook_count,
+       exchange_rate_count, market_calendar_count, stock_warning_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  function insertSyncLog(syncLog: TossReadonlyStoredSyncLog): void {
+    syncLogStatement.run(
+      syncLog.id,
+      syncLog.mode,
+      syncLog.status,
+      syncLog.startedAt,
+      syncLog.finishedAt,
+      syncLog.message,
+      syncLog.failureCategory ?? null,
+      syncLog.safeErrorCode ?? null,
+      syncLog.safeRequestId ?? null,
+      syncLog.retryAfterSeconds ?? null,
+      syncLog.nextRetryAt ?? null,
+      syncLog.accountCount,
+      syncLog.holdingCount,
+      syncLog.quoteCount,
+      syncLog.orderbookCount,
+      syncLog.exchangeRateCount,
+      syncLog.marketCalendarCount,
+      syncLog.stockWarningCount
+    );
   }
 
   const tossReadonlySnapshots: TossReadonlySnapshotRepository = {
@@ -350,28 +434,7 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
           warningStatement.run(warning.symbol, warning.snapshotId, warning.syncedAt, JSON.stringify(warning.warnings));
         }
 
-        database
-          .prepare(
-            `INSERT INTO toss_sync_logs
-              (id, mode, status, started_at, finished_at, message, account_count, holding_count, quote_count,
-               orderbook_count, exchange_rate_count, market_calendar_count, stock_warning_count)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-          )
-          .run(
-            snapshot.syncLog.id,
-            snapshot.syncLog.mode,
-            snapshot.syncLog.status,
-            snapshot.syncLog.startedAt,
-            snapshot.syncLog.finishedAt,
-            snapshot.syncLog.message,
-            snapshot.syncLog.accountCount,
-            snapshot.syncLog.holdingCount,
-            snapshot.syncLog.quoteCount,
-            snapshot.syncLog.orderbookCount,
-            snapshot.syncLog.exchangeRateCount,
-            snapshot.syncLog.marketCalendarCount,
-            snapshot.syncLog.stockWarningCount
-          );
+        insertSyncLog(snapshot.syncLog);
 
         const rateLimitStatement = database.prepare(
           `INSERT OR REPLACE INTO toss_rate_limit_metadata
@@ -389,18 +452,29 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
       }
     },
 
+    async saveSyncFailure(syncLog: TossReadonlyStoredSyncLog): Promise<void> {
+      insertSyncLog(syncLog);
+    },
+
     async getFreshnessStatus(request: TossReadonlySnapshotFreshnessRequest = {}): Promise<TossReadonlySnapshotFreshness> {
       const staleAfterSeconds = request.staleAfterSeconds ?? 300;
       const now = request.now ?? new Date().toISOString();
+      const modeFilter = request.mode ? " AND mode = ?" : "";
       const latest = database
-        .prepare("SELECT * FROM toss_sync_logs WHERE status = 'succeeded' ORDER BY finished_at DESC LIMIT 1")
-        .get() as Row | undefined;
+        .prepare(`SELECT * FROM toss_sync_logs WHERE status = 'succeeded'${modeFilter} ORDER BY finished_at DESC LIMIT 1`)
+        .get(...(request.mode ? [request.mode] : [])) as Row | undefined;
+      const latestFailureRow = database
+        .prepare(`SELECT * FROM toss_sync_logs WHERE status = 'failed'${modeFilter} ORDER BY finished_at DESC LIMIT 1`)
+        .get(...(request.mode ? [request.mode] : [])) as Row | undefined;
+      const latestFailureLog = latestFailureRow ? mapTossSyncLog(latestFailureRow) : undefined;
+      const latestFailure = latestFailureLog ? failureMetadataFromSyncLog(latestFailureLog) : undefined;
 
       if (!latest) {
+        const mode = request.mode ?? latestFailureLog?.mode ?? "mock_replay";
         return {
-          mode: "mock_replay",
-          status: "never_synced",
-          source: "mock_replay_snapshot",
+          mode,
+          status: latestFailure ? "failed" : "never_synced",
+          source: sourceFromMode(mode),
           staleAfterSeconds,
           accountCount: 0,
           holdingCount: 0,
@@ -410,22 +484,29 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
           marketCalendarCount: 0,
           stockWarningCount: 0,
           rateLimitScopes: [],
-          message: "No Toss read-only mock replay snapshot sync has completed."
+          ...(latestFailure ? { latestFailure } : {}),
+          ...(latestFailure?.nextRetryAt ? { nextRetryAt: latestFailure.nextRetryAt } : {}),
+          message: latestFailure
+            ? `${modeLabel(mode)} Toss read-only snapshot sync failed.`
+            : `No ${modeLabel(mode).toLowerCase()} Toss read-only snapshot sync has completed.`
         };
       }
 
       const syncLog = mapTossSyncLog(latest);
       const ageSeconds = Math.max(0, Math.floor((Date.parse(now) - Date.parse(syncLog.finishedAt)) / 1000));
-      const status: TossReadonlySnapshotFreshness["status"] =
+      const baseStatus: TossReadonlySnapshotFreshness["status"] =
         ageSeconds <= staleAfterSeconds ? "fresh" : "stale";
+      const failureAfterSuccess =
+        latestFailureLog !== undefined && latestFailureLog.finishedAt.localeCompare(syncLog.finishedAt) >= 0;
+      const status: TossReadonlySnapshotFreshness["status"] = failureAfterSuccess ? "failed" : baseStatus;
       const rateLimitRows = database
         .prepare("SELECT scope FROM toss_rate_limit_metadata ORDER BY scope ASC")
         .all() as Row[];
 
       return {
-        mode: "mock_replay",
+        mode: syncLog.mode,
         status,
-        source: "mock_replay_snapshot",
+        source: sourceFromMode(syncLog.mode),
         lastSuccessfulSyncAt: syncLog.finishedAt,
         ageSeconds,
         staleAfterSeconds,
@@ -437,10 +518,14 @@ export function createGaemiGuardDatabase(options: CreateDatabaseOptions): GaemiG
         marketCalendarCount: syncLog.marketCalendarCount,
         stockWarningCount: syncLog.stockWarningCount,
         rateLimitScopes: rateLimitRows.map((row) => asString(row.scope) as TossStage2ReadonlyDataOperationId),
+        ...(latestFailure ? { latestFailure } : {}),
+        ...(latestFailure?.nextRetryAt ? { nextRetryAt: latestFailure.nextRetryAt } : {}),
         message:
-          status === "fresh"
-            ? "Mock replay Toss read-only snapshots are fresh."
-            : "Mock replay Toss read-only snapshots are stale."
+          status === "failed"
+            ? `${modeLabel(syncLog.mode)} Toss read-only sync failed after the last successful snapshot.`
+            : status === "fresh"
+              ? `${modeLabel(syncLog.mode)} Toss read-only snapshots are fresh.`
+              : `${modeLabel(syncLog.mode)} Toss read-only snapshots are stale.`
       };
     },
 

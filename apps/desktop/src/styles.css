@@ -141,6 +141,11 @@ button {
   color: #475569;
 }
 
+.mode-badge.broker {
+  min-width: 118px;
+  justify-content: center;
+}
+
 .mode-badge.blocked {
   background: #fff1f2;
   color: #be123c;
@@ -349,6 +354,31 @@ button {
   font-weight: 700;
 }
 
+.freshness-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 46px;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.freshness-banner strong,
+.freshness-banner span {
+  display: block;
+}
+
+.freshness-banner strong {
+  font-size: 13px;
+}
+
+.freshness-banner span {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .holdings-table {
   width: 100%;
   border-collapse: collapse;
@@ -467,7 +497,9 @@ button {
 .thesis-changed,
 .severity.warning,
 .status-warning,
-.status-mock_replay {
+.status-mock_replay,
+.status-credential_configured,
+.status-syncing {
   background: #fffbeb;
   color: #b45309;
 }
@@ -487,9 +519,15 @@ button {
 }
 
 .severity.blocked,
-.status-error {
+.status-error,
+.status-failed {
   background: #fff1f2;
   color: #be123c;
+}
+
+.status-stale {
+  background: #fff7ed;
+  color: #9a3412;
 }
 
 .row-action {

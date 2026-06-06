@@ -4,5 +4,6 @@ export * from "./broker-adapter";
 export * from "./commander-runtime";
 export * from "./order-guard";
 export * from "./permission-engine";
+export * from "./toss-credential-store";
 export * from "./toss-readonly-connector";
 export * from "./toss-readonly-sync";

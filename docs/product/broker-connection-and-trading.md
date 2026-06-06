@@ -183,7 +183,7 @@ Rules:
 
 - Store secrets only in the OS credential store.
 - Store only masked account references in SQLite.
-- Do not write raw access tokens, refresh tokens, client secrets, raw account numbers, order IDs, or personal identifiers to artifacts, logs, API responses, tests, or external-agent context.
+- Do not write raw access tokens, refresh tokens, client secrets, raw account numbers, account sequence values, order IDs, or personal identifiers to artifacts, logs, API responses, tests, or external-agent context.
 - Pass sanitized portfolio context to external tools such as Hermes, MiroFish, OpenBB, or remote models.
 - Keep credential setup and disconnect explicit and reversible.
 
@@ -203,25 +203,27 @@ Stage 2 should exit only after:
 - real read-only sync is grounded with freshness/source links,
 - no order mutation path is opened prematurely.
 
+Stage 2 exit was accepted on 2026-06-06 after those conditions were implemented and reviewed.
+
 KIS implementation should not be mixed into the same small code slice unless the goal explicitly asks for it. KIS should first get a source note, capability mapping, and fixture plan.
 
 Current code status:
 
 - `BrokerAdapter` and capability metadata are implemented in shared/core packages.
 - Toss read-only is represented as the first adapter.
-- API health distinguishes no-broker/manual, Toss not-configured, Toss mock replay, and future read-only availability.
+- API health distinguishes no-broker/manual, Toss not-configured, credential-configured, syncing, read-only available, stale, failed, and mock replay.
+- Toss credential setup/disconnect is backed by the OS credential-store boundary.
+- Real Toss read-only sync writes sanitized production snapshots and failure/retry metadata.
+- Commander account answers use only production snapshot source/freshness metadata.
 - Order create, modify, and cancel remain disabled/unavailable in Stage 2.
-- Production credential setup, disconnect, and real Toss sync remain future Stage 2 work.
 
 ## Future Work Order
 
 Recommended next direction:
 
-1. Add credential setup/disconnect and real read-only Toss sync.
-2. Add production account sequence mapping behind the credential boundary.
-3. Add user-facing freshness and account/holdings surfaces that never imply connection before credentials and sync exist.
-4. Add KIS source note and capability mapping.
-5. Implement KIS read/account sync only after the contract is stable.
-6. Add order draft and paper trading.
-7. Add user-approved live orders.
-8. Add rule-based automation.
+1. Start Stage 3 research and memory on top of accepted source/freshness/redaction boundaries.
+2. Add KIS source note and capability mapping before any KIS implementation.
+3. Implement KIS read/account sync only after the contract and source note are stable.
+4. Add order draft and paper trading in Stage 5.
+5. Add user-approved live orders in Stage 6.
+6. Add rule-based automation in Stage 7.
