@@ -1,6 +1,6 @@
 # GaemiGuard Development Status
 
-Updated: 2026-06-06
+Updated: 2026-06-07
 
 This is the current-state document coding agents should read before continuing GaemiGuard development. Use `docs/agent-index.md` as the short routing map, then use this file for the current implementation state, active stage, next work, and blocking rules.
 
@@ -13,6 +13,7 @@ This is the current-state document coding agents should read before continuing G
 - Recent feature baseline: PR #10, `c97bbee`, `feat: add Toss read-only connector skeleton`
 - Current Stage 2 baseline includes production-safe Toss credential setup/disconnect, real read-only sync, safe freshness/failure metadata, Commander production snapshot grounding, and desktop freshness status.
 - Current Stage 3 baseline includes local thesis/rule/journal memory persistence, source-backed research artifacts, explicit local Markdown/CSV import, weekly review artifacts, API endpoints, Commander MemoryAgent context, source/freshness gating, desktop memory/research authoring/review/report surfaces, and redaction tests.
+- Current Stage 4 preparation baseline includes the active Stage 4 gate document and the first-slice handoff at `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md`.
 - Current product design baseline treats Stage 2 as Broker Connection Foundation; the implemented code now includes the shared broker adapter contract, Toss as the first adapter, no-broker/manual portfolio foundation, and a completed Stage 2 exit gate.
 - Development history is indexed in `docs/development-history.md`.
 - Latest verified commands for the current main baseline:
@@ -51,9 +52,11 @@ This is the current-state document coding agents should read before continuing G
    - `docs/stages/stage-3-research-memory.md`
    - `docs/reviews/2026-06-06-stage-3-research-memory-gate-review.md`
 7. Source references for the active work:
-   - Toss connector work: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
+   - Stage 4 first slice: `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md`
+   - MiroFish sidecar: `docs/mirofish-sidecar-porting.md`
    - Agent runtime work: `docs/architecture/agent-runtime.md`
    - Desktop smoke work: `docs/setup/playwright-smoke.md`
+   - Toss connector work, if broker freshness is touched: `docs/toss-invest-openapi.md` and `vendor/tossinvest/openapi-1.0.3.json`
 8. `docs/development-history.md` when the task asks why earlier PRs or stages shaped the current code.
 9. Run `rg` against code/tests before assuming implementation status.
 
@@ -232,6 +235,14 @@ Stage 3 authoring/import/report exit slice:
 - Desktop weekly review control generates the report and shows the resulting artifacts.
 - Tests cover local import source metadata, redaction, path stripping, weekly review artifact persistence, stale-source exclusion, and desktop smoke coverage for authoring/import/report visibility.
 
+Stage 4 preparation:
+
+- `docs/stages/stage-4-mirofish-scenario.md` now records the active Stage 4 preparation status, sidecar sandbox/allowlist policy, and first-slice verification expectations.
+- `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md` is the implementation contract for the next Stage 4 session.
+- Stage 4 must package selected-symbol scenario inputs from source/freshness-grounded portfolio, memory, research, and weekly review context.
+- MiroFish remains an optional local sidecar. Do not install, vendor, or run it by default.
+- MiroFish results remain conditional scenarios only; order drafts, paper trading, live orders, and automation remain out of scope.
+
 Devflow Native:
 
 - Repo-local Devflow scaffold is installed.
@@ -283,7 +294,8 @@ Accepted evidence:
 
 The next practical slice is Stage 4 MiroFish Scenario:
 
-1. Keep MiroFish scenario work sidecar-only and no-order.
-2. Package source/freshness-grounded portfolio, thesis, rule, journal, research, and weekly review context as scenario inputs.
-3. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of scope unless a later gate explicitly opens them.
-4. Preserve the Stage 3 source/freshness and redaction boundaries when scenario artifacts reference memory or imported research.
+1. Use `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md` as the first implementation contract.
+2. Keep MiroFish scenario work sidecar-only and no-order.
+3. Package source/freshness-grounded portfolio, thesis, rule, journal, research, and weekly review context as scenario inputs.
+4. Keep KIS implementation, live orders, order drafts, paper trading, and automation out of scope unless a later gate explicitly opens them.
+5. Preserve the Stage 3 source/freshness and redaction boundaries when scenario artifacts reference memory or imported research.

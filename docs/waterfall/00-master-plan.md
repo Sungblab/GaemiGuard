@@ -104,4 +104,10 @@ For each stage:
 
 ## Current State
 
-Stage 1 foundation exists in the codebase and passes CI. Stage 2 Broker Connection Foundation is complete: Toss read-only adapter, mock and production snapshot sync, OS credential-store boundary, setup/disconnect API, freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, and security/gate review are implemented. Stage 3 Research And Memory is next.
+Stage 1 foundation exists in the codebase and passes CI.
+
+Stage 2 Broker Connection Foundation is complete: Toss read-only adapter, mock and production snapshot sync, OS credential-store boundary, setup/disconnect API, freshness/failure metadata, desktop freshness status, Commander production snapshot grounding, and security/gate review are implemented.
+
+Stage 3 Research And Memory is complete: thesis/rule/journal/research authoring, explicit local Markdown/CSV import, source/freshness-gated recall, weekly review artifacts, desktop visibility, and gate review are implemented.
+
+Stage 4 MiroFish Scenario is active. The first implementation slice is prepared in `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md`.
