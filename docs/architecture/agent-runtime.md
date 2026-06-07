@@ -112,3 +112,16 @@ Stage 3 adds local investment memory, source-backed local research artifacts, ex
 - Commander review cards surface MemoryAgent used/skipped grounding metadata when a run includes memory context.
 - Secret, token, raw account, and order identifier sentinels are redacted before memory persistence and are covered by DB/API/Commander tests.
 - Original local file paths are not retained for imports; imported source labels use safe file names only.
+
+## Stage 4 MiroFish Scenario Runtime
+
+Stage 4 is active but not implemented.
+
+The first Stage 4 slice should turn `ScenarioAgent` from a deterministic stub into a sidecar-aware scenario packager without giving it trading authority.
+
+- `ScenarioAgent` packages selected symbol, selected chart range, local manual holdings/watchlist context, usable Stage 3 memory/research recall, and weekly review artifact references.
+- Scenario inputs must include source/freshness summaries and skipped stale/missing-source memory metadata.
+- MiroFish is an optional local sidecar. The default state is safe `not_configured`.
+- Missing or failed sidecar runs must not break account, memory, research, or weekly review flows.
+- Scenario runs write Markdown and JSON artifacts with assumptions, uncertainty labels, redaction status, sidecar status, and blocked order-authority state.
+- Commander can explain conditional scenarios, but it cannot treat MiroFish output as a deterministic forecast or submit/schedule/draft orders from a scenario result.

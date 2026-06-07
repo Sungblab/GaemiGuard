@@ -2,15 +2,31 @@
 
 Generated: 2026-06-04
 
+Prepared: 2026-06-07
+
 ## Objective
 
 Connect MiroFish as a Windows-native local sidecar for scenario analysis and future-price questions framed as conditional scenarios.
 
 ## Entry Criteria
 
-- Stage 3 memory and research context accepted.
-- MiroFish local doctor command passes.
-- Sidecar sandbox/allowlist policy is documented.
+- Stage 3 memory and research context accepted. Status: complete in `docs/reviews/2026-06-06-stage-3-research-memory-gate-review.md`.
+- MiroFish local doctor command passes. Status: required for the first Stage 4 implementation PR.
+- Sidecar sandbox/allowlist policy is documented. Status: initial policy is in this document and `docs/mirofish-sidecar-porting.md`; implementation must enforce it before exit.
+
+## Preparation Status
+
+Stage 4 is prepared but not implemented.
+
+The first Stage 4 slice should prove the scenario contract without adding live trading, paper trading, or order drafts:
+
+1. Add a local MiroFish sidecar capability/health contract that can report `not_configured`, `available`, and `failed`.
+2. Build a scenario input package from selected symbol, selected chart range, local manual holdings/watchlist, usable Stage 3 memory/research recall, and weekly review artifacts.
+3. Write scenario input/output Markdown and JSON artifacts.
+4. Surface sidecar status and scenario artifact links in the existing desktop structure.
+5. Keep all order paths blocked and keep MiroFish results labeled as conditional scenarios, not predictions.
+
+Do not install or vendor MiroFish automatically. Use the existing `external/mirofish-cli` notes only when the user explicitly asks to run or configure the sidecar locally.
 
 ## In Scope
 
@@ -49,6 +65,22 @@ Every MiroFish run must include:
 - status/error/warnings
 - license boundary
 
+The Stage 4 implementation must also record:
+
+- explicit source/freshness summary for every Stage 3 memory/research/report input
+- redaction status
+- whether the sidecar ran, was skipped, or failed
+- sanitized error code/message when failed
+- order authority state, which must remain blocked
+
+## Sidecar Sandbox / Allowlist Policy
+
+- Allowed input paths are generated GaemiGuard artifacts and explicit user-selected local files only.
+- Do not send raw broker tokens, raw account numbers, account sequence values, order IDs, OAuth tokens, or personal identifiers to MiroFish.
+- Do not let MiroFish write outside the configured run artifact directory.
+- Do not let MiroFish place, schedule, draft, or mutate orders.
+- A failed or missing sidecar must not break account, memory, research, or weekly review flows.
+
 ## UI Contract
 
 UI must show:
@@ -81,3 +113,10 @@ Stage 4 exits when:
 - Failed sidecar runs do not break account/research flows.
 - UI scenario flow works.
 - Order paths remain blocked.
+
+## First Slice Verification
+
+- `pnpm verify`
+- `pnpm smoke:desktop`, if the desktop scenario surface changes
+- Contract tests proving sidecar missing/failure states are safe
+- Artifact tests proving scenario inputs include source/freshness and redaction metadata

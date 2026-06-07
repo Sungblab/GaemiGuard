@@ -1,6 +1,6 @@
 # GaemiGuard Agent Index
 
-Updated: 2026-06-06
+Updated: 2026-06-07
 
 This is the short routing document for agents starting GaemiGuard work. It points to the source documents instead of replacing them.
 
@@ -14,7 +14,8 @@ This is the short routing document for agents starting GaemiGuard work. It point
 | 4 | `docs/product/agent-first-direction.md` | Current product direction: personal investment agent first, guard and terminal as supporting surfaces. |
 | 5 | `docs/product/broker-connection-and-trading.md` | Broker-independent adapter strategy, no-broker mode, manual trading, and automation authority. |
 | 6 | `docs/stages/stage-3-research-memory.md` | Latest completed Stage 3 contract and accepted gate review. |
-| 7 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
+| 7 | `docs/stages/stage-4-mirofish-scenario.md` | Active Stage 4 contract and first-slice boundary. |
+| 8 | `docs/architecture/maps/README.md` | Source docs mapped to owning code paths and verification gates. |
 
 Read these only when relevant:
 
@@ -26,6 +27,7 @@ Read these only when relevant:
 | Toss API reference | `docs/toss-invest-openapi.md`, `vendor/tossinvest/openapi-1.0.3.json` |
 | Commander/runtime work | `docs/architecture/agent-runtime.md` |
 | Broker foundation history | `docs/stages/stage-2-toss-readonly-connector.md`, `docs/reviews/2026-06-06-stage-2-broker-connection-foundation-gate-review.md` |
+| Stage 4 first slice | `docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md`, `docs/stages/stage-4-mirofish-scenario.md`, `docs/mirofish-sidecar-porting.md` |
 | Desktop smoke testing | `docs/setup/playwright-smoke.md` |
 | Workflow rules | `docs/contributing/workflow.md` |
 
@@ -85,13 +87,13 @@ Short `/goal` example:
 /goal CWD: C:\Users\Sungbin\Documents\GitHub\GaemiGuard
 
 Goal:
-Complete the Stage 3 next work described in docs/handoffs/<file>.md, including code, tests, docs, PR, CI, and main verification.
+Complete the Stage 4 first slice described in docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md, including code, tests, docs, PR, CI, and main verification.
 
 First read:
 - AGENTS.md
 - docs/development-status.md
 - docs/agent-index.md
-- docs/handoffs/<file>.md
+- docs/handoffs/2026-06-07-stage-4-mirofish-first-slice.md
 
 Verification:
 - pnpm docs:agent-check
